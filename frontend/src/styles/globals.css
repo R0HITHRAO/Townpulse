@@ -6,11 +6,6 @@
   html {
     scroll-behavior: smooth;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
-    overflow-x: hidden;
-    height: 100%;
-    width: 100%;
     background-color: #f8fafc;
   }
 
@@ -20,11 +15,7 @@
 
   body {
     @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200;
-    overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
-    overflow-x: hidden;
-    min-height: 100%;
-    width: 100%;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
   }
@@ -149,8 +140,8 @@
 .bg-grid-pattern {
   background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
 }
 
 .dark .bg-grid-pattern {
