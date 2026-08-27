@@ -1,9 +1,11 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { BookmarkProvider } from './context/BookmarkContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
+import { OfflineNotice } from './components/OfflineNotice';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Pages
@@ -21,45 +23,48 @@ import { AccessibilityStatement } from './pages/AccessibilityStatement';
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-          <Header />
-          <EmergencyAlertBanner />
-          <div className="flex-1 flex flex-col">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/map" element={<MapView />} />
-              <Route path="/listings/:id" element={<ListingDetail />} />
-              <Route path="/submit" element={<SubmitListing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/accessibility" element={<AccessibilityStatement />} />
+      <BookmarkProvider>
+        <BrowserRouter>
+          <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+            <OfflineNotice />
+            <Header />
+            <EmergencyAlertBanner />
+            <div className="flex-1 flex flex-col">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/map" element={<MapView />} />
+                <Route path="/listings/:id" element={<ListingDetail />} />
+                <Route path="/submit" element={<SubmitListing />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/accessibility" element={<AccessibilityStatement />} />
 
-              {/* Business Owner Protected Route */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute requireBusiness>
-                    <BusinessDashboard />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Business Owner Protected Route */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute requireBusiness>
+                      <BusinessDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin Protected Route */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+                {/* Admin Protected Route */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </BrowserRouter>
+        </BrowserRouter>
+      </BookmarkProvider>
     </ThemeProvider>
   );
 };
