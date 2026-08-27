@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { getCurrentUser } from '../services/auth';
 import { api, Review, ReviewListResponse } from '../services/api';
 import { StarRating } from './StarRating';
 import { MessageSquare, Star, Trash2, Send, CheckCircle2 } from 'lucide-react';
@@ -10,7 +10,7 @@ interface ReviewSectionProps {
 }
 
 export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
-  const { user } = useAuth();
+  const user = getCurrentUser();
   const [data, setData] = useState<ReviewListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
