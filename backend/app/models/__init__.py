@@ -1,4 +1,5 @@
 # Models package — imports all models for Alembic migration discovery
+from app.models.alert import EmergencyAlert
 from app.models.analytics import Analytics
 from app.models.category import Category
 from app.models.claim import Claim
@@ -15,4 +16,5 @@ __all__ = [
     "Submission",
     "Review",
     "Analytics",
+    "EmergencyAlert",
 ]
