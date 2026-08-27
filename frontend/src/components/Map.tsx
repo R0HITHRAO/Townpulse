@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { Listing } from '../services/api';
-import { Phone, CheckCircle2, Navigation, Star, MapPin } from 'lucide-react';
+import { Phone, CheckCircle2, Star } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { OpenStatusBadge } from './OpenStatusBadge';
 
@@ -24,7 +24,7 @@ const categoryColors: Record<string, string> = {
 };
 
 /**
- * Creates custom circular badge pin for each listing
+ * Creates custom circular badge pin for each listing (Zero API needed)
  */
 function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
   const iconChar = listing.category?.icon || '📍';
@@ -40,9 +40,9 @@ function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
   return L.divIcon({
     className: 'custom-leaflet-div-icon',
     html: html,
-    iconSize: [38, 44],
-    iconAnchor: [19, 44],
-    popupAnchor: [0, -42],
+    iconSize: [34, 40],
+    iconAnchor: [17, 40],
+    popupAnchor: [0, -38],
   });
 }
 
@@ -73,7 +73,7 @@ const AutoFitBounds: React.FC<{ listings: Listing[]; enabled?: boolean }> = ({ l
       map.setView(validCoords[0], 15, { animate: true });
     } else {
       const bounds = L.latLngBounds(validCoords);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15, animate: true });
     }
   }, [listings, enabled, map]);
 
@@ -91,7 +91,7 @@ const FocusSelectedListing: React.FC<{ listings: Listing[]; selectedListingId?: 
     if (!selectedListingId) return;
     const target = listings.find((l) => l.id === selectedListingId);
     if (target && target.lat != null && target.lng != null) {
-      map.flyTo([Number(target.lat), Number(target.lng)], 16, { duration: 1.2 });
+      map.flyTo([Number(target.lat), Number(target.lng)], 15, { duration: 1.0 });
     }
   }, [selectedListingId, listings, map]);
 
@@ -104,19 +104,16 @@ export const Map: React.FC<MapProps> = ({
   zoom = 13,
   selectedListingId,
   onSelectListing,
-  className = 'h-[500px] w-full',
+  className = 'h-[280px] w-full',
   autoFitBounds = true,
 }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
 
-  // Crisp modern CartoDB Positron / Dark Matter tiles for clean street presentation
-  const tileUrl = isDark
-    ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png'
-    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
-
+  // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
+  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   const attribution =
-    '&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
   return (
     <div className={`rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative z-10 ${className}`}>
@@ -127,9 +124,10 @@ export const Map: React.FC<MapProps> = ({
         className="w-full h-full"
       >
         <TileLayer
-          key={tileUrl}
+          key={isDark ? 'dark-osm' : 'light-osm'}
           attribution={attribution}
           url={tileUrl}
+          className={isDark ? 'dark-map-tiles' : ''}
           maxZoom={19}
         />
 
@@ -154,10 +152,10 @@ export const Map: React.FC<MapProps> = ({
               }}
             >
               <Popup>
-                <div className="p-3.5 max-w-[260px] text-slate-900 dark:text-slate-100 space-y-2">
+                <div className="p-3 max-w-[240px] text-slate-900 dark:text-slate-100 space-y-1.5">
                   {/* Thumbnail Image if available */}
                   {l.image_url && (
-                    <div className="w-full h-24 rounded-lg overflow-hidden mb-2 bg-slate-100 dark:bg-slate-800">
+                    <div className="w-full h-20 rounded-lg overflow-hidden mb-1.5 bg-slate-100 dark:bg-slate-800">
                       <img
                         src={l.image_url}
                         alt={l.name}
@@ -173,7 +171,7 @@ export const Map: React.FC<MapProps> = ({
                   <div className="flex items-start justify-between gap-1.5">
                     <Link
                       to={`/listings/${l.id}`}
-                      className="font-extrabold text-sm text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition leading-tight line-clamp-1"
+                      className="font-extrabold text-xs text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition leading-tight line-clamp-1"
                     >
                       {l.name}
                     </Link>
@@ -186,7 +184,7 @@ export const Map: React.FC<MapProps> = ({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <OpenStatusBadge hours={l.hours} size="sm" />
                     {l.category && (
-                      <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-800/60">
+                      <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">
                         {l.category.name}
                       </span>
                     )}
@@ -194,7 +192,7 @@ export const Map: React.FC<MapProps> = ({
 
                   {/* Rating if available */}
                   {l.average_rating ? (
-                    <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                       <span>{l.average_rating.toFixed(1)}</span>
                       <span className="text-[10px] text-slate-400 font-normal">({l.review_count})</span>
@@ -202,16 +200,16 @@ export const Map: React.FC<MapProps> = ({
                   ) : null}
 
                   {/* Address */}
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
                     {l.address}
                   </p>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                  <div className="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-1.5">
                     {l.phone ? (
                       <a
                         href={`tel:${l.phone}`}
-                        className="text-xs text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1 hover:underline"
+                        className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1 hover:underline"
                       >
                         <Phone className="w-3 h-3" /> Call
                       </a>
@@ -221,7 +219,7 @@ export const Map: React.FC<MapProps> = ({
 
                     <Link
                       to={`/listings/${l.id}`}
-                      className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                      className="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline"
                     >
                       View Details →
                     </Link>
