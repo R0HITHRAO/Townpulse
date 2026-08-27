@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.logging import get_logger
 from app.models.category import Category
 from app.models.listing import Listing
+from app.models.review import Review
 from app.models.user import User, UserRole
 from app.schemas.listing import ListingCreate, ListingSearch, ListingUpdate
 
@@ -25,14 +26,48 @@ class ListingService:
     """Service handling all listing search, CRUD, and geospatial operations."""
 
     @staticmethod
-    def get_by_id(db: Session, listing_id: uuid.UUID) -> Listing | None:
-        """Fetch a single listing with category and owner preloaded."""
-        return (
+    def get_by_id(db: Session, listing_id: uuid.UUID) -> dict[str, Any] | None:
+        """Fetch a single listing with category, owner, and reviews stats."""
+        listing = (
             db.query(Listing)
-            .options(joinedload(Listing.category), joinedload(Listing.owner))
+            .options(joinedload(Listing.category), joinedload(Listing.owner), joinedload(Listing.reviews))
             .filter(Listing.id == listing_id)
             .first()
         )
+        if not listing:
+            return None
+
+        reviews = listing.reviews or []
+        review_count = len(reviews)
+        avg_rating = (
+            round(sum(r.rating for r in reviews) / review_count, 1)
+            if review_count > 0
+            else None
+        )
+
+        return {
+            "id": listing.id,
+            "name": listing.name,
+            "description": listing.description,
+            "address": listing.address,
+            "image_url": listing.image_url,
+            "category_id": listing.category_id,
+            "lat": float(listing.lat) if listing.lat is not None else None,
+            "lng": float(listing.lng) if listing.lng is not None else None,
+            "phone": listing.phone,
+            "email": listing.email,
+            "website": listing.website,
+            "hours": listing.hours,
+            "verified": listing.verified,
+            "status": listing.status,
+            "owner_user_id": listing.owner_user_id,
+            "created_at": listing.created_at,
+            "updated_at": listing.updated_at,
+            "category": listing.category,
+            "distance_meters": None,
+            "average_rating": avg_rating,
+            "review_count": review_count,
+        }
 
     @staticmethod
     def search_listings(
@@ -49,7 +84,7 @@ class ListingService:
         Returns:
             Tuple of (list_of_listing_dicts_with_distance, total_count).
         """
-        query = db.query(Listing).options(joinedload(Listing.category))
+        query = db.query(Listing).options(joinedload(Listing.category), joinedload(Listing.reviews))
 
         # Filter by verified only if requested
         if params.verified_only:
@@ -114,11 +149,20 @@ class ListingService:
 
         results = []
         for l in listings:
+            reviews = l.reviews or []
+            review_count = len(reviews)
+            avg_rating = (
+                round(sum(r.rating for r in reviews) / review_count, 1)
+                if review_count > 0
+                else None
+            )
+
             data = {
                 "id": l.id,
                 "name": l.name,
                 "description": l.description,
                 "address": l.address,
+                "image_url": l.image_url,
                 "category_id": l.category_id,
                 "lat": float(l.lat) if l.lat is not None else None,
                 "lng": float(l.lng) if l.lng is not None else None,
@@ -133,6 +177,8 @@ class ListingService:
                 "updated_at": l.updated_at,
                 "category": l.category,
                 "distance_meters": None,
+                "average_rating": avg_rating,
+                "review_count": review_count,
             }
             results.append(data)
 
@@ -150,6 +196,7 @@ class ListingService:
             name=data.name,
             description=data.description,
             address=data.address,
+            image_url=data.image_url,
             category_id=data.category_id,
             lat=data.lat,
             lng=data.lng,
