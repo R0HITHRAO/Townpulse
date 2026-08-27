@@ -7,7 +7,7 @@ import { ListingCard } from '../components/ListingCard';
 import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { api, Category, Listing, SearchParams } from '../services/api';
-import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, Filter } from 'lucide-react';
+import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, Filter, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -55,11 +55,19 @@ export const Home: React.FC = () => {
     }));
   };
 
+  const handleResetFilters = () => {
+    setSelectedCategory(null);
+    setVerifiedOnly(false);
+    setSearchParams({ page: 1, per_page: 20 });
+  };
+
+  const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-900 text-white pt-14 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Subtle decorative background circles */}
+        {/* Decorative background circles */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -86,10 +94,11 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-8 flex-1 w-full">
-        {/* Categories Bar */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex-1 w-full overflow-hidden">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-8 flex-1 w-full space-y-6">
+        {/* Refined Filter & Category Bar */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-sm space-y-3.5">
+          {/* Top Row: Full width Category Slider */}
+          <div className="w-full">
             <CategoryChips
               categories={categories}
               selectedCategoryId={selectedCategory}
@@ -97,27 +106,65 @@ export const Home: React.FC = () => {
             />
           </div>
 
-          {/* Verified Toggle */}
-          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center border-t sm:border-t-0 pt-2 sm:pt-0">
-            <button
-              onClick={() => setVerifiedOnly(!verifiedOnly)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                verifiedOnly
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm'
-                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
-              }`}
-            >
-              <ShieldCheck className={`w-4 h-4 ${verifiedOnly ? 'text-emerald-600' : 'text-gray-400'}`} />
-              <span>{t('verified_only')}</span>
-            </button>
+          {/* Divider */}
+          <div className="border-t border-gray-100" />
 
-            <Link
-              to="/map"
-              className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
-            >
-              <MapIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Map View</span>
-            </Link>
+          {/* Bottom Toolbar: Quick Action Filters & Status */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            {/* Left: Active Filters Summary */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-gray-500 font-medium flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" />
+                <span>Filters:</span>
+              </span>
+
+              {selectedCategoryObj && (
+                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg font-medium border border-blue-200">
+                  <span>{selectedCategoryObj.icon}</span>
+                  <span>{selectedCategoryObj.name}</span>
+                </span>
+              )}
+
+              {verifiedOnly && (
+                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg font-medium border border-emerald-200">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span>Verified Only</span>
+                </span>
+              )}
+
+              {(selectedCategory !== null || verifiedOnly || searchParams.q) && (
+                <button
+                  onClick={handleResetFilters}
+                  className="text-gray-400 hover:text-red-600 font-medium inline-flex items-center gap-1 ml-1 hover:underline transition"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Clear All</span>
+                </button>
+              )}
+            </div>
+
+            {/* Right: Quick Action Toggles */}
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => setVerifiedOnly(!verifiedOnly)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+                  verifiedOnly
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm'
+                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                <ShieldCheck className={`w-3.5 h-3.5 ${verifiedOnly ? 'text-emerald-600' : 'text-gray-400'}`} />
+                <span>{t('verified_only')}</span>
+              </button>
+
+              <Link
+                to="/map"
+                className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+              >
+                <MapIcon className="w-3.5 h-3.5 text-blue-600" />
+                <span>Map View</span>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -128,8 +175,8 @@ export const Home: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                 <span>Local Services</span>
-                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-semibold">
-                  {totalCount}
+                <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full font-bold">
+                  {totalCount} Found
                 </span>
               </h2>
             </div>
@@ -169,7 +216,7 @@ export const Home: React.FC = () => {
                   Full Screen Map →
                 </Link>
               </div>
-              <Map listings={listings} className="h-[420px] shadow-sm" />
+              <Map listings={listings} className="h-[420px] shadow-sm rounded-2xl border border-gray-200 overflow-hidden" />
             </div>
           </div>
         </div>
