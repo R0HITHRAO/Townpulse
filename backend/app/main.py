@@ -12,7 +12,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import admin_router, auth_router, health_router, listings_router
+from app.api import (
+    admin_router,
+    alerts_router,
+    auth_router,
+    health_router,
+    listings_router,
+    reviews_router,
+)
 from app.core.config import settings
 from app.core.database import check_database_connection
 from app.core.logging import configure_logging, get_logger
@@ -52,6 +59,8 @@ def create_app() -> FastAPI:
             "- PostGIS-powered geospatial proximity queries\n"
             "- PostgreSQL full-text search with tsvector\n"
             "- Business claim and verification workflows\n"
+            "- Community reviews and ratings\n"
+            "- Municipal emergency broadcast announcements\n"
             "- Phone OTP and JWT authentication\n"
             "- Built-in rate limiting and caching"
         ),
@@ -80,6 +89,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(listings_router)
+    app.include_router(reviews_router)
+    app.include_router(alerts_router)
     app.include_router(admin_router)
 
     # Global root redirect or info
