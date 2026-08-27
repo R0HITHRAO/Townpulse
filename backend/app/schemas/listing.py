@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 # ─── Category Schemas ─────────────────────────────────────────────────────────
@@ -57,12 +57,19 @@ class ListingBase(BaseModel):
     lat: float | None = Field(None, ge=-90.0, le=90.0, examples=[12.9716])
     lng: float | None = Field(None, ge=-180.0, le=180.0, examples=[77.5946])
     phone: str | None = Field(None, examples=["+1234567890"])
-    email: EmailStr | None = Field(None, examples=["contact@townclinic.org"])
+    email: str | None = Field(None, examples=["contact@townclinic.org"])
     website: str | None = Field(None, examples=["https://townclinic.org"])
     hours: dict[str, str] | None = Field(
         None,
         examples=[{"monday": "9am-5pm", "tuesday": "9am-5pm"}],
     )
+
+    @field_validator("email", "phone", "website", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any) -> Any:
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
 
 class ListingCreate(ListingBase):
@@ -81,9 +88,16 @@ class ListingUpdate(BaseModel):
     lat: float | None = Field(None, ge=-90.0, le=90.0)
     lng: float | None = Field(None, ge=-180.0, le=180.0)
     phone: str | None = None
-    email: EmailStr | None = None
+    email: str | None = None
     website: str | None = None
     hours: dict[str, str] | None = None
+
+    @field_validator("email", "phone", "website", mode="before")
+    @classmethod
+    def empty_str_to_none(cls, v: Any) -> Any:
+        if isinstance(v, str) and not v.strip():
+            return None
+        return v
 
 
 class ListingOut(ListingBase):
