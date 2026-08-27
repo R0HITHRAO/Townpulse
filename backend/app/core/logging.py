@@ -48,7 +48,6 @@ def configure_logging() -> None:
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
     ]
 
     if settings.is_production:
@@ -94,9 +93,5 @@ def get_logger(name: str = __name__) -> structlog.BoundLogger:
 
     Returns:
         Bound structlog logger.
-
-    Example:
-        logger = get_logger(__name__)
-        logger.info("User registered", user_id=str(user.id), email=user.email)
     """
-    return structlog.get_logger(name)
+    return structlog.get_logger()
