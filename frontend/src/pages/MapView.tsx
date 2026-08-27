@@ -37,23 +37,23 @@ export const MapView: React.FC = () => {
   }, [searchQuery, selectedCategory, radius]);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-200">
+    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Top Filter Bar */}
-      <div className="p-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <div className="p-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         {/* Search input */}
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="w-4 h-4 text-gray-400 dark:text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search on map..."
-            className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-2.5 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200"
+              className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -71,13 +71,13 @@ export const MapView: React.FC = () => {
 
         {/* Radius Selector & Mobile Toggle */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700 px-2.5 py-1 rounded-xl">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Radius:</span>
             <select
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="bg-transparent text-xs font-bold text-gray-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
               <option value={5000} className="dark:bg-slate-900">5 km</option>
               <option value={10000} className="dark:bg-slate-900">10 km</option>
@@ -88,11 +88,11 @@ export const MapView: React.FC = () => {
           </div>
 
           {/* Mobile view switch toggle (Map vs List) */}
-          <div className="flex md:hidden bg-gray-100 dark:bg-slate-800 p-0.5 rounded-xl border border-gray-200 dark:border-slate-700">
+          <div className="flex md:hidden bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => setMobileTab('map')}
               className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                mobileTab === 'map' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-gray-600 dark:text-slate-400'
+                mobileTab === 'map' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'
               }`}
             >
               <MapIcon className="w-3.5 h-3.5" />
@@ -101,7 +101,7 @@ export const MapView: React.FC = () => {
             <button
               onClick={() => setMobileTab('list')}
               className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                mobileTab === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-gray-600 dark:text-slate-400'
+                mobileTab === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -115,11 +115,11 @@ export const MapView: React.FC = () => {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* Left: Scrollable List Sidebar */}
         <div
-          className={`w-full md:w-96 lg:w-[440px] bg-slate-50 dark:bg-slate-900/90 border-r border-gray-200 dark:border-slate-800 overflow-y-auto p-4 space-y-3 z-10 ${
+          className={`w-full md:w-96 lg:w-[440px] bg-slate-50 dark:bg-slate-900/90 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-3 z-10 ${
             mobileTab === 'list' ? 'block' : 'hidden md:block'
           }`}
         >
-          <div className="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
             <span>Nearby Results</span>
             <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full font-bold">
               {listings.length} Found
@@ -129,7 +129,7 @@ export const MapView: React.FC = () => {
           {loading ? (
             <LoadingSpinner message="Updating map markers..." />
           ) : listings.length === 0 ? (
-            <div className="p-8 text-center bg-white dark:bg-slate-800/80 rounded-2xl border border-gray-200 dark:border-slate-700 text-xs text-gray-500 dark:text-slate-400">
+            <div className="p-8 text-center bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
               No services found within this radius.
             </div>
           ) : (
