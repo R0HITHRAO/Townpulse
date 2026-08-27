@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation } from 'lucide-react';
+import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation, Star } from 'lucide-react';
 import { Listing } from '../services/api';
 
 interface ListingCardProps {
@@ -21,9 +21,23 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group hover:border-blue-400 dark:hover:border-blue-600 animate-fade-in backdrop-blur-xs">
+    <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group hover:border-blue-400 dark:hover:border-blue-600 animate-fade-in backdrop-blur-xs overflow-hidden">
       <div>
-        {/* Header: Name + Distance / Verified Badge */}
+        {/* Optional Thumbnail Image */}
+        {listing.image_url && (
+          <div className="w-full h-36 rounded-xl overflow-hidden mb-3.5 bg-slate-100 dark:bg-slate-800 relative">
+            <img
+              src={listing.image_url}
+              alt={listing.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
+        {/* Header: Name + Verified / Community Badge */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link
             to={`/listings/${listing.id}`}
@@ -46,7 +60,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           )}
         </div>
 
-        {/* Category & Distance Pills */}
+        {/* Category, Distance, and Rating Pills */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
           {listing.category && (
             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 px-2.5 py-0.5 rounded-lg">
@@ -58,6 +72,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               📍 {distanceText}
             </span>
           )}
+          {listing.average_rating ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800/60">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span>{listing.average_rating.toFixed(1)}</span>
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">({listing.review_count})</span>
+            </span>
+          ) : null}
         </div>
 
         {/* Description */}
