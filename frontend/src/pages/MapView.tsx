@@ -1,11 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Map } from '../components/Map';
 import { ListingCard } from '../components/ListingCard';
 import { CategoryChips } from '../components/CategoryChips';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { api, Category, Listing } from '../services/api';
-import { Search, SlidersHorizontal, Map as MapIcon, List, X } from 'lucide-react';
+import { getOpenStatus } from '../utils/businessHours';
+import {
+  Search,
+  SlidersHorizontal,
+  Map as MapIcon,
+  List,
+  Columns,
+  X,
+  Target,
+  Clock,
+  Sparkles,
+} from 'lucide-react';
+
+type LayoutMode = 'split' | 'map' | 'list';
 
 export const MapView: React.FC = () => {
   const { t } = useTranslation();
@@ -15,8 +28,9 @@ export const MapView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [radius, setRadius] = useState(15000);
+  const [openOnly, setOpenOnly] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
-  const [mobileTab, setMobileTab] = useState<'map' | 'list'>('map');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(console.error);
@@ -31,29 +45,40 @@ export const MapView: React.FC = () => {
         radius: radius,
         per_page: 50,
       })
-      .then((res) => setListings(res.items))
+      .then((res) => {
+        setListings(res.items);
+        if (res.items.length > 0 && !selectedListing) {
+          setSelectedListing(res.items[0]);
+        }
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [searchQuery, selectedCategory, radius]);
 
+  // Filter listings by open status if enabled
+  const displayedListings = useMemo(() => {
+    if (!openOnly) return listings;
+    return listings.filter((l) => getOpenStatus(l.hours).isOpen);
+  }, [listings, openOnly]);
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-      {/* Top Filter Bar */}
-      <div className="p-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      {/* Top Filter & Toolbar */}
+      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         {/* Search input */}
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="w-4 h-4 text-slate-400 dark:text-slate-400 absolute left-3 top-2.5" />
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search on map..."
+            placeholder="Search verified services..."
             className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-2.5 text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -61,7 +86,7 @@ export const MapView: React.FC = () => {
         </div>
 
         {/* Categories Bar */}
-        <div className="hidden lg:flex items-center flex-1 max-w-xl overflow-hidden">
+        <div className="hidden xl:flex items-center flex-1 max-w-lg overflow-hidden">
           <CategoryChips
             categories={categories}
             selectedCategoryId={selectedCategory}
@@ -69,8 +94,22 @@ export const MapView: React.FC = () => {
           />
         </div>
 
-        {/* Radius Selector & Mobile Toggle */}
-        <div className="flex items-center gap-3">
+        {/* Actions, Filters & View Switcher */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          {/* Open Now Toggle */}
+          <button
+            onClick={() => setOpenOnly(!openOnly)}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition ${
+              openOnly
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Open Now</span>
+          </button>
+
+          {/* Radius Selector */}
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Radius:</span>
@@ -83,82 +122,121 @@ export const MapView: React.FC = () => {
               <option value={10000} className="dark:bg-slate-900">10 km</option>
               <option value={15000} className="dark:bg-slate-900">15 km</option>
               <option value={25000} className="dark:bg-slate-900">25 km</option>
-              <option value={50000} className="dark:bg-slate-900">50 km</option>
             </select>
           </div>
 
-          {/* Mobile view switch toggle (Map vs List) */}
-          <div className="flex md:hidden bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
+          {/* Layout Mode Switcher (Split, Map, List) */}
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
             <button
-              onClick={() => setMobileTab('map')}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                mobileTab === 'map' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'
+              onClick={() => setLayoutMode('split')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                layoutMode === 'split'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
+              title="Split View (List + Map)"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Split</span>
+            </button>
+
+            <button
+              onClick={() => setLayoutMode('map')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                layoutMode === 'map'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Full Map View"
             >
               <MapIcon className="w-3.5 h-3.5" />
-              <span>Map</span>
+              <span className="hidden sm:inline">Map</span>
             </button>
+
             <button
-              onClick={() => setMobileTab('list')}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                mobileTab === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-600 dark:text-slate-400'
+              onClick={() => setLayoutMode('list')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                layoutMode === 'list'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
+              title="List Grid View"
             >
               <List className="w-3.5 h-3.5" />
-              <span>List ({listings.length})</span>
+              <span className="hidden sm:inline">List ({displayedListings.length})</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Map + List Split View */}
+      {/* Main Content Body */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {/* Left: Scrollable List Sidebar */}
-        <div
-          className={`w-full md:w-96 lg:w-[440px] bg-slate-50 dark:bg-slate-900/90 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-3 z-10 ${
-            mobileTab === 'list' ? 'block' : 'hidden md:block'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-            <span>Nearby Results</span>
-            <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full font-bold">
-              {listings.length} Found
-            </span>
-          </div>
-
-          {loading ? (
-            <LoadingSpinner message="Updating map markers..." />
-          ) : listings.length === 0 ? (
-            <div className="p-8 text-center bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-              No services found within this radius.
+        {/* Left: Scrollable List Sidebar (Visible in 'split' or 'list' mode) */}
+        {(layoutMode === 'split' || layoutMode === 'list') && (
+          <div
+            className={`${
+              layoutMode === 'list'
+                ? 'w-full max-w-5xl mx-auto p-6 overflow-y-auto'
+                : 'w-full md:w-[420px] lg:w-[460px] bg-slate-50 dark:bg-slate-900/90 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-3 z-10'
+            }`}
+          >
+            <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <span>Verified Local Services</span>
+              </span>
+              <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full font-bold">
+                {displayedListings.length} Found
+              </span>
             </div>
-          ) : (
-            listings.map((l) => (
-              <div
-                key={l.id}
-                onClick={() => {
-                  setSelectedListing(l);
-                  setMobileTab('map');
-                }}
-                className={`cursor-pointer transition-all ${
-                  selectedListing?.id === l.id ? 'ring-2 ring-blue-500 rounded-2xl' : ''
-                }`}
-              >
-                <ListingCard listing={l} />
-              </div>
-            ))
-          )}
-        </div>
 
-        {/* Right: Full Interactive Map */}
-        <div className={`flex-1 h-full min-h-[300px] relative ${mobileTab === 'map' ? 'block' : 'hidden md:block'}`}>
-          <Map
-            listings={listings}
-            selectedListingId={selectedListing?.id}
-            onSelectListing={(l) => setSelectedListing(l)}
-            className="h-full w-full rounded-none border-none"
-          />
-        </div>
+            {loading ? (
+              <LoadingSpinner message="Locating community services..." />
+            ) : displayedListings.length === 0 ? (
+              <div className="p-10 text-center bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                <p className="font-semibold">No services found in this search area.</p>
+                <p className="text-[11px] text-slate-400">Try expanding the search radius or resetting category filters.</p>
+              </div>
+            ) : (
+              <div className={layoutMode === 'list' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+                {displayedListings.map((l) => (
+                  <div
+                    key={l.id}
+                    onMouseEnter={() => setSelectedListing(l)}
+                    onClick={() => setSelectedListing(l)}
+                    className={`cursor-pointer transition-all ${
+                      selectedListing?.id === l.id && layoutMode === 'split'
+                        ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
+                        : ''
+                    }`}
+                  >
+                    <ListingCard listing={l} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Right: Full Interactive Map (Visible in 'split' or 'map' mode) */}
+        {(layoutMode === 'split' || layoutMode === 'map') && (
+          <div className="flex-1 h-full min-h-[300px] relative">
+            <Map
+              listings={displayedListings}
+              selectedListingId={selectedListing?.id}
+              onSelectListing={(l) => setSelectedListing(l)}
+              className="h-full w-full rounded-none border-none"
+              autoFitBounds={true}
+            />
+
+            {/* Quick Floating Badge for Selected Listing in Full Map Mode */}
+            {layoutMode === 'map' && selectedListing && (
+              <div className="absolute bottom-6 left-6 right-6 max-w-sm z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-3 animate-slide-up">
+                <ListingCard listing={selectedListing} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
