@@ -13,14 +13,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('townpulse_theme') as Theme;
-    return saved || 'system';
+    try {
+      const saved = localStorage.getItem('townpulse_theme') as Theme;
+      return saved || 'system';
+    } catch {
+      return 'system';
+    }
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const applyTheme = () => {
@@ -35,9 +40,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (isDark) {
         root.classList.add('dark');
+        body.classList.add('dark');
+        root.style.colorScheme = 'dark';
         setResolvedTheme('dark');
       } else {
         root.classList.remove('dark');
+        body.classList.remove('dark');
+        root.style.colorScheme = 'light';
         setResolvedTheme('light');
       }
     };
@@ -56,7 +65,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('townpulse_theme', newTheme);
+    try {
+      localStorage.setItem('townpulse_theme', newTheme);
+    } catch {}
   };
 
   const toggleTheme = () => {
