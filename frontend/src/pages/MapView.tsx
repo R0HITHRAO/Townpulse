@@ -214,11 +214,11 @@ export const MapView: React.FC = () => {
 
           {/* Compact Sticky Companion Map (Right Side) */}
           {(layoutMode === 'split' || layoutMode === 'map') && (
-            <div className={`${layoutMode === 'map' ? 'w-full h-[650px]' : 'w-full lg:w-[380px] xl:w-[420px] flex-shrink-0'}`}>
-              <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-3' : 'h-full'}`}>
+            <div className={`${layoutMode === 'map' ? 'w-full h-[550px]' : 'w-full lg:w-[320px] xl:w-[340px] flex-shrink-0'}`}>
+              <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
                 {layoutMode === 'split' && (
                   <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    <span>Neighborhood Map</span>
+                    <span>Quick Map</span>
                     <button
                       onClick={() => setLayoutMode('map')}
                       className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
@@ -228,12 +228,12 @@ export const MapView: React.FC = () => {
                   </div>
                 )}
 
-                <div className={`${layoutMode === 'split' ? 'h-[360px]' : 'h-full'} rounded-3xl overflow-hidden shadow-md border border-slate-200 dark:border-slate-800`}>
+                <div className={`${layoutMode === 'split' ? 'h-[240px]' : 'h-full'} rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800`}>
                   <Map
                     listings={displayedListings}
                     selectedListingId={selectedListing?.id}
                     onSelectListing={(l) => setSelectedListing(l)}
-                    className="h-full w-full rounded-3xl border-none"
+                    className="h-full w-full rounded-2xl border-none"
                     autoFitBounds={true}
                   />
                 </div>
