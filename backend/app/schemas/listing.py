@@ -53,6 +53,7 @@ class ListingBase(BaseModel):
         min_length=5,
         examples=["123 Main St, Smalltown, ST 12345"],
     )
+    image_url: str | None = Field(None, examples=["https://images.unsplash.com/photo-storefront"])
     category_id: int | None = Field(None, examples=[1])
     lat: float | None = Field(None, ge=-90.0, le=90.0, examples=[12.9716])
     lng: float | None = Field(None, ge=-180.0, le=180.0, examples=[77.5946])
@@ -64,7 +65,7 @@ class ListingBase(BaseModel):
         examples=[{"monday": "9am-5pm", "tuesday": "9am-5pm"}],
     )
 
-    @field_validator("email", "phone", "website", mode="before")
+    @field_validator("email", "phone", "website", "image_url", mode="before")
     @classmethod
     def empty_str_to_none(cls, v: Any) -> Any:
         if isinstance(v, str) and not v.strip():
@@ -84,6 +85,7 @@ class ListingUpdate(BaseModel):
     name: str | None = Field(None, min_length=2, max_length=255)
     description: str | None = None
     address: str | None = None
+    image_url: str | None = None
     category_id: int | None = None
     lat: float | None = Field(None, ge=-90.0, le=90.0)
     lng: float | None = Field(None, ge=-180.0, le=180.0)
@@ -92,7 +94,7 @@ class ListingUpdate(BaseModel):
     website: str | None = None
     hours: dict[str, str] | None = None
 
-    @field_validator("email", "phone", "website", mode="before")
+    @field_validator("email", "phone", "website", "image_url", mode="before")
     @classmethod
     def empty_str_to_none(cls, v: Any) -> Any:
         if isinstance(v, str) and not v.strip():
@@ -111,6 +113,8 @@ class ListingOut(ListingBase):
     updated_at: datetime
     category: CategoryOut | None = None
     distance_meters: float | None = None  # Populated on geospatial queries
+    average_rating: float | None = None
+    review_count: int = 0
 
     model_config = {"from_attributes": True}
 
