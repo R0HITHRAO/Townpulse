@@ -336,7 +336,7 @@ export const ListingDetail: React.FC = () => {
                   listings={[listing]}
                   center={[Number(listing.lat), Number(listing.lng)]}
                   zoom={15}
-                  className="h-72 shadow-xs rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                  className="h-56 shadow-xs rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
                 />
               </div>
             )}
