@@ -1,0 +1,44 @@
+services:
+  # ─── FastAPI Backend Web Service ───────────────────────────────────────────
+  - type: web
+    name: townpulse-backend
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt && alembic upgrade head && python scripts/seed.py"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: townpulse-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: townpulse-redis
+          property: connectionString
+
+  # ─── Redis Caching & Rate Limiting ─────────────────────────────────────────
+  - type: redis
+    name: townpulse-redis
+    region: oregon
+    plan: free
+    ipAllowList: []
+
+databases:
+  # ─── PostgreSQL Database with PostGIS ──────────────────────────────────────
+  - name: townpulse-postgres
+    region: oregon
+    plan: free
+    postgresMajorVersion: 15
