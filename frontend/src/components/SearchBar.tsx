@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { Search, Navigation, SlidersHorizontal } from 'lucide-react';
+import { Search, Navigation, SlidersHorizontal, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
-  onSearch: (params: { q: string; radius?: number; lat?: number; lng?: number }) => void;
+  onSearch: (params: { q: string; radius?: number; lat?: number; lng?: number; openOnly?: boolean }) => void;
   initialQuery?: string;
   initialRadius?: number;
+  initialOpenOnly?: boolean;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   initialQuery = '',
   initialRadius = 10000,
+  initialOpenOnly = false,
 }) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
   const [radius, setRadius] = useState(initialRadius);
+  const [openOnly, setOpenOnly] = useState(initialOpenOnly);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
@@ -30,7 +33,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserLocation(coords);
         setLocating(false);
-        onSearch({ q: query, radius, lat: coords.lat, lng: coords.lng });
+        onSearch({ q: query, radius, lat: coords.lat, lng: coords.lng, openOnly });
       },
       (err) => {
         console.warn('Geolocation error:', err);
@@ -41,6 +44,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     );
   };
 
+  const handleToggleOpenOnly = () => {
+    const next = !openOnly;
+    setOpenOnly(next);
+    onSearch({
+      q: query,
+      radius,
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
+      openOnly: next,
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch({
@@ -48,6 +63,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       radius,
       lat: userLocation?.lat,
       lng: userLocation?.lng,
+      openOnly,
     });
   };
 
@@ -68,6 +84,22 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800 pt-2 sm:pt-0 sm:pl-3">
+          {/* Open Now Toggle Button */}
+          <button
+            type="button"
+            onClick={handleToggleOpenOnly}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
+              openOnly
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+            title="Filter services open right now"
+            aria-label="Toggle Open Now filter"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Open Now</span>
+          </button>
+
           {/* Radius Selector */}
           <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
             <SlidersHorizontal className="w-3.5 h-3.5" />
