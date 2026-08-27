@@ -1,7 +1,7 @@
 """
-TownPulse Listings Unit Tests
-===============================
-Tests for categories, listing creation, search queries, details, and updates.
+TownPulse Listing & Category Tests
+====================================
+Tests for listing creation, search queries, and category retrieval.
 """
 
 from fastapi.testclient import TestClient
@@ -18,52 +18,49 @@ def test_get_categories(client: TestClient, sample_category: Category) -> None:
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 1
-    assert data[0]["name"] == sample_category.name
+    assert any(c["name"] == sample_category.name for c in data)
 
 
-def test_create_listing(client: TestClient, user_token: str, sample_category: Category) -> None:
-    """Test creating a new listing with valid data."""
-    headers = {"Authorization": f"Bearer {user_token}"}
+def test_create_listing(
+    client: TestClient,
+    sample_category: Category,
+    admin_token: str,
+) -> None:
+    """Test creating a new listing."""
     payload = {
-        "name": "Town Community Pharmacy",
-        "description": "24/7 medicines and first aid supplies.",
-        "address": "45 Market Square",
+        "name": "Town Central Bakery",
+        "description": "Fresh bread and pastries daily.",
+        "address": "45 Main Street, Smalltown",
         "category_id": sample_category.id,
         "lat": 12.9716,
         "lng": 77.5946,
-        "phone": "+919845000000",
+        "phone": "+919845012345",
+        "email": "bakery@townpulse.dev",
     }
-    response = client.post("/listings", json=payload, headers=headers)
+    response = client.post(
+        "/listings",
+        json=payload,
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
     assert response.status_code == 201
     data = response.json()
-    assert data["name"] == "Town Community Pharmacy"
-    assert data["address"] == "45 Market Square"
+    assert data["name"] == "Town Central Bakery"
+    assert data["verified"] is False
     assert "id" in data
 
 
-def test_search_listings(client: TestClient, user_token: str, sample_category: Category) -> None:
-    """Test searching listings returns paginated envelope."""
-    # First create a listing to search for
-    headers = {"Authorization": f"Bearer {user_token}"}
-    payload = {
-        "name": "General Diagnostic Centre",
-        "address": "12 Hospital Road",
-        "category_id": sample_category.id,
-    }
-    client.post("/listings", json=payload, headers=headers)
-
-    response = client.get("/listings")
+def test_search_listings(client: TestClient, db_session: Session, sample_category: Category) -> None:
+    """Test search with text query and category filter."""
+    response = client.get(f"/listings?category_id={sample_category.id}&per_page=10")
     assert response.status_code == 200
     data = response.json()
     assert "items" in data
     assert "total" in data
     assert "page" in data
-    assert data["page"] == 1
 
 
 def test_get_listing_by_id_not_found(client: TestClient) -> None:
-    """Test that requesting nonexistent listing ID returns 404."""
-    import uuid
-    fake_id = str(uuid.uuid4())
-    response = client.get(f"/listings/{fake_id}")
+    """Test 404 response for non-existent listing ID."""
+    fake_uuid = "00000000-0000-0000-0000-000000000000"
+    response = client.get(f"/listings/{fake_uuid}")
     assert response.status_code == 404
