@@ -1,0 +1,75 @@
+# ============================================
+# TownPulse — Root .gitignore
+# ============================================
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.Python
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+*.whl
+
+# ----- Node.js -----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+
+# ----- Environment & Secrets -----
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ----- IDE & Editors -----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ----- Docker -----
+docker-compose.override.yml
+
+# ----- Testing & Coverage -----
+htmlcov/
+.coverage
+.coverage.*
+coverage/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ----- Build Outputs -----
+frontend/dist/
+backend/staticfiles/
+*.log
+
+# ----- OS Files -----
+*.DS_Store
+ehthumbs.db
+Desktop.ini
+
+# ----- Alembic -----
+# Keep migration files tracked, but ignore temp
+*.pyc
+
+# ----- Misc -----
+*.bak
+*.tmp
+*.temp
+.cache/
