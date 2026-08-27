@@ -253,7 +253,7 @@ export const Home: React.FC = () => {
                   Full Screen Map →
                 </Link>
               </div>
-              <Map listings={displayedListings} className="h-[300px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
+              <Map listings={displayedListings} className="h-[220px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
             </div>
           </div>
         </div>
