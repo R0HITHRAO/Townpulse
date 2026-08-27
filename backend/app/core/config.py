@@ -8,7 +8,6 @@ Copy .env.example to .env and fill in your values.
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, validator
 from pydantic_settings import BaseSettings
 
 
@@ -32,7 +31,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "townpulse"
-    POSTGRES_PASSWORD: str
+    POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = "townpulse"
 
     # ─── Redis ──────────────────────────────────────────────
@@ -64,12 +63,17 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = True
 
     # ─── CORS ───────────────────────────────────────────────
-    CORS_ORIGINS: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,*"
 
     @property
     def cors_origins_list(self) -> list[str]:
-        """Parse comma-separated CORS origins into a list."""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        """Parse comma-separated CORS origins into a list with wildcard and multi-origin support."""
+        if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == "*":
+            return ["*"]
+        origins = [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        if "*" in origins:
+            return ["*"]
+        return origins
 
     # ─── Storage ────────────────────────────────────────────
     STORAGE_PROVIDER: Literal["local", "s3"] = "local"
