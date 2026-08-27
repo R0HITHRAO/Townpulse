@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <meta name="theme-color" content="#2563eb" />
     <meta name="description" content="TownPulse — Local Resource & Services Finder for Small Towns. Discover verified clinics, mechanics, shelters, food, and community volunteers." />
     
@@ -11,6 +11,21 @@
     <meta property="og:title" content="TownPulse — Local Services Finder" />
     <meta property="og:description" content="Verified directory of essential local resources for small towns." />
     <meta property="og:type" content="website" />
+    
+    <!-- Early theme initialization to prevent Flash of Light Theme -->
+    <script>
+      (function() {
+        try {
+          const theme = localStorage.getItem('townpulse_theme') || 'system';
+          const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     
     <!-- Leaflet Map CSS -->
     <link
@@ -25,13 +40,13 @@
 
     <title>TownPulse — Local Services Finder</title>
   </head>
-  <body class="bg-gray-50 text-gray-900 antialiased font-sans">
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased font-sans transition-colors duration-200 overflow-x-hidden min-h-screen">
     <!-- Accessibility: Skip Link -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-blue-600 focus:text-white focus:p-3 focus:rounded-md">
       Skip to main content
     </a>
     
-    <div id="root"></div>
+    <div id="root" class="min-h-screen flex flex-col"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
