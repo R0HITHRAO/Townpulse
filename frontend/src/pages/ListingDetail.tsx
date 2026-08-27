@@ -16,6 +16,8 @@ import {
   Flag,
   ArrowLeft,
   Navigation,
+  Share2,
+  Check,
 } from 'lucide-react';
 
 export const ListingDetail: React.FC = () => {
@@ -26,6 +28,7 @@ export const ListingDetail: React.FC = () => {
   const [claimOpen, setClaimOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const fetchListing = () => {
     if (!id) return;
@@ -40,6 +43,25 @@ export const ListingDetail: React.FC = () => {
   useEffect(() => {
     fetchListing();
   }, [id]);
+
+  const handleShare = async () => {
+    if (!listing) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${listing.name} on TownPulse`,
+          text: `Check out ${listing.name} in our local directory.`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        // Fallback to copy
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,37 +81,56 @@ export const ListingDetail: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto py-16 px-4 text-center">
         <h2 className="text-xl font-bold text-gray-900 mb-2">Listing not found</h2>
-        <Link to="/" className="text-sm text-blue-600 hover:underline">
-          ← Return to Home
+        <Link to="/" className="text-sm text-blue-600 hover:underline font-semibold">
+          ← Return to Directory
         </Link>
       </div>
     );
   }
 
-  // Google Maps / OpenStreetMap directions link
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    listing.address
-  )}`;
+  // Directions link
+  const directionsUrl = listing.lat && listing.lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(listing.address)}`;
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back navigation */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 transition"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Listings
-        </Link>
+        {/* Navigation bar */}
+        <div className="flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-blue-600 transition bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-2xs"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Listings
+          </Link>
+
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-blue-600 transition bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-gray-50"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-600">Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-3.5 h-3.5 text-gray-500" />
+                <span>Share</span>
+              </>
+            )}
+          </button>
+        </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-10 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl border border-gray-200/90 p-6 sm:p-10 shadow-sm space-y-6">
           {/* Header row */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
-            <div>
+            <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap mb-2">
                 {listing.category && (
-                  <span className="text-xs font-semibold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                  <span className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 px-3 py-1 rounded-full">
                     {listing.category.icon} {listing.category.name}
                   </span>
                 )}
@@ -113,7 +154,7 @@ export const ListingDetail: React.FC = () => {
             {!listing.owner_user_id && (
               <button
                 onClick={() => setClaimOpen(true)}
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex-shrink-0"
+                className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex-shrink-0"
               >
                 <ShieldCheck className="w-4 h-4" />
                 Claim This Business
@@ -124,7 +165,7 @@ export const ListingDetail: React.FC = () => {
           {/* Description */}
           {listing.description && (
             <div>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">About</h2>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">About this Service</h2>
               <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
                 {listing.description}
               </p>
@@ -136,22 +177,22 @@ export const ListingDetail: React.FC = () => {
             {listing.phone && (
               <a
                 href={`tel:${listing.phone}`}
-                className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-emerald-50 text-gray-800 hover:text-emerald-700 rounded-2xl border border-gray-200 transition text-center gap-1"
+                className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-emerald-50 text-gray-800 hover:text-emerald-700 rounded-2xl border border-gray-200/80 transition text-center gap-1.5 group"
               >
-                <Phone className="w-5 h-5 text-emerald-600" />
-                <span className="text-xs font-bold">Call</span>
-                <span className="text-[11px] text-gray-500 truncate max-w-full">{listing.phone}</span>
+                <Phone className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition" />
+                <span className="text-xs font-bold">Call Service</span>
+                <span className="text-[11px] text-gray-500 truncate max-w-full font-mono">{listing.phone}</span>
               </a>
             )}
 
             {listing.email && (
               <a
                 href={`mailto:${listing.email}`}
-                className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-blue-50 text-gray-800 hover:text-blue-700 rounded-2xl border border-gray-200 transition text-center gap-1"
+                className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-blue-50 text-gray-800 hover:text-blue-700 rounded-2xl border border-gray-200/80 transition text-center gap-1.5 group"
               >
-                <Mail className="w-5 h-5 text-blue-600" />
-                <span className="text-xs font-bold">Email</span>
-                <span className="text-[11px] text-gray-500 truncate max-w-full">Send message</span>
+                <Mail className="w-5 h-5 text-blue-600 group-hover:scale-110 transition" />
+                <span className="text-xs font-bold">Send Email</span>
+                <span className="text-[11px] text-gray-500 truncate max-w-full">{listing.email}</span>
               </a>
             )}
 
@@ -160,11 +201,11 @@ export const ListingDetail: React.FC = () => {
                 href={listing.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-purple-50 text-gray-800 hover:text-purple-700 rounded-2xl border border-gray-200 transition text-center gap-1"
+                className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-purple-50 text-gray-800 hover:text-purple-700 rounded-2xl border border-gray-200/80 transition text-center gap-1.5 group"
               >
-                <Globe className="w-5 h-5 text-purple-600" />
+                <Globe className="w-5 h-5 text-purple-600 group-hover:scale-110 transition" />
                 <span className="text-xs font-bold">Website</span>
-                <span className="text-[11px] text-gray-500 truncate max-w-full">Visit site</span>
+                <span className="text-[11px] text-gray-500 truncate max-w-full">Visit official site</span>
               </a>
             )}
 
@@ -172,33 +213,38 @@ export const ListingDetail: React.FC = () => {
               href={directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-3.5 bg-gray-50 hover:bg-amber-50 text-gray-800 hover:text-amber-700 rounded-2xl border border-gray-200 transition text-center gap-1"
+              className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-amber-50 text-gray-800 hover:text-amber-700 rounded-2xl border border-gray-200/80 transition text-center gap-1.5 group"
             >
-              <Navigation className="w-5 h-5 text-amber-600" />
-              <span className="text-xs font-bold">Directions</span>
-              <span className="text-[11px] text-gray-500 truncate max-w-full">Open Maps</span>
+              <Navigation className="w-5 h-5 text-amber-600 group-hover:scale-110 transition" />
+              <span className="text-xs font-bold">Get Directions</span>
+              <span className="text-[11px] text-gray-500 truncate max-w-full">Open in Maps</span>
             </a>
           </div>
 
-          {/* Location & Address */}
-          <div className="space-y-3 pt-2">
+          {/* Location & Timings */}
+          <div className="space-y-4 pt-2">
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Location & Timings</h2>
-            <div className="flex items-start gap-2 text-sm text-gray-700">
-              <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-              <span>{listing.address}</span>
+            <div className="flex items-start gap-2.5 text-sm text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-200/60">
+              <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="font-semibold block text-gray-900">Physical Address</span>
+                <span className="text-gray-600 text-xs sm:text-sm">{listing.address}</span>
+              </div>
             </div>
 
             {listing.hours && (
-              <div className="bg-slate-50 p-4 rounded-2xl border border-gray-100 flex items-start gap-3">
-                <Clock className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-gray-700 space-y-1">
-                  <span className="font-semibold block text-gray-900">Operating Timings</span>
-                  {Object.entries(listing.hours).map(([day, time]) => (
-                    <div key={day} className="flex gap-2">
-                      <span className="capitalize text-gray-500">{day.replace('_', ' ')}:</span>
-                      <span className="font-medium text-gray-900">{time}</span>
-                    </div>
-                  ))}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-gray-200/60 flex items-start gap-3">
+                <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-gray-700 space-y-1.5 flex-1">
+                  <span className="font-semibold block text-gray-900">Opening Hours</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {Object.entries(listing.hours).map(([day, time]) => (
+                      <div key={day} className="flex justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-200/60">
+                        <span className="capitalize text-gray-500 font-medium">{day.replace('_', ' ')}</span>
+                        <span className="font-semibold text-gray-900">{time}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -207,54 +253,56 @@ export const ListingDetail: React.FC = () => {
           {/* Mini Map */}
           {listing.lat && listing.lng && (
             <div className="pt-2">
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Map Location</h2>
               <Map
                 listings={[listing]}
                 center={[Number(listing.lat), Number(listing.lng)]}
                 zoom={15}
-                className="h-64 shadow-xs"
+                className="h-72 shadow-xs rounded-2xl border border-gray-200 overflow-hidden"
               />
             </div>
           )}
 
           {/* Report Footer */}
-          <div className="border-t border-gray-100 pt-4 flex items-center justify-between text-xs text-gray-400">
+          <div className="border-t border-gray-100 pt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
             <span>Last updated: {new Date(listing.updated_at).toLocaleDateString()}</span>
             <button
               onClick={() => setReportOpen(true)}
               className="text-gray-500 hover:text-red-600 flex items-center gap-1 font-medium transition"
             >
-              <Flag className="w-3.5 h-3.5" /> Report Inaccurate Information
+              <Flag className="w-3.5 h-3.5 text-gray-400 hover:text-red-600" />
+              <span>Report Incorrect Information</span>
             </button>
           </div>
         </div>
 
         {/* Report Modal */}
         {reportOpen && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
-              <h3 className="text-base font-bold text-gray-900">Report Listing</h3>
-              <p className="text-xs text-gray-500">
-                Please describe the issue (e.g. permanently closed, incorrect phone number, fraudulent listing).
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4">
+              <h3 className="text-lg font-bold text-gray-900">Report Inaccurate Listing</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Please describe the issue (e.g. permanently closed, incorrect phone number, wrong address). Our moderators will investigate.
               </p>
               <textarea
                 rows={4}
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Details of the issue..."
-                className="w-full p-3 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500"
+                placeholder="Describe the issue in detail..."
+                className="w-full p-3 text-xs rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 outline-none"
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setReportOpen(false)}
-                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleReport}
-                  className="px-4 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                  className="px-4 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm"
                 >
                   Submit Report
                 </button>
