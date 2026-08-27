@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # ─── Application ────────────────────────────────────────
     APP_NAME: str = "TownPulse"
-    APP_VERSION: str = "0.1.0"
+    APP_VERSION: str = "0.2.0"
     APP_ENV: Literal["development", "staging", "production"] = "development"
     DEBUG: bool = True
 
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # ─── OTP / SMS ──────────────────────────────────────────
-    OTP_PROVIDER: Literal["mock", "twilio"] = "mock"
+    OTP_PROVIDER: Literal["mock", "twilio", "msg91"] = "mock"
     OTP_EXPIRE_MINUTES: int = 10
     OTP_MAX_REQUESTS_PER_HOUR: int = 5
 
@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_PHONE_NUMBER: str = ""
+
+    # MSG91 credentials (optional — required when OTP_PROVIDER=msg91)
+    MSG91_AUTH_KEY: str = ""
+    MSG91_SENDER_ID: str = "TWNPUL"
+    MSG91_TEMPLATE_ID: str = ""
 
     # ─── Email ──────────────────────────────────────────────
     EMAIL_PROVIDER: Literal["mock", "sendgrid", "smtp"] = "mock"
