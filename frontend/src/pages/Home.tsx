@@ -6,6 +6,7 @@ import { CategoryChips } from '../components/CategoryChips';
 import { ListingCard } from '../components/ListingCard';
 import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { AnimatedBackground } from '../components/AnimatedBackground';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
@@ -64,15 +65,14 @@ export const Home: React.FC = () => {
   const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-200">
-      {/* Hero Section with animated floating aura */}
-      <section className="bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-950 dark:from-slate-900 dark:via-blue-950 dark:to-slate-950 text-white pt-14 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200">
-        {/* Animated background blobs */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/15 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none animate-float" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-400/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative transition-colors duration-200 overflow-x-hidden">
+      {/* Live Animated Background with Floating Particles & Ambient Glow */}
+      <AnimatedBackground />
 
+      {/* Hero Section */}
+      <section className="bg-gradient-to-b from-blue-700 via-blue-800 to-indigo-950 dark:from-slate-900/90 dark:via-blue-950/80 dark:to-slate-950 text-white pt-14 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200 z-10 backdrop-blur-xs">
         <div className="max-w-5xl mx-auto text-center relative z-10 animate-slide-up">
-          <div className="inline-flex items-center gap-2 bg-white/10 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-100 dark:text-blue-200 mb-6 border border-white/15 dark:border-white/10 shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-white/10 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-100 dark:text-blue-200 mb-6 border border-white/15 dark:border-white/10 shadow-sm animate-float">
             <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
             <span>Community-First Local Directory</span>
           </div>
@@ -94,9 +94,9 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-8 flex-1 w-full space-y-6">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-8 flex-1 w-full space-y-6 relative z-10">
         {/* Refined Filter & Category Bar */}
-        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm space-y-3.5 transition-colors duration-200">
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm space-y-3.5 transition-colors duration-200">
           {/* Top Row: Full width Category Slider */}
           <div className="w-full">
             <CategoryChips
@@ -184,7 +184,7 @@ export const Home: React.FC = () => {
             {loading ? (
               <LoadingSpinner message="Searching verified local services..." />
             ) : listings.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 p-12 text-center">
+              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-gray-200 dark:border-slate-800 p-12 text-center">
                 <p className="text-gray-500 dark:text-slate-400 text-sm mb-4">
                   No local services found matching your criteria.
                 </p>
