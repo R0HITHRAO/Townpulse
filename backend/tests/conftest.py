@@ -114,6 +114,18 @@ def admin_token(sample_admin: User) -> str:
 
 
 @pytest.fixture
+def auth_headers(user_token: str) -> dict[str, str]:
+    """Generate Authorization header dictionary for regular user."""
+    return {"Authorization": f"Bearer {user_token}"}
+
+
+@pytest.fixture
+def admin_headers(admin_token: str) -> dict[str, str]:
+    """Generate Authorization header dictionary for admin user."""
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
+@pytest.fixture
 def sample_category(db_session: Session) -> Category:
     """Get or create a sample test category."""
     cat = db_session.query(Category).filter(Category.name == "Healthcare & Clinics").first()
