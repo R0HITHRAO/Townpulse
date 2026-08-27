@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { SearchBar } from '../components/SearchBar';
@@ -7,8 +7,9 @@ import { ListingCard } from '../components/ListingCard';
 import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { AnimatedBackground } from '../components/AnimatedBackground';
+import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
-import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ export const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [openOnly, setOpenOnly] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams>({ page: 1, per_page: 20 });
   const [totalCount, setTotalCount] = useState(0);
 
@@ -44,7 +46,22 @@ export const Home: React.FC = () => {
       .finally(() => setLoading(false));
   }, [searchParams, selectedCategory, verifiedOnly]);
 
-  const handleHeroSearch = (filters: { q: string; radius?: number; lat?: number; lng?: number }) => {
+  // Client-side Open Now filtering
+  const displayedListings = useMemo(() => {
+    if (!openOnly) return listings;
+    return listings.filter((l) => getOpenStatus(l.hours).isOpen);
+  }, [listings, openOnly]);
+
+  const handleHeroSearch = (filters: {
+    q: string;
+    radius?: number;
+    lat?: number;
+    lng?: number;
+    openOnly?: boolean;
+  }) => {
+    if (filters.openOnly !== undefined) {
+      setOpenOnly(filters.openOnly);
+    }
     setSearchParams((prev) => ({
       ...prev,
       q: filters.q,
@@ -59,6 +76,7 @@ export const Home: React.FC = () => {
   const handleResetFilters = () => {
     setSelectedCategory(null);
     setVerifiedOnly(false);
+    setOpenOnly(false);
     setSearchParams({ page: 1, per_page: 20 });
   };
 
@@ -69,7 +87,7 @@ export const Home: React.FC = () => {
       {/* Live Animated Background with Floating Particles & Ambient Glow */}
       <AnimatedBackground />
 
-      {/* Hero Section - Pure Bright Light in Light Theme, Rich Dark in Dark Theme */}
+      {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50/70 via-indigo-50/30 to-slate-50 dark:from-slate-900/90 dark:via-blue-950/80 dark:to-slate-950 text-slate-900 dark:text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200 z-10">
         <div className="max-w-5xl mx-auto text-center relative z-10 animate-slide-up">
           <div className="inline-flex items-center gap-2 bg-blue-100/80 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-800 dark:text-blue-200 mb-5 border border-blue-200 dark:border-white/10 shadow-xs animate-float">
@@ -89,7 +107,7 @@ export const Home: React.FC = () => {
           </p>
 
           {/* Hero Search Bar */}
-          <SearchBar onSearch={handleHeroSearch} />
+          <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
         </div>
       </section>
 
@@ -132,7 +150,14 @@ export const Home: React.FC = () => {
                 </span>
               )}
 
-              {(selectedCategory !== null || verifiedOnly || searchParams.q) && (
+              {openOnly && (
+                <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-lg font-medium border border-emerald-300 dark:border-emerald-800">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Open Now</span>
+                </span>
+              )}
+
+              {(selectedCategory !== null || verifiedOnly || openOnly || searchParams.q) && (
                 <button
                   onClick={handleResetFilters}
                   className="text-slate-400 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 font-medium inline-flex items-center gap-1 ml-1 hover:underline transition"
@@ -145,6 +170,18 @@ export const Home: React.FC = () => {
 
             {/* Right: Quick Action Toggles */}
             <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => setOpenOnly(!openOnly)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border hover:scale-105 active:scale-95 ${
+                  openOnly
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Clock className={`w-3.5 h-3.5 ${openOnly ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-400'}`} />
+                <span>Open Now</span>
+              </button>
+
               <button
                 onClick={() => setVerifiedOnly(!verifiedOnly)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border hover:scale-105 active:scale-95 ${
@@ -176,14 +213,14 @@ export const Home: React.FC = () => {
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Local Services</span>
                 <span className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold">
-                  {totalCount} Found
+                  {displayedListings.length} Found
                 </span>
               </h2>
             </div>
 
             {loading ? (
               <LoadingSpinner message="Searching verified local services..." />
-            ) : listings.length === 0 ? (
+            ) : displayedListings.length === 0 ? (
               <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
                   No local services found matching your criteria.
@@ -198,7 +235,7 @@ export const Home: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {listings.map((listing) => (
+                {displayedListings.map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -216,7 +253,7 @@ export const Home: React.FC = () => {
                   Full Screen Map →
                 </Link>
               </div>
-              <Map listings={listings} className="h-[420px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
+              <Map listings={displayedListings} className="h-[420px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
             </div>
           </div>
         </div>
