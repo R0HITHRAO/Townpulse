@@ -35,38 +35,115 @@
   scrollbar-width: none;
 }
 
-/* Custom Leaflet overrides */
+/* ─── CUSTOM LEAFLET PIN & POPUP STYLING ───────────────────────────────── */
 .leaflet-container {
   width: 100%;
   height: 100%;
   border-radius: 1rem;
   z-index: 10;
+  font-family: inherit;
 }
 
+/* Modern TownPulse Pin Marker Badge */
+.townpulse-pin-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2.5px solid #2563eb;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  transform: translate3d(0, 0, 0);
+}
+
+.townpulse-pin-badge::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid #2563eb;
+}
+
+.townpulse-pin-badge:hover {
+  transform: scale(1.18) translateY(-4px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  z-index: 50 !important;
+}
+
+.townpulse-pin-badge.selected {
+  transform: scale(1.25) translateY(-6px);
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.35), 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 60 !important;
+}
+.townpulse-pin-badge.selected::after {
+  border-top-color: #10b981;
+}
+
+.dark .townpulse-pin-badge {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+.dark .townpulse-pin-badge::after {
+  border-top-color: #3b82f6;
+}
+.dark .townpulse-pin-badge.selected {
+  border-color: #10b981;
+  background-color: #064e3b;
+}
+.dark .townpulse-pin-badge.selected::after {
+  border-top-color: #10b981;
+}
+
+/* Modern Leaflet Popup Glassmorphism */
 .leaflet-popup-content-wrapper {
-  border-radius: 0.75rem;
-  padding: 0.25rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
+  border-radius: 1.25rem !important;
+  padding: 0 !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2), 0 10px 15px -5px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  overflow: hidden;
 }
 
 .dark .leaflet-popup-content-wrapper {
-  background-color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.96) !important;
   color: #f1f5f9 !important;
-  border: 1px solid #334155;
+  border: 1px solid rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: inherit !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+  box-shadow: none !important;
 }
 
 .dark .leaflet-popup-tip {
-  background-color: #0f172a !important;
-}
-
-/* Custom Marker Cluster styling */
-.marker-cluster-small {
-  background-color: rgba(59, 130, 246, 0.6);
-}
-.marker-cluster-small div {
-  background-color: rgba(37, 99, 235, 0.9);
-  color: white;
-  font-weight: bold;
+  background: #0f172a !important;
 }
 
 /* ─── LIVE BACKGROUND ANIMATION KEYFRAMES ───────────────────────────────── */
@@ -116,7 +193,6 @@
   }
   100% {
     transform: translateY(-120px) rotate(360deg);
-    opacity: 0;
   }
 }
 
