@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Pages
@@ -23,6 +24,7 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
           <Header />
+          <EmergencyAlertBanner />
           <div className="flex-1 flex flex-col">
             <Routes>
               <Route path="/" element={<Home />} />
