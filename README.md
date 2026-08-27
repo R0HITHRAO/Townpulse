@@ -12,7 +12,8 @@
   <a href="#quickstart">Quickstart</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#api-docs">API Docs</a> •
-  <a href="#deployment">Deployment</a> •
+  <a href="./DEPLOYMENT.md">Deployment Guide</a> •
+  <a href="./SECURITY.md">Security</a> •
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -21,6 +22,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.104-009688?logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/PostgreSQL-PostGIS-336791?logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker" />
+  <img src="https://img.shields.io/badge/Tests-26%20Passed-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
 </p>
 
@@ -54,8 +56,8 @@ In small towns and rural communities, finding reliable local services — clinic
 - 👤 **Role-based access** — Users, business owners, and admins with distinct dashboards
 - 📊 **Analytics** — Search trends, contact clicks, and claim metrics for local leaders
 - 🌐 **i18n ready** — English + Hindi (easily extensible)
-- ♿ **Accessible** — WCAG basics, keyboard navigation, ARIA labels, skip links
-- 🐳 **Docker-ready** — One command to start everything locally
+- ♿ **Accessible** — WCAG AA focus rings, keyboard navigation, ARIA labels, skip links
+- 🐳 **Docker-ready** — One command to start everything locally or in production
 
 ## 🏗️ Architecture
 
@@ -97,10 +99,17 @@ cp .env.example .env
 # Edit .env with your values (defaults work for local dev)
 
 # Start everything (backend, frontend, postgres, redis)
+# Linux / macOS:
 make dev
 
+# Windows PowerShell:
+.\dev.ps1
+
 # In another terminal: seed the database with 50 sample listings
+# Linux / macOS:
 make seed
+# Windows:
+.\dev.ps1 seed
 
 # Open the app
 # Frontend: http://localhost:3000
@@ -118,22 +127,18 @@ make seed
 ### Run tests
 
 ```bash
-make test          # Run all tests (backend + frontend)
-make test-backend  # Backend tests only
-make test-frontend # Frontend tests only
+# Backend pytest suite (15 tests)
+docker compose exec backend pytest -v
+
+# Frontend Vitest suite (11 tests)
+cd frontend && npm test
 ```
 
-### Build production images
+## 🚢 Production Deployment
 
-```bash
-make build
-```
+For complete zero-configuration step-by-step instructions on deploying the frontend to **Vercel** and backend to **Render**, please see the [**Production Deployment Guide (DEPLOYMENT.md)**](./DEPLOYMENT.md).
 
-### Deploy (single Docker container)
-
-```bash
-docker compose -f infra/docker-compose.prod.yml up -d --build
-```
+---
 
 ## 📁 Repository Structure
 
@@ -163,6 +168,7 @@ townpulse/
 │   │   └── styles/       # Tailwind globals
 │   ├── public/           # Static assets, PWA manifest
 │   ├── Dockerfile        # Production build
+│   ├── vercel.json       # Vercel SPA rewrites
 │   └── vite.config.ts
 ├── infra/
 │   ├── docker-compose.yml      # Full-stack dev compose
@@ -172,23 +178,16 @@ townpulse/
 │   ├── workflows/ci.yml       # CI pipeline
 │   ├── ISSUE_TEMPLATE/        # Bug & feature request templates
 │   └── PULL_REQUEST_TEMPLATE.md
+├── render.yaml                 # One-click Render deployment blueprint
+├── DEPLOYMENT.md               # Production deployment guide
+├── SECURITY.md                 # Security & vulnerability reporting policy
 ├── .env.example
 ├── Makefile
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
-└── README.md               # ← You are here
+└── README.md
 ```
-
-## 🗄️ Database Schema
-
-- **users** — UUID PK, email, phone, role (user/business_owner/admin), password hash
-- **categories** — Serial PK, name, icon
-- **listings** — UUID PK, name, category, description, address, PostGIS geography point, phone, email, website, hours (JSON), verified flag, owner FK, full-text search vector
-- **claims** — UUID PK, listing FK, user FK, status (pending/approved/rejected), proof URL
-- **submissions** — UUID PK, submitted data (JSONB), status, user FK
-- **reviews** — UUID PK, listing FK, user FK, rating, comment
-- **analytics** — UUID PK, event type, payload (JSONB)
 
 ## 📡 API Endpoints
 
@@ -220,77 +219,17 @@ Full interactive API documentation available at `http://localhost:8000/docs` (Sw
 ## 🔒 Security
 
 - **JWT Authentication** — Short-lived access tokens + refresh tokens
-- **Password hashing** — bcrypt with salt
+- **Password hashing** — Native bcrypt with salt
 - **OTP rate limiting** — Max 5 requests per phone per hour via Redis
 - **Rate limiting** — Redis-backed middleware on all endpoints
-- **CORS** — Restricted to allowed origins
+- **CORS** — Configured for production & development origins
 - **Input validation** — Pydantic schemas on all endpoints
 - **Secrets management** — All secrets via environment variables
-
-## 🚢 Deployment
-
-### Option 1: Vercel (Frontend) + Render/DigitalOcean (Backend)
-
-See [backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md) for detailed deploy instructions.
-
-### Option 2: Single Docker Container
-
-```bash
-# Build and start everything
-docker compose -f infra/docker-compose.prod.yml up -d --build
-
-# Run migrations
-docker compose -f infra/docker-compose.prod.yml exec backend alembic upgrade head
-
-# Seed data
-docker compose -f infra/docker-compose.prod.yml exec backend python scripts/seed.py
-```
-
-### Environment Variables
-
-See [.env.example](.env.example) for all required variables with documentation.
-
-## 📊 Monitoring & Observability
-
-- **Health check:** `GET /health` — database and Redis connectivity
-- **Metrics:** `GET /metrics` — request counts, error rates, OTP metrics
-- **Structured logging:** JSON format with request IDs
-- **Sentry:** DSN placeholder in config — enable by setting `SENTRY_DSN`
-- **Backup:** `scripts/backup.sh` — pg_dump with cron example
-
-## 🗺️ Roadmap
-
-### MVP (Current)
-- [x] Map-based service discovery
-- [x] Full-text and geospatial search
-- [x] Business claim and admin verification flow
-- [x] PWA offline support
-- [x] Docker deployment
-
-### Phase 2 (Planned)
-- [ ] Image uploads (S3/MinIO)
-- [ ] Event listings with date ranges
-- [ ] Volunteer board with sign-ups
-- [ ] Push notifications
-- [ ] SMS notifications for claim status
-- [ ] Advanced analytics dashboard
-
-### Phase 3 (Future)
-- [ ] Mobile app (React Native / Flutter)
-- [ ] Multi-town support
-- [ ] Government data integration
-- [ ] Emergency alerts
-- [ ] Accessibility audit (WCAG AA)
+- See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Branch Strategy
-
-- `main` — Production-ready code (protected)
-- `develop` — Integration branch
-- `feature/*` — Feature branches
 
 ### Commit Convention
 
