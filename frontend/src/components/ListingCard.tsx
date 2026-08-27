@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Phone, Mail, Globe, MapPin, CheckCircle2, Clock } from 'lucide-react';
+import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation, Clock } from 'lucide-react';
 import { Listing } from '../services/api';
 
 interface ListingCardProps {
@@ -11,24 +11,33 @@ interface ListingCardProps {
 export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const { t } = useTranslation();
 
+  // Format distance
+  const formatDistance = (meters?: number) => {
+    if (!meters) return null;
+    if (meters < 1000) return `${Math.round(meters)} m away`;
+    return `${(meters / 1000).toFixed(1)} km away`;
+  };
+
+  const distanceText = formatDistance(listing.distance_meters);
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+    <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group hover:border-blue-200">
       <div>
-        {/* Header: Name + Verified Badge */}
+        {/* Header: Name + Distance / Verified Badge */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link
             to={`/listings/${listing.id}`}
-            className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition line-clamp-1"
+            className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition line-clamp-1 flex-1"
           >
             {listing.name}
           </Link>
           {listing.verified ? (
             <span
-              className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex-shrink-0"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full flex-shrink-0"
               title="Verified by Local Administrator"
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 fill-emerald-100" />
-              {t('verified')}
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{t('verified')}</span>
             </span>
           ) : (
             <span className="text-[10px] font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -37,18 +46,23 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           )}
         </div>
 
-        {/* Category Tag */}
-        {listing.category && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">
+        {/* Category & Distance Pills */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
+          {listing.category && (
+            <span className="text-xs font-semibold text-blue-700 bg-blue-50/90 border border-blue-100 px-2.5 py-0.5 rounded-lg">
               {listing.category.icon} {listing.category.name}
             </span>
-          </div>
-        )}
+          )}
+          {distanceText && (
+            <span className="text-[11px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-100">
+              📍 {distanceText}
+            </span>
+          )}
+        </div>
 
         {/* Description */}
         {listing.description && (
-          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3">
+          <p className="text-xs text-gray-600 line-clamp-2 mb-3 leading-relaxed">
             {listing.description}
           </p>
         )}
@@ -60,27 +74,27 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         </div>
       </div>
 
-      {/* Action Footer: Contact links */}
+      {/* Action Footer: Contact & Navigation */}
       <div className="border-t border-gray-100 pt-3 mt-auto flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {listing.phone && (
             <a
               href={`tel:${listing.phone}`}
-              className="p-2 rounded-lg bg-gray-50 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 transition"
+              className="p-2 rounded-xl bg-gray-50 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 border border-gray-200/60 transition"
               title={`Call ${listing.phone}`}
               aria-label={`Call ${listing.name}`}
             >
-              <Phone className="w-4 h-4" />
+              <Phone className="w-3.5 h-3.5" />
             </a>
           )}
           {listing.email && (
             <a
               href={`mailto:${listing.email}`}
-              className="p-2 rounded-lg bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 transition"
+              className="p-2 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 border border-gray-200/60 transition"
               title={`Email ${listing.email}`}
               aria-label={`Email ${listing.name}`}
             >
-              <Mail className="w-4 h-4" />
+              <Mail className="w-3.5 h-3.5" />
             </a>
           )}
           {listing.website && (
@@ -88,20 +102,32 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               href={listing.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-purple-700 transition"
-              title={`Visit website`}
+              className="p-2 rounded-xl bg-gray-50 hover:bg-purple-50 text-gray-600 hover:text-purple-700 border border-gray-200/60 transition"
+              title="Visit website"
               aria-label={`Website for ${listing.name}`}
             >
-              <Globe className="w-4 h-4" />
+              <Globe className="w-3.5 h-3.5" />
+            </a>
+          )}
+          {listing.lat && listing.lng && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-700 border border-gray-200/60 transition"
+              title="Directions"
+              aria-label={`Get directions to ${listing.name}`}
+            >
+              <Navigation className="w-3.5 h-3.5" />
             </a>
           )}
         </div>
 
         <Link
           to={`/listings/${listing.id}`}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition"
+          className="text-xs font-semibold text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 px-3.5 py-1.5 rounded-xl transition shadow-2xs"
         >
-          Details →
+          View Details →
         </Link>
       </div>
     </div>
