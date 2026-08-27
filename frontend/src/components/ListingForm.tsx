@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Category, Listing, api } from '../services/api';
-import { MapPin, Phone, Mail, Globe, Clock, Building, Tag, Check } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Building, Check, Crosshair } from 'lucide-react';
 
 interface ListingFormProps {
   initialData?: Partial<Listing>;
@@ -27,6 +27,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   const [website, setWebsite] = useState(initialData.website || '');
   const [hours, setHours] = useState(initialData.hours?.all_days || '9:00 AM - 6:00 PM');
   const [searchingAddress, setSearchingAddress] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(console.error);
@@ -45,13 +46,33 @@ export const ListingForm: React.FC<ListingFormProps> = ({
         setLat(Number(data[0].lat).toFixed(6));
         setLng(Number(data[0].lon).toFixed(6));
       } else {
-        alert('Could not find coordinates for this address. You can set them manually.');
+        alert('Could not auto-locate this address. You can type coordinates or use GPS below.');
       }
     } catch (e) {
       console.warn('Geocode error:', e);
     } finally {
       setSearchingAddress(false);
     }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    setGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude.toFixed(6));
+        setLng(pos.coords.longitude.toFixed(6));
+        setGettingLocation(false);
+      },
+      (err) => {
+        alert(`Location access denied or unavailable: ${err.message}`);
+        setGettingLocation(false);
+      },
+      { timeout: 10000 }
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +97,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm max-w-2xl mx-auto">
       {/* Basic Info */}
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
@@ -94,7 +115,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Town Primary Health Center"
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
         </div>
 
@@ -105,7 +126,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
           >
             <option value="">Select a Category</option>
             {categories.map((c) => (
@@ -125,7 +146,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the services offered, specialties, or assistance provided..."
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
         </div>
       </div>
@@ -134,12 +155,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
           <MapPin className="w-4 h-4 text-blue-600" />
-          Location Details
+          Location & GPS Coordinates
         </h3>
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Full Address *
+            Full Physical Address *
           </label>
           <div className="flex gap-2">
             <input
@@ -148,7 +169,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="e.g. Opposite Town Bus Stand, Main Road"
-              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <button
               type="button"
@@ -156,12 +177,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               disabled={searchingAddress}
               className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 text-xs font-semibold rounded-xl transition"
             >
-              {searchingAddress ? 'Locating...' : 'Get Pin'}
+              {searchingAddress ? 'Locating...' : 'Search Pin'}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[11px] font-medium text-gray-500 mb-1">
               Latitude
@@ -171,7 +192,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               step="any"
               value={lat}
               onChange={(e) => setLat(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50"
+              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-gray-50"
             />
           </div>
           <div>
@@ -183,10 +204,20 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               step="any"
               value={lng}
               onChange={(e) => setLng(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50"
+              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-gray-50"
             />
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          disabled={gettingLocation}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl transition"
+        >
+          <Crosshair className="w-3.5 h-3.5" />
+          <span>{gettingLocation ? 'Detecting GPS...' : 'Use My Current GPS Position'}</span>
+        </button>
       </div>
 
       {/* Contact Details */}
@@ -206,7 +237,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 9845012345"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
@@ -218,7 +249,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contact@service.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
@@ -233,7 +264,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://myservice.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
@@ -245,7 +276,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="e.g. 8:00 AM - 8:00 PM"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
@@ -254,7 +285,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-md flex items-center justify-center gap-2"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2"
       >
         <Check className="w-4 h-4" />
         {isSubmitting ? 'Submitting...' : submitLabel}
