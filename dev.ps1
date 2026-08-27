@@ -1,19 +1,18 @@
 # ==============================================================================
 # TownPulse PowerShell Helper Script for Windows
 # ==============================================================================
-# Usage:
-#   .\dev.ps1             - Start all full-stack services with Docker Compose
-#   .\dev.ps1 seed        - Seed database with 50 listings + admin user
-#   .\dev.ps1 test        - Run backend and frontend tests
-#   .\dev.ps1 down        - Stop all running containers
-#   .\dev.ps1 logs        - View container logs
-# ==============================================================================
 
 param (
     [string]$Action = "dev"
 )
 
-$ComposeFile = "infra/docker-compose.yml"
+# Resolve path relative to this script directory
+$ProjectRoot = $PSScriptRoot
+if (-not $ProjectRoot) {
+    $ProjectRoot = Get-Location
+}
+
+$ComposeFile = Join-Path $ProjectRoot "infra/docker-compose.yml"
 
 switch ($Action.ToLower()) {
     "dev" {
@@ -31,9 +30,9 @@ switch ($Action.ToLower()) {
     "test" {
         Write-Host "🧪 Running tests..." -ForegroundColor Yellow
         docker compose -f $ComposeFile exec backend pytest -v
-        cd frontend
+        Set-Location (Join-Path $ProjectRoot "frontend")
         npm test
-        cd ..
+        Set-Location $ProjectRoot
     }
     "down" {
         Write-Host "🛑 Stopping TownPulse containers..." -ForegroundColor Red
