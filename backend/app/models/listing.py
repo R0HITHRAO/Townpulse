@@ -69,6 +69,7 @@ class Listing(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     address: Mapped[str] = mapped_column(Text, nullable=False)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # ─── Category ─────────────────────────────────────────────────────────────
     category_id: Mapped[int] = mapped_column(
