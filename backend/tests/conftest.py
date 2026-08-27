@@ -2,10 +2,10 @@
 TownPulse Pytest Configuration and Test Fixtures
 ==================================================
 Sets up test database session, test client, and authenticated user fixtures.
-Supports PostgreSQL/PostGIS environments as well as SQLite test mocks.
 """
 
 import os
+import uuid
 from typing import Generator
 
 import pytest
@@ -19,13 +19,11 @@ os.environ["SECRET_KEY"] = "test-secret-key-32-characters-long!!"
 os.environ["OTP_PROVIDER"] = "mock"
 os.environ["EMAIL_PROVIDER"] = "mock"
 
-# Use PostgreSQL DATABASE_URL if available (in Docker or CI), otherwise fallback to configured DB
 TEST_DB_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://townpulse:townpulse_dev_password@localhost:5432/townpulse",
 )
 
-# Connect to database
 engine = create_engine(TEST_DB_URL, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -46,16 +44,12 @@ def setup_test_db() -> Generator[None, None, None]:
 
 @pytest.fixture
 def db_session() -> Generator[Session, None, None]:
-    """Provides a transactional database session rolled back after each test."""
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
+    """Provides a fresh database session for each test."""
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture
@@ -73,46 +67,37 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
 @pytest.fixture
 def sample_user(db_session: Session) -> User:
-    """Create a sample regular user."""
-    # Check if exists or create
-    user = (
-        db_session.query(User).filter(User.email == "test_user_unique@test.dev").first()
+    """Create a sample regular user with unique credentials."""
+    uid = uuid.uuid4().hex[:8]
+    user = User(
+        name=f"Test User {uid}",
+        email=f"user_{uid}@test.dev",
+        phone=f"+9198{uid[:8]}",
+        password_hash=hash_password("UserPassword123!"),
+        role=UserRole.user,
+        is_active=True,
     )
-    if not user:
-        user = User(
-            name="Test Regular User",
-            email="test_user_unique@test.dev",
-            phone="+919876543210",
-            password_hash=hash_password("UserPassword123!"),
-            role=UserRole.user,
-            is_active=True,
-        )
-        db_session.add(user)
-        db_session.commit()
-        db_session.refresh(user)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
     return user
 
 
 @pytest.fixture
 def sample_admin(db_session: Session) -> User:
-    """Create a sample administrator user."""
-    admin = (
-        db_session.query(User)
-        .filter(User.email == "test_admin_unique@test.dev")
-        .first()
+    """Create a sample administrator user with unique credentials."""
+    uid = uuid.uuid4().hex[:8]
+    admin = User(
+        name=f"Test Admin {uid}",
+        email=f"admin_{uid}@test.dev",
+        phone=f"+9199{uid[:8]}",
+        password_hash=hash_password("AdminPassword123!"),
+        role=UserRole.admin,
+        is_active=True,
     )
-    if not admin:
-        admin = User(
-            name="Test Admin User",
-            email="test_admin_unique@test.dev",
-            phone="+919900000001",
-            password_hash=hash_password("AdminPassword123!"),
-            role=UserRole.admin,
-            is_active=True,
-        )
-        db_session.add(admin)
-        db_session.commit()
-        db_session.refresh(admin)
+    db_session.add(admin)
+    db_session.commit()
+    db_session.refresh(admin)
     return admin
 
 
@@ -130,12 +115,8 @@ def admin_token(sample_admin: User) -> str:
 
 @pytest.fixture
 def sample_category(db_session: Session) -> Category:
-    """Create a sample test category."""
-    cat = (
-        db_session.query(Category)
-        .filter(Category.name == "Healthcare & Clinics")
-        .first()
-    )
+    """Get or create a sample test category."""
+    cat = db_session.query(Category).filter(Category.name == "Healthcare & Clinics").first()
     if not cat:
         cat = Category(
             name="Healthcare & Clinics",
