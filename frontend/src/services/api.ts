@@ -30,6 +30,7 @@ export interface Listing {
   name: string;
   description?: string;
   address: string;
+  image_url?: string;
   category_id?: number;
   category?: Category;
   lat?: number;
@@ -42,8 +43,40 @@ export interface Listing {
   status: string;
   owner_user_id?: string;
   distance_meters?: number;
+  average_rating?: number;
+  review_count?: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface Review {
+  id: string;
+  listing_id: string;
+  user_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+  user?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface ReviewListResponse {
+  total: number;
+  average_rating: number;
+  items: Review[];
+}
+
+export interface EmergencyAlert {
+  id: string;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'critical';
+  is_active: boolean;
+  link_url?: string;
+  created_at: string;
+  expires_at?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -120,6 +153,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     throw new Error(errorData.detail || `Request failed with status ${response.status}`);
   }
 
+  if (response.status === 204) {
+    return {} as T;
+  }
+
   return response.json();
 }
 
@@ -175,6 +212,34 @@ export const api = {
     request<{ message: string }>(`/listings/${listingId}/report`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
+    }),
+
+  // Reviews
+  getReviews: (listingId: string) => request<ReviewListResponse>(`/listings/${listingId}/reviews`),
+
+  addReview: (listingId: string, rating: number, comment?: string) =>
+    request<Review>(`/listings/${listingId}/reviews`, {
+      method: 'POST',
+      body: JSON.stringify({ rating, comment }),
+    }),
+
+  deleteReview: (reviewId: string) =>
+    request<void>(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+    }),
+
+  // Emergency Alerts
+  getActiveAlerts: () => request<EmergencyAlert[]>('/alerts/active'),
+
+  createAlert: (data: Partial<EmergencyAlert>) =>
+    request<EmergencyAlert>('/admin/alerts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  deactivateAlert: (alertId: string) =>
+    request<void>(`/admin/alerts/${alertId}`, {
+      method: 'DELETE',
     }),
 
   // Auth
