@@ -13,7 +13,6 @@ import {
   List,
   Columns,
   X,
-  Target,
   Clock,
   Sparkles,
 } from 'lucide-react';
@@ -62,9 +61,9 @@ export const MapView: React.FC = () => {
   }, [listings, openOnly]);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Top Filter & Toolbar */}
-      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         {/* Search input */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -134,7 +133,7 @@ export const MapView: React.FC = () => {
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
-              title="Split View (List + Map)"
+              title="Split View (List + Compact Map)"
             >
               <Columns className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Split</span>
@@ -147,7 +146,7 @@ export const MapView: React.FC = () => {
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
-              title="Full Map View"
+              title="Map View"
             >
               <MapIcon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Map</span>
@@ -160,7 +159,7 @@ export const MapView: React.FC = () => {
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
-              title="List Grid View"
+              title="Directory List View"
             >
               <List className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">List ({displayedListings.length})</span>
@@ -169,74 +168,91 @@ export const MapView: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Body */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {/* Left: Scrollable List Sidebar (Visible in 'split' or 'list' mode) */}
-        {(layoutMode === 'split' || layoutMode === 'list') && (
-          <div
-            className={`${
-              layoutMode === 'list'
-                ? 'w-full max-w-5xl mx-auto p-6 overflow-y-auto'
-                : 'w-full md:w-[420px] lg:w-[460px] bg-slate-50 dark:bg-slate-900/90 border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-3 z-10'
-            }`}
-          >
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                <span>Verified Local Services</span>
-              </span>
-              <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full font-bold">
-                {displayedListings.length} Found
-              </span>
+      {/* Main Content Body - Clean Website-First Proportion */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Main Listings Grid (Primary Focus of the Page) */}
+          {(layoutMode === 'split' || layoutMode === 'list') && (
+            <div className={`flex-1 space-y-4 ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Town Directory Results</span>
+                </span>
+                <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold">
+                  {displayedListings.length} Found
+                </span>
+              </div>
+
+              {loading ? (
+                <LoadingSpinner message="Locating community services..." />
+              ) : displayedListings.length === 0 ? (
+                <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
+                  <p className="font-semibold text-sm">No services found in this search area.</p>
+                  <p className="text-xs text-slate-400">Try expanding the search radius or resetting category filters.</p>
+                </div>
+              ) : (
+                <div className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
+                  {displayedListings.map((l) => (
+                    <div
+                      key={l.id}
+                      onMouseEnter={() => setSelectedListing(l)}
+                      onClick={() => setSelectedListing(l)}
+                      className={`cursor-pointer transition-all ${
+                        selectedListing?.id === l.id && layoutMode === 'split'
+                          ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
+                          : ''
+                      }`}
+                    >
+                      <ListingCard listing={l} />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          )}
 
-            {loading ? (
-              <LoadingSpinner message="Locating community services..." />
-            ) : displayedListings.length === 0 ? (
-              <div className="p-10 text-center bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 space-y-2">
-                <p className="font-semibold">No services found in this search area.</p>
-                <p className="text-[11px] text-slate-400">Try expanding the search radius or resetting category filters.</p>
-              </div>
-            ) : (
-              <div className={layoutMode === 'list' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
-                {displayedListings.map((l) => (
-                  <div
-                    key={l.id}
-                    onMouseEnter={() => setSelectedListing(l)}
-                    onClick={() => setSelectedListing(l)}
-                    className={`cursor-pointer transition-all ${
-                      selectedListing?.id === l.id && layoutMode === 'split'
-                        ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
-                        : ''
-                    }`}
-                  >
-                    <ListingCard listing={l} />
+          {/* Compact Sticky Companion Map (Right Side) */}
+          {(layoutMode === 'split' || layoutMode === 'map') && (
+            <div className={`${layoutMode === 'map' ? 'w-full h-[650px]' : 'w-full lg:w-[380px] xl:w-[420px] flex-shrink-0'}`}>
+              <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-3' : 'h-full'}`}>
+                {layoutMode === 'split' && (
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    <span>Neighborhood Map</span>
+                    <button
+                      onClick={() => setLayoutMode('map')}
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                    >
+                      Expand Map ↗
+                    </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                )}
 
-        {/* Right: Full Interactive Map (Visible in 'split' or 'map' mode) */}
-        {(layoutMode === 'split' || layoutMode === 'map') && (
-          <div className="flex-1 h-full min-h-[300px] relative">
-            <Map
-              listings={displayedListings}
-              selectedListingId={selectedListing?.id}
-              onSelectListing={(l) => setSelectedListing(l)}
-              className="h-full w-full rounded-none border-none"
-              autoFitBounds={true}
-            />
+                <div className={`${layoutMode === 'split' ? 'h-[360px]' : 'h-full'} rounded-3xl overflow-hidden shadow-md border border-slate-200 dark:border-slate-800`}>
+                  <Map
+                    listings={displayedListings}
+                    selectedListingId={selectedListing?.id}
+                    onSelectListing={(l) => setSelectedListing(l)}
+                    className="h-full w-full rounded-3xl border-none"
+                    autoFitBounds={true}
+                  />
+                </div>
 
-            {/* Quick Floating Badge for Selected Listing in Full Map Mode */}
-            {layoutMode === 'map' && selectedListing && (
-              <div className="absolute bottom-6 left-6 right-6 max-w-sm z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-3 animate-slide-up">
-                <ListingCard listing={selectedListing} />
+                {layoutMode === 'split' && selectedListing && (
+                  <div className="p-3 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-2">
+                    <div className="truncate">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Selected Pin:</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">{selectedListing.name}</span>
+                    </div>
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex-shrink-0">
+                      {selectedListing.category?.name}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
