@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation, Star } from 'lucide-react';
+import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation, Star, Heart, MessageCircle } from 'lucide-react';
 import { Listing } from '../services/api';
+import { OpenStatusBadge } from './OpenStatusBadge';
+import { useBookmarks } from '../context/BookmarkContext';
+import { getWhatsAppShareUrl } from '../utils/whatsapp';
 
 interface ListingCardProps {
   listing: Listing;
@@ -10,6 +13,8 @@ interface ListingCardProps {
 
 export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const { t } = useTranslation();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const bookmarked = isBookmarked(listing.id);
 
   // Format distance
   const formatDistance = (meters?: number) => {
@@ -21,7 +26,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group hover:border-blue-400 dark:hover:border-blue-600 animate-fade-in backdrop-blur-xs overflow-hidden">
+    <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group hover:border-blue-400 dark:hover:border-blue-600 animate-fade-in backdrop-blur-xs overflow-hidden relative">
       <div>
         {/* Optional Thumbnail Image */}
         {listing.image_url && (
@@ -34,10 +39,19 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}
             />
+            {/* Bookmark button on top of thumbnail */}
+            <button
+              onClick={() => toggleBookmark(listing)}
+              className="absolute right-2 top-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition hover:scale-110"
+              title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
+              aria-label="Toggle favorite bookmark"
+            >
+              <Heart className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+            </button>
           </div>
         )}
 
-        {/* Header: Name + Verified / Community Badge */}
+        {/* Header: Name + Verified / Community Badge + Bookmark (if no image) */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link
             to={`/listings/${listing.id}`}
@@ -45,23 +59,37 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           >
             {listing.name}
           </Link>
-          {listing.verified ? (
-            <span
-              className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full flex-shrink-0"
-              title="Verified by Local Administrator"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{t('verified')}</span>
-            </span>
-          ) : (
-            <span className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-slate-200/60 dark:border-slate-700">
-              Community
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {listing.verified ? (
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full"
+                title="Verified by Local Administrator"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>{t('verified')}</span>
+              </span>
+            ) : (
+              <span className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-700">
+                Community
+              </span>
+            )}
+
+            {!listing.image_url && (
+              <button
+                onClick={() => toggleBookmark(listing)}
+                className="p-1 text-slate-400 hover:text-rose-500 transition hover:scale-110"
+                title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
+                aria-label="Toggle favorite bookmark"
+              >
+                <Heart className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Category, Distance, and Rating Pills */}
+        {/* Category, Open Status, Distance, and Rating Pills */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
+          <OpenStatusBadge hours={listing.hours} size="sm" />
           {listing.category && (
             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 px-2.5 py-0.5 rounded-lg">
               {listing.category.icon} {listing.category.name}
@@ -95,7 +123,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         </div>
       </div>
 
-      {/* Action Footer: Contact & Navigation */}
+      {/* Action Footer: Contact, WhatsApp & Navigation */}
       <div className="border-t border-slate-100 dark:border-slate-800 pt-3 mt-auto flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           {listing.phone && (
@@ -108,6 +136,19 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               <Phone className="w-3.5 h-3.5" />
             </a>
           )}
+
+          {/* 1-Tap WhatsApp Share */}
+          <a
+            href={getWhatsAppShareUrl(listing)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+            title="Forward on WhatsApp"
+            aria-label="Share listing on WhatsApp"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+          </a>
+
           {listing.email && (
             <a
               href={`mailto:${listing.email}`}
@@ -118,18 +159,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               <Mail className="w-3.5 h-3.5" />
             </a>
           )}
-          {listing.website && (
-            <a
-              href={listing.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-slate-600 dark:text-slate-300 hover:text-purple-700 dark:hover:text-purple-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
-              title="Visit website"
-              aria-label={`Website for ${listing.name}`}
-            >
-              <Globe className="w-3.5 h-3.5" />
-            </a>
-          )}
+
           {listing.lat && listing.lng && (
             <a
               href={`https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`}
