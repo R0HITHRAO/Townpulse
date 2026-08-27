@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_admin_user
+from app.core.dependencies import require_admin
 from app.models.alert import EmergencyAlert
 from app.models.user import User
 from app.schemas.alert import EmergencyAlertCreate, EmergencyAlertResponse
@@ -45,7 +45,7 @@ def get_active_alerts(
 def create_emergency_alert(
     alert_in: EmergencyAlertCreate,
     db: Session = Depends(get_db),
-    admin: User = Depends(get_current_admin_user),
+    admin: User = Depends(require_admin),
 ) -> EmergencyAlert:
     """Create a new emergency alert broadcast announcement. Admin only."""
     new_alert = EmergencyAlert(
@@ -66,7 +66,7 @@ def create_emergency_alert(
 def deactivate_emergency_alert(
     alert_id: uuid.UUID,
     db: Session = Depends(get_db),
-    admin: User = Depends(get_current_admin_user),
+    admin: User = Depends(require_admin),
 ) -> None:
     """Deactivate or remove an emergency alert broadcast. Admin only."""
     alert = db.query(EmergencyAlert).filter(EmergencyAlert.id == alert_id).first()
