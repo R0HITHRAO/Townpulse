@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Globe, Menu, X, Info } from 'lucide-react';
+import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info } from 'lucide-react';
 import { isAuthenticated, isAdmin, isBusinessOwner, getCurrentUser } from '../services/auth';
 import { clearStoredTokens } from '../services/api';
 import { ThemeToggle } from './ThemeToggle';
 
 export const Header: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,12 +21,6 @@ export const Header: React.FC = () => {
     clearStoredTokens();
     navigate('/');
     window.location.reload();
-  };
-
-  const toggleLanguage = () => {
-    const nextLang = i18n.language === 'en' ? 'hi' : 'en';
-    i18n.changeLanguage(nextLang);
-    localStorage.setItem('townpulse_lang', nextLang);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -79,17 +73,6 @@ export const Header: React.FC = () => {
               <PlusCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span>{t('submit_listing')}</span>
             </Link>
-
-            {/* Language Switcher */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1 text-xs font-semibold bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 px-2.5 py-2 rounded-xl transition"
-              title="Toggle Language"
-              aria-label="Toggle Language"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>{i18n.language === 'en' ? 'हिन्दी' : 'EN'}</span>
-            </button>
 
             {/* Theme Toggle Button */}
             <ThemeToggle />
@@ -151,16 +134,8 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Mobile Navigation controls */}
-          <div className="flex items-center gap-1.5 md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
-
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1 text-xs font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 px-2 py-1.5 rounded-lg"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>{i18n.language === 'en' ? 'हिन्दी' : 'EN'}</span>
-            </button>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
