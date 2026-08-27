@@ -242,7 +242,7 @@ export const Home: React.FC = () => {
             )}
           </div>
 
-          {/* Map Preview Sticky Sidebar (1 Col) */}
+          {/* Map Preview Sticky Sidebar (1 Col) - Compact & Elegant */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-3">
               <div className="flex items-center justify-between">
@@ -253,7 +253,7 @@ export const Home: React.FC = () => {
                   Full Screen Map →
                 </Link>
               </div>
-              <Map listings={displayedListings} className="h-[420px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
+              <Map listings={displayedListings} className="h-[300px] shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden" />
             </div>
           </div>
         </div>
