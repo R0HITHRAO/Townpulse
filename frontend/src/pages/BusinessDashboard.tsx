@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, Listing } from '../services/api';
 import { getCurrentUser } from '../services/auth';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { Briefcase, Building, CheckCircle2, Eye, PhoneCall, Plus, Edit } from 'lucide-react';
+import { Briefcase, Building, CheckCircle2, Plus } from 'lucide-react';
 
 export const BusinessDashboard: React.FC = () => {
   const user = getCurrentUser();
@@ -24,23 +24,23 @@ export const BusinessDashboard: React.FC = () => {
   }, [user?.id]);
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+      <div className="max-w-5xl mx-auto space-y-8 animate-slide-up">
         {/* Welcome Header */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-gray-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="bg-emerald-100 text-emerald-700 p-4 rounded-2xl">
+            <div className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 p-4 rounded-2xl animate-float shadow-xs">
               <Briefcase className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900">Business Owner Dashboard</h1>
-              <p className="text-xs text-gray-500">Welcome back, {user?.name || user?.email}</p>
+              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Business Owner Dashboard</h1>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Welcome back, {user?.name || user?.email}</p>
             </div>
           </div>
 
           <Link
             to="/submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 hover:scale-105 active:scale-95"
           >
             <Plus className="w-4 h-4" /> Add Another Business
           </Link>
@@ -48,24 +48,24 @@ export const BusinessDashboard: React.FC = () => {
 
         {/* Owned Listings Section */}
         <div className="space-y-4">
-          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-            <Building className="w-4 h-4 text-blue-600" />
+          <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             My Managed Services ({listings.length})
           </h2>
 
           {loading ? (
             <LoadingSpinner message="Loading your business listings..." />
           ) : listings.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center space-y-3">
-              <p className="text-sm text-gray-500">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-slate-800 p-12 text-center space-y-3">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 You have not claimed or created any business listings yet.
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-slate-500">
                 Find your service on the home page and click "Claim This Business" or submit a new one.
               </p>
               <Link
                 to="/"
-                className="inline-block text-xs font-semibold text-blue-600 hover:underline pt-2"
+                className="inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline pt-2"
               >
                 Browse directory to claim your listing →
               </Link>
@@ -75,25 +75,25 @@ export const BusinessDashboard: React.FC = () => {
               {listings.map((l) => (
                 <div
                   key={l.id}
-                  className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex flex-col justify-between"
+                  className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:scale-[1.02] transition-all duration-200"
                 >
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-gray-900 text-base line-clamp-1">{l.name}</h3>
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                      <h3 className="font-bold text-gray-900 dark:text-white text-base line-clamp-1">{l.name}</h3>
+                      <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Verified
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 line-clamp-1">{l.address}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1">{l.address}</p>
                   </div>
 
-                  <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400">
+                  <div className="border-t border-gray-100 dark:border-slate-800 pt-3 flex items-center justify-between">
+                    <span className="text-[11px] text-gray-400 dark:text-slate-500">
                       Added {new Date(l.created_at).toLocaleDateString()}
                     </span>
                     <Link
                       to={`/listings/${l.id}`}
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                      className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       View Public Page →
                     </Link>
