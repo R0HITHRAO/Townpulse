@@ -4,6 +4,7 @@ TownPulse Authentication Unit Tests
 Tests for registration, login, phone OTP flow, password security, and token refresh.
 """
 
+import uuid
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -12,9 +13,11 @@ from app.models.user import User
 
 def test_register_with_email(client: TestClient, db_session: Session) -> None:
     """Test user registration with email and password."""
+    uid = uuid.uuid4().hex[:8]
+    test_email = f"jane_{uid}@example.com"
     payload = {
         "name": "Jane Doe",
-        "email": "janedoe@example.com",
+        "email": test_email,
         "password": "SecurePassword123!",
     }
     response = client.post("/auth/register", json=payload)
@@ -22,7 +25,7 @@ def test_register_with_email(client: TestClient, db_session: Session) -> None:
     data = response.json()
     assert "access_token" in data
     assert "refresh_token" in data
-    assert data["user"]["email"] == "janedoe@example.com"
+    assert data["user"]["email"] == test_email
     assert data["user"]["name"] == "Jane Doe"
 
 
