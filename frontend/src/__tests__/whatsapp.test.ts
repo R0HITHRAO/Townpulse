@@ -11,6 +11,7 @@ describe('WhatsApp Share Utility', () => {
       phone: '+919876543210',
       category_id: 1,
       verified: true,
+      status: 'approved',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
