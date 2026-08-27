@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { api, Listing } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ClaimModal } from '../components/ClaimModal';
+import { ReviewSection } from '../components/ReviewSection';
+import { StarRating } from '../components/StarRating';
 import { Map } from '../components/Map';
 import {
   Phone,
@@ -18,6 +20,7 @@ import {
   Navigation,
   Share2,
   Check,
+  ImageIcon,
 } from 'lucide-react';
 
 export const ListingDetail: React.FC = () => {
@@ -80,7 +83,7 @@ export const ListingDetail: React.FC = () => {
   if (!listing) {
     return (
       <div className="max-w-4xl mx-auto py-16 px-4 text-center">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Listing not found</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Listing not found</h2>
         <Link to="/" className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-semibold">
           ← Return to Directory
         </Link>
@@ -100,14 +103,14 @@ export const ListingDetail: React.FC = () => {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Listings
           </Link>
 
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-gray-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
           >
             {copied ? (
               <>
@@ -116,7 +119,7 @@ export const ListingDetail: React.FC = () => {
               </>
             ) : (
               <>
-                <Share2 className="w-3.5 h-3.5 text-gray-500 dark:text-slate-400" />
+                <Share2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 <span>Share</span>
               </>
             )}
@@ -124,164 +127,193 @@ export const ListingDetail: React.FC = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-gray-200/90 dark:border-slate-800 p-6 sm:p-10 shadow-sm space-y-6 transition-colors duration-200">
-          {/* Header row */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-800 pb-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                {listing.category && (
-                  <span className="text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 px-3 py-1 rounded-full">
-                    {listing.category.icon} {listing.category.name}
-                  </span>
-                )}
-                {listing.verified ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-full">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950" />
-                    Verified Official Listing
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2.5 py-1 rounded-full">
-                    Community Submitted
-                  </span>
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                {listing.name}
-              </h1>
-            </div>
-
-            {/* Claim button */}
-            {!listing.owner_user_id && (
-              <button
-                onClick={() => setClaimOpen(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex-shrink-0 hover:scale-105 active:scale-95"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Claim This Business
-              </button>
-            )}
-          </div>
-
-          {/* Description */}
-          {listing.description && (
-            <div>
-              <h2 className="text-xs font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-2">About this Service</h2>
-              <p className="text-sm sm:text-base text-gray-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                {listing.description}
-              </p>
+        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-200">
+          {/* Storefront Image Hero (if available) */}
+          {listing.image_url && (
+            <div className="relative w-full h-64 sm:h-80 overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <img
+                src={listing.image_url}
+                alt={listing.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             </div>
           )}
 
-          {/* Contact Action Buttons */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {listing.phone && (
-              <a
-                href={`tel:${listing.phone}`}
-                className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-gray-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
-              >
-                <Phone className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition" />
-                <span className="text-xs font-bold">Call Service</span>
-                <span className="text-[11px] text-gray-500 dark:text-slate-400 truncate max-w-full font-mono">{listing.phone}</span>
-              </a>
+          <div className="p-6 sm:p-10 space-y-6">
+            {/* Header row */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  {listing.category && (
+                    <span className="text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 px-3 py-1 rounded-full">
+                      {listing.category.icon} {listing.category.name}
+                    </span>
+                  )}
+                  {listing.verified ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-full">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950" />
+                      Verified Official Listing
+                    </span>
+                  ) : (
+                    <span className="text-xs font-medium bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2.5 py-1 rounded-full">
+                      Community Submitted
+                    </span>
+                  )}
+
+                  {/* Rating Badge */}
+                  {listing.average_rating ? (
+                    <div className="inline-flex items-center gap-1.5 text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2.5 py-1 rounded-full">
+                      <StarRating rating={Math.round(listing.average_rating)} size="sm" />
+                      <span>{listing.average_rating.toFixed(1)}</span>
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400">({listing.review_count})</span>
+                    </div>
+                  ) : null}
+                </div>
+                <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  {listing.name}
+                </h1>
+              </div>
+
+              {/* Claim button */}
+              {!listing.owner_user_id && (
+                <button
+                  onClick={() => setClaimOpen(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex-shrink-0 hover:scale-105 active:scale-95"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Claim This Business
+                </button>
+              )}
+            </div>
+
+            {/* Description */}
+            {listing.description && (
+              <div>
+                <h2 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">About this Service</h2>
+                <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                  {listing.description}
+                </p>
+              </div>
             )}
 
-            {listing.email && (
-              <a
-                href={`mailto:${listing.email}`}
-                className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-gray-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
-              >
-                <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition" />
-                <span className="text-xs font-bold">Send Email</span>
-                <span className="text-[11px] text-gray-500 dark:text-slate-400 truncate max-w-full">{listing.email}</span>
-              </a>
-            )}
+            {/* Contact Action Buttons */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {listing.phone && (
+                <a
+                  href={`tel:${listing.phone}`}
+                  className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
+                >
+                  <Phone className="w-5 h-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition" />
+                  <span className="text-xs font-bold">Call Service</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full font-mono">{listing.phone}</span>
+                </a>
+              )}
 
-            {listing.website && (
+              {listing.email && (
+                <a
+                  href={`mailto:${listing.email}`}
+                  className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
+                >
+                  <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition" />
+                  <span className="text-xs font-bold">Send Email</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">{listing.email}</span>
+                </a>
+              )}
+
+              {listing.website && (
+                <a
+                  href={listing.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-slate-800 dark:text-slate-200 hover:text-purple-700 dark:hover:text-purple-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
+                >
+                  <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition" />
+                  <span className="text-xs font-bold">Website</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">Visit official site</span>
+                </a>
+              )}
+
               <a
-                href={listing.website}
+                href={directionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-slate-800/80 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-gray-800 dark:text-slate-200 hover:text-purple-700 dark:hover:text-purple-300 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
+                className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-slate-800 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
               >
-                <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition" />
-                <span className="text-xs font-bold">Website</span>
-                <span className="text-[11px] text-gray-500 dark:text-slate-400 truncate max-w-full">Visit official site</span>
+                <Navigation className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition" />
+                <span className="text-xs font-bold">Get Directions</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">Open in Maps</span>
               </a>
-            )}
-
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-slate-800/80 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-gray-800 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-300 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <Navigation className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition" />
-              <span className="text-xs font-bold">Get Directions</span>
-              <span className="text-[11px] text-gray-500 dark:text-slate-400 truncate max-w-full">Open in Maps</span>
-            </a>
-          </div>
-
-          {/* Location & Timings */}
-          <div className="space-y-4 pt-2">
-            <h2 className="text-xs font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider">Location & Timings</h2>
-            <div className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-gray-200/60 dark:border-slate-700/60">
-              <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <span className="font-semibold block text-gray-900 dark:text-white">Physical Address</span>
-                <span className="text-gray-600 dark:text-slate-400 text-xs sm:text-sm">{listing.address}</span>
-              </div>
             </div>
 
-            {listing.hours && (
-              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-gray-200/60 dark:border-slate-700/60 flex items-start gap-3">
-                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-gray-700 dark:text-slate-300 space-y-1.5 flex-1">
-                  <span className="font-semibold block text-gray-900 dark:text-white">Opening Hours</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {Object.entries(listing.hours).map(([day, time]) => (
-                      <div key={day} className="flex justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-gray-200/60 dark:border-slate-700/60">
-                        <span className="capitalize text-gray-500 dark:text-slate-400 font-medium">{day.replace('_', ' ')}</span>
-                        <span className="font-semibold text-gray-900 dark:text-slate-200">{time}</span>
-                      </div>
-                    ))}
-                  </div>
+            {/* Location & Timings */}
+            <div className="space-y-4 pt-2">
+              <h2 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Location & Timings</h2>
+              <div className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+                <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="font-semibold block text-slate-900 dark:text-white">Physical Address</span>
+                  <span className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">{listing.address}</span>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Mini Map */}
-          {listing.lat && listing.lng && (
-            <div className="pt-2">
-              <h2 className="text-xs font-bold text-gray-400 dark:text-slate-400 uppercase tracking-wider mb-2">Map Location</h2>
-              <Map
-                listings={[listing]}
-                center={[Number(listing.lat), Number(listing.lng)]}
-                zoom={15}
-                className="h-72 shadow-xs rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden"
-              />
+              {listing.hours && (
+                <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1.5 flex-1">
+                    <span className="font-semibold block text-slate-900 dark:text-white">Opening Hours</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      {Object.entries(listing.hours).map(([day, time]) => (
+                        <div key={day} className="flex justify-between bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                          <span className="capitalize text-slate-500 dark:text-slate-400 font-medium">{day.replace('_', ' ')}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-200">{time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Report Footer */}
-          <div className="border-t border-gray-100 dark:border-slate-800 pt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400 dark:text-slate-400">
-            <span>Last updated: {new Date(listing.updated_at).toLocaleDateString()}</span>
-            <button
-              onClick={() => setReportOpen(true)}
-              className="text-gray-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 font-medium transition"
-            >
-              <Flag className="w-3.5 h-3.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400" />
-              <span>Report Incorrect Information</span>
-            </button>
+            {/* Mini Map */}
+            {listing.lat && listing.lng && (
+              <div className="pt-2">
+                <h2 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">Map Location</h2>
+                <Map
+                  listings={[listing]}
+                  center={[Number(listing.lat), Number(listing.lng)]}
+                  zoom={15}
+                  className="h-72 shadow-xs rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                />
+              </div>
+            )}
+
+            {/* Report Footer */}
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 dark:text-slate-400">
+              <span>Last updated: {new Date(listing.updated_at).toLocaleDateString()}</span>
+              <button
+                onClick={() => setReportOpen(true)}
+                className="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 font-medium transition"
+              >
+                <Flag className="w-3.5 h-3.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400" />
+                <span>Report Incorrect Information</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Community Reviews & Ratings Section */}
+        <ReviewSection listingId={listing.id} />
 
         {/* Report Modal */}
         {reportOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-gray-100 dark:border-slate-800 animate-scale-in">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Report Inaccurate Listing</h3>
-              <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-100 dark:border-slate-800 animate-scale-in">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Report Inaccurate Listing</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Please describe the issue (e.g. permanently closed, incorrect phone number, wrong address). Our moderators will investigate.
               </p>
               <textarea
@@ -289,13 +321,13 @@ export const ListingDetail: React.FC = () => {
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
                 placeholder="Describe the issue in detail..."
-                className="w-full p-3 text-xs rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none"
+                className="w-full p-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none"
               />
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setReportOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl"
+                  className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
                 >
                   Cancel
                 </button>
