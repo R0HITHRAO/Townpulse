@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, get_current_admin_user
+from app.core.dependencies import get_current_active_user, require_admin
 from app.models.listing import Listing
 from app.models.review import Review
 from app.models.user import User
