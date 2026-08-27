@@ -4,8 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { api, Listing } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ClaimModal } from '../components/ClaimModal';
+import { QRCodeModal } from '../components/QRCodeModal';
 import { ReviewSection } from '../components/ReviewSection';
 import { StarRating } from '../components/StarRating';
+import { OpenStatusBadge } from '../components/OpenStatusBadge';
+import { useBookmarks } from '../context/BookmarkContext';
+import { getWhatsAppShareUrl } from '../utils/whatsapp';
 import { Map } from '../components/Map';
 import {
   Phone,
@@ -20,18 +24,24 @@ import {
   Navigation,
   Share2,
   Check,
-  ImageIcon,
+  QrCode,
+  Heart,
+  MessageCircle,
 } from 'lucide-react';
 
 export const ListingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [claimOpen, setClaimOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const bookmarked = listing ? isBookmarked(listing.id) : false;
 
   const fetchListing = () => {
     if (!id) return;
@@ -99,8 +109,8 @@ export const ListingDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
-        {/* Navigation bar */}
-        <div className="flex items-center justify-between">
+        {/* Navigation & Action bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
@@ -108,22 +118,60 @@ export const ListingDetail: React.FC = () => {
             <ArrowLeft className="w-4 h-4" /> Back to Listings
           </Link>
 
-          <button
-            onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">Link Copied!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                <span>Share</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Bookmark Favorite */}
+            <button
+              onClick={() => toggleBookmark(listing)}
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition shadow-2xs hover:scale-105 active:scale-95 ${
+                bookmarked
+                  ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+              <span>{bookmarked ? 'Saved' : 'Save'}</span>
+            </button>
+
+            {/* 1-Tap WhatsApp Forward */}
+            <a
+              href={getWhatsAppShareUrl(listing)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition hover:scale-105 active:scale-95"
+              title="Forward on WhatsApp"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>WhatsApp</span>
+            </a>
+
+            {/* Storefront QR Code */}
+            <button
+              onClick={() => setQrOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition hover:scale-105 active:scale-95"
+              title="Generate Storefront QR Code"
+            >
+              <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>QR Code</span>
+            </button>
+
+            {/* Standard Share */}
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                  <span>Share</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Main Card */}
@@ -148,6 +196,8 @@ export const ListingDetail: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <OpenStatusBadge hours={listing.hours} size="md" />
+
                   {listing.category && (
                     <span className="text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 px-3 py-1 rounded-full">
                       {listing.category.icon} {listing.category.name}
@@ -307,6 +357,13 @@ export const ListingDetail: React.FC = () => {
 
         {/* Community Reviews & Ratings Section */}
         <ReviewSection listingId={listing.id} />
+
+        {/* Storefront QR Code Modal */}
+        <QRCodeModal
+          listing={listing}
+          isOpen={qrOpen}
+          onClose={() => setQrOpen(false)}
+        />
 
         {/* Report Modal */}
         {reportOpen && (
