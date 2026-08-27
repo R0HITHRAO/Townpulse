@@ -21,12 +21,12 @@ def test_get_categories(client: TestClient, sample_category: Category) -> None:
     assert any(c["name"] == sample_category.name for c in data)
 
 
-def test_create_listing(
+def test_create_listing_by_admin(
     client: TestClient,
     sample_category: Category,
     admin_token: str,
 ) -> None:
-    """Test creating a new listing."""
+    """Test creating a new listing by an admin (auto-verified)."""
     payload = {
         "name": "Town Central Bakery",
         "description": "Fresh bread and pastries daily.",
@@ -45,7 +45,7 @@ def test_create_listing(
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Town Central Bakery"
-    assert data["verified"] is False
+    assert data["verified"] is True
     assert "id" in data
 
 
