@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect } from 'vitest';
 import { ListingCard } from '../components/ListingCard';
+import { BookmarkProvider } from '../context/BookmarkContext';
 import { Listing } from '../services/api';
 
 const mockListing: Listing = {
@@ -20,9 +21,11 @@ const mockListing: Listing = {
 describe('ListingCard Component', () => {
   it('renders listing name, category, and address', () => {
     render(
-      <BrowserRouter>
-        <ListingCard listing={mockListing} />
-      </BrowserRouter>
+      <BookmarkProvider>
+        <BrowserRouter>
+          <ListingCard listing={mockListing} />
+        </BrowserRouter>
+      </BookmarkProvider>
     );
 
     expect(screen.getByText('Town Central Clinic')).toBeInTheDocument();
@@ -32,9 +35,11 @@ describe('ListingCard Component', () => {
 
   it('displays verified badge when verified is true', () => {
     render(
-      <BrowserRouter>
-        <ListingCard listing={mockListing} />
-      </BrowserRouter>
+      <BookmarkProvider>
+        <BrowserRouter>
+          <ListingCard listing={mockListing} />
+        </BrowserRouter>
+      </BookmarkProvider>
     );
 
     expect(screen.getByText('verified')).toBeInTheDocument();
@@ -42,9 +47,11 @@ describe('ListingCard Component', () => {
 
   it('renders telephone call button with phone link', () => {
     render(
-      <BrowserRouter>
-        <ListingCard listing={mockListing} />
-      </BrowserRouter>
+      <BookmarkProvider>
+        <BrowserRouter>
+          <ListingCard listing={mockListing} />
+        </BrowserRouter>
+      </BookmarkProvider>
     );
 
     const callLink = screen.getByLabelText('Call Town Central Clinic');
