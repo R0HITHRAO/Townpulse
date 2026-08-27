@@ -48,10 +48,10 @@ export interface Listing {
 
 export interface PaginatedResponse<T> {
   items: T[];
-  total: int;
-  page: int;
-  per_page: int;
-  total_pages: int;
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
 }
 
 export interface Claim {
@@ -123,7 +123,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   return response.json();
 }
 
-// ─── API Endpoints ────────────────────────────────────────────────────────────
+// ─── API Endpoints ────────────────────────────────────────────────────
 
 export const api = {
   // Categories
