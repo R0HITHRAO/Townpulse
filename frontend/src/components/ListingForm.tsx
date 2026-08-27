@@ -97,16 +97,16 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-sm max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-slate-900/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm max-w-2xl mx-auto transition-colors duration-200">
       {/* Basic Info */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
-          <Building className="w-4 h-4 text-blue-600" />
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-2">
+          <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           General Service Information
         </h3>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
             Service or Business Name *
           </label>
           <input
@@ -115,18 +115,18 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Town Primary Health Center"
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
             Category
           </label>
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           >
             <option value="">Select a Category</option>
             {categories.map((c) => (
@@ -138,7 +138,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
             Description
           </label>
           <textarea
@@ -146,20 +146,20 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the services offered, specialties, or assistance provided..."
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
         </div>
       </div>
 
       {/* Location */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
-          <MapPin className="w-4 h-4 text-blue-600" />
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-2">
+          <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           Location & GPS Coordinates
         </h3>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
+          <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
             Full Physical Address *
           </label>
           <div className="flex gap-2">
@@ -169,13 +169,13 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="e.g. Opposite Town Bus Stand, Main Road"
-              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <button
               type="button"
               onClick={handleGeocodeAddress}
               disabled={searchingAddress}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 text-xs font-semibold rounded-xl transition"
+              className="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 px-3 py-2 text-xs font-semibold rounded-xl transition hover:scale-105 active:scale-95"
             >
               {searchingAddress ? 'Locating...' : 'Search Pin'}
             </button>
@@ -184,7 +184,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[11px] font-medium text-gray-500 mb-1">
+            <label className="block text-[11px] font-medium text-gray-500 dark:text-slate-400 mb-1">
               Latitude
             </label>
             <input
@@ -192,11 +192,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               step="any"
               value={lat}
               onChange={(e) => setLat(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-gray-50"
+              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 text-gray-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-gray-500 mb-1">
+            <label className="block text-[11px] font-medium text-gray-500 dark:text-slate-400 mb-1">
               Longitude
             </label>
             <input
@@ -204,7 +204,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               step="any"
               value={lng}
               onChange={(e) => setLng(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 bg-gray-50"
+              className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 text-gray-900 dark:text-white"
             />
           </div>
         </div>
@@ -213,7 +213,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={gettingLocation}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 px-3 py-1.5 rounded-xl transition hover:scale-105 active:scale-95"
         >
           <Crosshair className="w-3.5 h-3.5" />
           <span>{gettingLocation ? 'Detecting GPS...' : 'Use My Current GPS Position'}</span>
@@ -222,14 +222,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
       {/* Contact Details */}
       <div className="space-y-4">
-        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-2">
-          <Phone className="w-4 h-4 text-blue-600" />
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-2">
+          <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           Contact & Timings
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Phone Number
             </label>
             <input
@@ -237,11 +237,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 9845012345"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Email Address
             </label>
             <input
@@ -249,14 +249,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contact@service.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Website URL
             </label>
             <input
@@ -264,11 +264,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://myservice.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
               Operating Hours
             </label>
             <input
@@ -276,7 +276,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="e.g. 8:00 AM - 8:00 PM"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
@@ -285,7 +285,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
       >
         <Check className="w-4 h-4" />
         {isSubmitting ? 'Submitting...' : submitLabel}
