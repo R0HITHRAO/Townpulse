@@ -31,26 +31,33 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # ─── Enable PostGIS Extension ─────────────────────────────────────────────
     op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
-    op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")  # For similarity search
+    op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
 
-    # ─── Enums ────────────────────────────────────────────────────────────────
-    user_role_enum = postgresql.ENUM(
-        "user", "business_owner", "admin",
-        name="user_role",
-    )
-    user_role_enum.create(op.get_bind())
+    # ─── Enums (Idempotent creation) ──────────────────────────────────────────
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE user_role AS ENUM ('user', 'business_owner', 'admin');
+        EXCEPTION WHEN duplicate_object THEN null;
+        END $$;
+    """)
 
-    claim_status_enum = postgresql.ENUM(
-        "pending", "approved", "rejected",
-        name="claim_status",
-    )
-    claim_status_enum.create(op.get_bind())
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE claim_status AS ENUM ('pending', 'approved', 'rejected');
+        EXCEPTION WHEN duplicate_object THEN null;
+        END $$;
+    """)
 
-    submission_status_enum = postgresql.ENUM(
-        "pending", "approved", "rejected",
-        name="submission_status",
-    )
-    submission_status_enum.create(op.get_bind())
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE submission_status AS ENUM ('pending', 'approved', 'rejected');
+        EXCEPTION WHEN duplicate_object THEN null;
+        END $$;
+    """)
+
+    user_role_type = postgresql.ENUM("user", "business_owner", "admin", name="user_role", create_type=False)
+    claim_status_type = postgresql.ENUM("pending", "approved", "rejected", name="claim_status", create_type=False)
+    submission_status_type = postgresql.ENUM("pending", "approved", "rejected", name="submission_status", create_type=False)
 
     # ─── Users Table ──────────────────────────────────────────────────────────
     op.create_table(
@@ -64,7 +71,7 @@ def upgrade() -> None:
         sa.Column("email_verified", sa.Boolean, default=False, nullable=False),
         sa.Column(
             "role",
-            sa.Enum("user", "business_owner", "admin", name="user_role"),
+            user_role_type,
             default="user",
             nullable=False,
         ),
@@ -146,16 +153,15 @@ def upgrade() -> None:
 
     # GIST index on location for fast ST_DWithin radius queries
     op.execute(
-        "CREATE INDEX ix_listings_location_gist ON listings USING GIST (location)"
+        "CREATE INDEX IF NOT EXISTS ix_listings_location_gist ON listings USING GIST (location)"
     )
 
     # GIN index on search_vector for full-text search
-    # Note: search_vector is updated by a trigger below
     op.execute(
         "ALTER TABLE listings ALTER COLUMN search_vector TYPE tsvector USING search_vector::tsvector"
     )
     op.execute(
-        "CREATE INDEX ix_listings_search_vector_gin ON listings USING GIN (search_vector)"
+        "CREATE INDEX IF NOT EXISTS ix_listings_search_vector_gin ON listings USING GIN (search_vector)"
     )
 
     # Trigger to auto-update tsvector from name + description
@@ -172,6 +178,7 @@ def upgrade() -> None:
         $$ LANGUAGE plpgsql;
     """)
     op.execute("""
+        DROP TRIGGER IF EXISTS listings_tsvector_trigger ON listings;
         CREATE TRIGGER listings_tsvector_trigger
         BEFORE INSERT OR UPDATE ON listings
         FOR EACH ROW
@@ -196,7 +203,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "status",
-            sa.Enum("pending", "approved", "rejected", name="claim_status"),
+            claim_status_type,
             default="pending",
             nullable=False,
         ),
@@ -220,7 +227,7 @@ def upgrade() -> None:
         sa.Column("data_json", postgresql.JSONB, nullable=False),
         sa.Column(
             "status",
-            sa.Enum("pending", "approved", "rejected", name="submission_status"),
+            submission_status_type,
             default="pending",
             nullable=False,
         ),
