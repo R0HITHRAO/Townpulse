@@ -4,6 +4,7 @@ import { Map } from '../components/Map';
 import { ListingCard } from '../components/ListingCard';
 import { CategoryChips } from '../components/CategoryChips';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { DirectionsModal } from '../components/DirectionsModal';
 import { api, Category, Listing } from '../services/api';
 import { getOpenStatus } from '../utils/businessHours';
 import {
@@ -15,6 +16,7 @@ import {
   X,
   Clock,
   Sparkles,
+  Navigation,
 } from 'lucide-react';
 
 type LayoutMode = 'split' | 'map' | 'list';
@@ -29,6 +31,7 @@ export const MapView: React.FC = () => {
   const [radius, setRadius] = useState(15000);
   const [openOnly, setOpenOnly] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [directionsListing, setDirectionsListing] = useState<Listing | null>(null);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
 
   useEffect(() => {
@@ -240,13 +243,19 @@ export const MapView: React.FC = () => {
 
                 {layoutMode === 'split' && selectedListing && (
                   <div className="p-3 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-2">
-                    <div className="truncate">
+                    <div className="truncate flex-1">
                       <span className="text-[10px] text-slate-400 uppercase font-bold block">Selected Pin:</span>
                       <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">{selectedListing.name}</span>
                     </div>
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex-shrink-0">
-                      {selectedListing.category?.name}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDirectionsListing(selectedListing)}
+                      className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-xl text-xs font-semibold flex items-center gap-1 hover:bg-amber-100 transition shrink-0"
+                      title="Get interactive directions"
+                    >
+                      <Navigation className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                      <span>Route</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -254,6 +263,14 @@ export const MapView: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Interactive Directions Modal */}
+      {directionsListing && (
+        <DirectionsModal
+          listing={directionsListing}
+          onClose={() => setDirectionsListing(null)}
+        />
+      )}
     </div>
   );
 };
