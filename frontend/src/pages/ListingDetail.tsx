@@ -5,6 +5,8 @@ import { api, Listing } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ClaimModal } from '../components/ClaimModal';
 import { QRCodeModal } from '../components/QRCodeModal';
+import { DirectionsModal } from '../components/DirectionsModal';
+import { ListingCommunityQA } from '../components/ListingCommunityQA';
 import { ReviewSection } from '../components/ReviewSection';
 import { StarRating } from '../components/StarRating';
 import { OpenStatusBadge } from '../components/OpenStatusBadge';
@@ -37,6 +39,7 @@ export const ListingDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [claimOpen, setClaimOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [directionsOpen, setDirectionsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [copied, setCopied] = useState(false);
@@ -287,16 +290,15 @@ export const ListingDetail: React.FC = () => {
                 </a>
               )}
 
-              <a
-                href={directionsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => setDirectionsOpen(true)}
                 className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-slate-800 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
               >
                 <Navigation className="w-5 h-5 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition" />
                 <span className="text-xs font-bold">Get Directions</span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">Open in Maps</span>
-              </a>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">Interactive Route</span>
+              </button>
             </div>
 
             {/* Location & Timings */}
@@ -358,12 +360,23 @@ export const ListingDetail: React.FC = () => {
         {/* Community Reviews & Ratings Section */}
         <ReviewSection listingId={listing.id} />
 
+        {/* Community Q&A Section */}
+        <ListingCommunityQA listing={listing} />
+
         {/* Storefront QR Code Modal */}
         <QRCodeModal
           listing={listing}
           isOpen={qrOpen}
           onClose={() => setQrOpen(false)}
         />
+
+        {/* Interactive Directions Modal */}
+        {directionsOpen && (
+          <DirectionsModal
+            listing={listing}
+            onClose={() => setDirectionsOpen(false)}
+          />
+        )}
 
         {/* Report Modal */}
         {reportOpen && (
