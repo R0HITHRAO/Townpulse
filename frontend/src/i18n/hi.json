@@ -26,5 +26,13 @@
   "business_dashboard": "व्यापार डैशबोर्ड",
   "about": "हमारे बारे में",
   "accessibility": "सुगम्यता",
-  "footer_text": "TownPulse — खुला स्रोत स्थानीय सामुदायिक बुनियादी ढांचा।"
+  "footer_text": "TownPulse — खुला स्रोत स्थानीय सामुदायिक बुनियादी ढांचा।",
+  "print_guide": "गाइड प्रिंट करें",
+  "print_directory": "आपातकालीन निर्देशिका प्रिंट करें",
+  "interactive_route": "सक्रिय मार्ग",
+  "community_qa": "सामुदायिक सवाल-जवाब",
+  "fastest_route": "सबसे तेज़ स्थानीय मार्ग",
+  "drive": "गाड़ी से",
+  "walk": "पैदल",
+  "cycle": "साइकिल से"
 }
