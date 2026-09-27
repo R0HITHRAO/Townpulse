@@ -26,5 +26,13 @@
   "business_dashboard": "Business Dashboard",
   "about": "About",
   "accessibility": "Accessibility",
-  "footer_text": "TownPulse — Open-source local community infrastructure."
+  "footer_text": "TownPulse — Open-source local community infrastructure.",
+  "print_guide": "Print Guide",
+  "print_directory": "Print Pocket Directory",
+  "interactive_route": "Interactive Route",
+  "community_qa": "Community Q&A",
+  "fastest_route": "Fastest Local Path",
+  "drive": "Drive",
+  "walk": "Walk",
+  "cycle": "Cycle"
 }
