@@ -235,3 +235,34 @@
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
 }
+
+/* ─── PRINT / PDF EXPORT STYLES ─────────────────────────────────────────── */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header, footer, nav, .print\\:hidden {
+    display: none !important;
+  }
+
+  .print\\:text-black {
+    color: #000000 !important;
+  }
+
+  .print\\:bg-white {
+    background-color: #ffffff !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    margin: 1.2cm;
+    size: A4 portrait;
+  }
+}
+
