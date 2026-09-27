@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart } from 'lucide-react';
+import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart, Printer } from 'lucide-react';
 import { isAuthenticated, isAdmin, isBusinessOwner, getCurrentUser } from '../services/auth';
-import { clearStoredTokens } from '../services/api';
+import { clearStoredTokens, api, Listing, Category } from '../services/api';
 import { ThemeToggle } from './ThemeToggle';
 import { BookmarksModal } from './BookmarksModal';
+import { PrintableDirectoryModal } from './PrintableDirectoryModal';
 import { useBookmarks } from '../context/BookmarkContext';
 
 export const Header: React.FC = () => {
@@ -14,7 +15,16 @@ export const Header: React.FC = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookmarksOpen, setBookmarksOpen] = useState(false);
+  const [printableOpen, setPrintableOpen] = useState(false);
+  const [printListings, setPrintListings] = useState<Listing[]>([]);
+  const [printCategories, setPrintCategories] = useState<Category[]>([]);
   const { bookmarks } = useBookmarks();
+
+  const handleOpenPrintable = () => {
+    api.getCategories().then(setPrintCategories).catch(console.error);
+    api.searchListings({ per_page: 100 }).then(res => setPrintListings(res.items)).catch(console.error);
+    setPrintableOpen(true);
+  };
 
   const auth = isAuthenticated();
   const admin = isAdmin();
@@ -85,6 +95,17 @@ export const Header: React.FC = () => {
                     {bookmarks.length}
                   </span>
                 )}
+              </button>
+
+              {/* Printable Emergency Directory Trigger */}
+              <button
+                onClick={handleOpenPrintable}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition"
+                title="Print Emergency Town Directory"
+                aria-label="Print Emergency Town Directory"
+              >
+                <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Print Guide</span>
               </button>
 
               <Link
@@ -206,6 +227,17 @@ export const Header: React.FC = () => {
               <span>Saved Places ({bookmarks.length})</span>
             </button>
 
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleOpenPrintable();
+              }}
+              className="flex items-center gap-2 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 w-full text-left"
+            >
+              <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Print Emergency Directory</span>
+            </button>
+
             <Link
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
@@ -282,6 +314,15 @@ export const Header: React.FC = () => {
         isOpen={bookmarksOpen}
         onClose={() => setBookmarksOpen(false)}
       />
+
+      {/* Printable Emergency Directory Modal */}
+      {printableOpen && (
+        <PrintableDirectoryModal
+          listings={printListings}
+          categories={printCategories}
+          onClose={() => setPrintableOpen(false)}
+        />
+      )}
     </>
   );
 };
