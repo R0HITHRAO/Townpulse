@@ -77,6 +77,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          leaflet: ['leaflet', 'react-leaflet'],
+          ui: ['lucide-react', 'clsx', 'tailwind-merge', 'i18next', 'react-i18next'],
+        },
+      },
+    },
+  },
   // @ts-ignore
   test: {
     globals: true,
