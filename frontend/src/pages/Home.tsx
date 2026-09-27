@@ -7,9 +7,10 @@ import { ListingCard } from '../components/ListingCard';
 import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { AnimatedBackground } from '../components/AnimatedBackground';
+import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
-import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock } from 'lucide-react';
+import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export const Home: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [openOnly, setOpenOnly] = useState(false);
+  const [printableOpen, setPrintableOpen] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams>({ page: 1, per_page: 20 });
   const [totalCount, setTotalCount] = useState(0);
 
@@ -194,6 +196,16 @@ export const Home: React.FC = () => {
                 <span>{t('verified_only')}</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => setPrintableOpen(true)}
+                className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95 shadow-2xs"
+                title="Print Emergency Services Directory"
+              >
+                <Printer className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="hidden sm:inline">Pocket Guide</span>
+              </button>
+
               <Link
                 to="/map"
                 className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
@@ -258,6 +270,15 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Printable Emergency Directory Modal */}
+      {printableOpen && (
+        <PrintableDirectoryModal
+          listings={listings}
+          categories={categories}
+          onClose={() => setPrintableOpen(false)}
+        />
+      )}
     </div>
   );
 };
