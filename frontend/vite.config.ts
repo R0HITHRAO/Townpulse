@@ -36,7 +36,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             // Cache categories and listings for offline exploration
-            urlPattern: /^https:\/\/.*\/listings|^http:\/\/localhost:8000\/listings|^http:\/\/localhost:8000\/categories/,
+            urlPattern: /^https:\/\/.*\/listings|^http:\/\/localhost:8000\/(listings|categories)|\/api\/(listings|categories)/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'townpulse-api-cache',

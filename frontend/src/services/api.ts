@@ -4,7 +4,11 @@
  * and unified error handling.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Same-origin by default: the browser calls /api/... on whatever host served
+// the page. Nginx (Docker) and the Vite dev server both proxy /api to the
+// backend, so no CORS, mixed-content, or cross-port issues can occur.
+// Set VITE_API_URL explicitly only when the backend lives on another host.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export interface User {
   id: string;
