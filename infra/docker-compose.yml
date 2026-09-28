@@ -56,6 +56,19 @@ services:
       - DEBUG=true
       - SECRET_KEY=${SECRET_KEY:-townpulse-secret-key-for-local-dev-32-chars!}
       - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      # ── OTP / SMS provider (set these in infra/.env to receive real SMS) ──
+      - OTP_PROVIDER=${OTP_PROVIDER:-mock}
+      - OTP_EXPIRE_MINUTES=${OTP_EXPIRE_MINUTES:-10}
+      - OTP_MAX_REQUESTS_PER_HOUR=${OTP_MAX_REQUESTS_PER_HOUR:-5}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-}
+      - MSG91_AUTH_KEY=${MSG91_AUTH_KEY:-}
+      - MSG91_SENDER_ID=${MSG91_SENDER_ID:-TWNPUL}
+      - MSG91_TEMPLATE_ID=${MSG91_TEMPLATE_ID:-}
+      # ── Email provider (optional) ──
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-mock}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@townpulse.dev}
     volumes:
       - ../backend:/app
     command: >
