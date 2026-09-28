@@ -5,12 +5,13 @@ Routes for user registration, email/password login, phone OTP,
 session refreshing, and current user profile.
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.dependencies import CurrentUser, DbSession
 from app.schemas.common import MessageResponse
 from app.schemas.user import (
     OTPRequest,
+    OTPRequestResponse,
     OTPVerify,
     Token,
     TokenRefresh,
@@ -53,16 +54,28 @@ def login(
 
 @router.post(
     "/otp/request",
-    response_model=MessageResponse,
+    response_model=OTPRequestResponse,
     summary="Request a phone OTP code",
 )
 async def request_otp(
     data: OTPRequest,
-) -> MessageResponse:
-    """Send a 6-digit verification code to the phone number."""
-    await AuthService.request_otp(data.phone)
-    return MessageResponse(
-        message="OTP sent successfully. Valid for 10 minutes."
+) -> OTPRequestResponse:
+    """
+    Send a 6-digit verification code to the phone number.
+
+    With the mock OTP provider (local development) the generated code is
+    returned in `dev_otp` so the flow can be completed without a real SMS
+    gateway. Real providers (twilio/msg91) never return the code.
+    """
+    success, dev_otp = await AuthService.request_otp(data.phone)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to send OTP. Please try again in a moment.",
+        )
+    return OTPRequestResponse(
+        message="OTP sent successfully. Valid for 10 minutes.",
+        dev_otp=dev_otp,
     )
 
 

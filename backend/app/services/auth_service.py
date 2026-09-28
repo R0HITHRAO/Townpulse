@@ -133,10 +133,15 @@ class AuthService:
         )
 
     @staticmethod
-    async def request_otp(phone: str) -> bool:
+    async def request_otp(phone: str) -> tuple[bool, str | None]:
         """
         Request a 6-digit OTP code sent to the given phone number.
         Enforces hourly rate limiting per phone number.
+
+        Returns:
+            Tuple of (delivery_succeeded, dev_otp). dev_otp is only set when
+            the mock OTP provider is active outside of production, allowing
+            the local dev flow to complete without a real SMS gateway.
         """
         if not check_otp_rate_limit(phone):
             raise HTTPException(
@@ -153,7 +158,14 @@ class AuthService:
 
         provider = get_otp_provider()
         success = await provider.send_otp(phone, otp)
-        return success
+
+        # Expose the code only for local development (mock provider, never in
+        # production) so the UI can display it instead of sending a real SMS.
+        dev_otp: str | None = None
+        if settings.OTP_PROVIDER == "mock" and not settings.is_production:
+            dev_otp = otp
+
+        return success, dev_otp
 
     @staticmethod
     def verify_otp(db: Session, phone: str, otp: str) -> Token:

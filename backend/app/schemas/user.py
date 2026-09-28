@@ -69,6 +69,21 @@ class OTPVerify(BaseModel):
     otp: str = Field(..., min_length=6, max_length=6, examples=["123456"])
 
 
+class OTPRequestResponse(BaseModel):
+    """
+    Response schema for requesting a phone OTP.
+
+    dev_otp is only populated when OTP_PROVIDER=mock outside of production,
+    so local development can complete the login flow without a real SMS
+    gateway. It is always null when a real provider (twilio/msg91) is used
+    or when running in production.
+    """
+
+    message: str
+    detail: str | None = None
+    dev_otp: str | None = None
+
+
 class TokenRefresh(BaseModel):
     """Schema for refresh token request."""
 

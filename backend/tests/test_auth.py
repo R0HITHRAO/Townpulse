@@ -77,3 +77,40 @@ def test_get_profile_unauthorized_without_token(client: TestClient) -> None:
     """Test that /auth/me returns 401 when missing Authorization header."""
     response = client.get("/auth/me")
     assert response.status_code == 401
+
+
+def test_otp_request_returns_dev_otp_in_mock_mode(client: TestClient) -> None:
+    """Mock OTP provider (dev) must return the code so login is testable."""
+    response = client.post("/auth/otp/request", json={"phone": "+919812345670"})
+    assert response.status_code == 200
+    data = response.json()
+    assert "OTP sent" in data["message"]
+    assert data.get("dev_otp")
+    assert len(data["dev_otp"]) == 6
+    assert data["dev_otp"].isdigit()
+
+
+def test_otp_request_and_verify_login_flow(client: TestClient) -> None:
+    """Full phone OTP flow: request the code, then verify it for tokens."""
+    phone = "+919812345671"
+    request_resp = client.post("/auth/otp/request", json={"phone": phone})
+    assert request_resp.status_code == 200
+    dev_otp = request_resp.json()["dev_otp"]
+    assert dev_otp
+
+    verify_resp = client.post(
+        "/auth/otp/verify", json={"phone": phone, "otp": dev_otp}
+    )
+    assert verify_resp.status_code == 200
+    data = verify_resp.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"
+    assert data["user"]["phone"] == phone
+    assert data["user"]["phone_verified"] is True
+
+
+def test_otp_verify_rejects_wrong_code(client: TestClient) -> None:
+    """Verifying with an incorrect OTP must return 400."""
+    phone = "+919812345672"
+    resp = client.post("/auth/otp/verify", json={"phone": phone, "otp": "000000"})
+    assert resp.status_code == 400

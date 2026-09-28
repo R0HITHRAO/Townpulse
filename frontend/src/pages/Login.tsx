@@ -16,6 +16,7 @@ export const Login: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +44,8 @@ export const Login: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await api.requestOtp(phone);
+      const res = await api.requestOtp(phone);
+      setDevOtp(res.dev_otp ?? null);
       setOtpSent(true);
     } catch (err: any) {
       setError(err.message || 'Failed to send OTP');
@@ -187,9 +189,28 @@ export const Login: React.FC = () => {
                     className="w-full px-3.5 py-2 text-center tracking-widest text-lg font-bold rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   />
                   <p className="text-[11px] text-gray-400 dark:text-slate-400 text-center mt-1">
-                    Sent to {phone} (In local dev, check terminal output)
+                    Sent to {phone}
+                    {!devOtp && ' — delivery may take a few moments'}
                   </p>
                 </div>
+
+                {devOtp && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl text-center space-y-1.5">
+                    <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                      Development mode — no real SMS sent
+                    </p>
+                    <p className="text-2xl font-mono font-bold text-amber-900 dark:text-amber-100 tracking-[0.3em]">
+                      {devOtp}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setOtp(devOtp)}
+                      className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                    >
+                      Fill this code →
+                    </button>
+                  </div>
+                )}
 
                 <button
                   type="submit"

@@ -256,7 +256,7 @@ export const api = {
     }),
 
   requestOtp: (phone: string) =>
-    request<{ message: string }>('/auth/otp/request', {
+    request<{ message: string; dev_otp?: string | null }>('/auth/otp/request', {
       method: 'POST',
       body: JSON.stringify({ phone }),
     }),
