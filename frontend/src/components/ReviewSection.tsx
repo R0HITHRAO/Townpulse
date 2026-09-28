@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '../services/auth';
-import { api, Review, ReviewListResponse } from '../services/api';
+import { api, ReviewListResponse } from '../services/api';
 import { StarRating } from './StarRating';
-import { MessageSquare, Star, Trash2, Send, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Trash2, Send, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ReviewSectionProps {

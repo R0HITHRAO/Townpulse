@@ -34,5 +34,12 @@
   "fastest_route": "Fastest Local Path",
   "drive": "Drive",
   "walk": "Walk",
-  "cycle": "Cycle"
+  "cycle": "Cycle",
+  "not_found_title": "Page Not Found",
+  "not_found_desc": "The page you're looking for doesn't exist or has been moved.",
+  "back_home": "Back to Home",
+  "privacy": "Privacy Policy",
+  "contact": "Contact",
+  "seo_home_title": "TownPulse — Local Services Finder for Small Towns",
+  "seo_home_desc": "Discover verified clinics, mechanics, shops, shelters, and community services near you."
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Listing } from '../services/api';
-import { QrCode, X, Download, Printer, ExternalLink } from 'lucide-react';
+import { QrCode, X, Download, Printer } from 'lucide-react';
 
 interface QRCodeModalProps {
   listing: Listing;

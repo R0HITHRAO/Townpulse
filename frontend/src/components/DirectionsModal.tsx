@@ -19,7 +19,6 @@ import {
   Footprints,
   Bike,
   ExternalLink,
-  MapPin,
   Clock,
   Compass,
   CheckCircle2,

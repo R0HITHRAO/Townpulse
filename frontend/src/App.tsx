@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { BookmarkProvider } from './context/BookmarkContext';
@@ -7,62 +7,92 @@ import { Footer } from './components/Footer';
 import { EmergencyAlertBanner } from './components/EmergencyAlertBanner';
 import { OfflineNotice } from './components/OfflineNotice';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ScrollToTop } from './components/ScrollToTop';
+import { LoadingSpinner } from './components/LoadingSpinner';
 
-// Pages
-import { Home } from './pages/Home';
-import { MapView } from './pages/MapView';
-import { ListingDetail } from './pages/ListingDetail';
-import { SubmitListing } from './pages/SubmitListing';
-import { BusinessDashboard } from './pages/BusinessDashboard';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { About } from './pages/About';
-import { AccessibilityStatement } from './pages/AccessibilityStatement';
+// Pages (route-level code splitting)
+const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
+const MapView = lazy(() => import('./pages/MapView').then((m) => ({ default: m.MapView })));
+const ListingDetail = lazy(() =>
+  import('./pages/ListingDetail').then((m) => ({ default: m.ListingDetail }))
+);
+const SubmitListing = lazy(() =>
+  import('./pages/SubmitListing').then((m) => ({ default: m.SubmitListing }))
+);
+const BusinessDashboard = lazy(() =>
+  import('./pages/BusinessDashboard').then((m) => ({ default: m.BusinessDashboard }))
+);
+const AdminDashboard = lazy(() =>
+  import('./pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })));
+const About = lazy(() => import('./pages/About').then((m) => ({ default: m.About })));
+const AccessibilityStatement = lazy(() =>
+  import('./pages/AccessibilityStatement').then((m) => ({ default: m.AccessibilityStatement }))
+);
+const PrivacyPolicy = lazy(() =>
+  import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy }))
+);
+const Contact = lazy(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
+const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <BookmarkProvider>
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-            <OfflineNotice />
-            <Header />
-            <EmergencyAlertBanner />
-            <div className="flex-1 flex flex-col">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/map" element={<MapView />} />
-                <Route path="/listings/:id" element={<ListingDetail />} />
-                <Route path="/submit" element={<SubmitListing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/accessibility" element={<AccessibilityStatement />} />
+          <ErrorBoundary>
+            <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+              <OfflineNotice />
+              <Header />
+              <EmergencyAlertBanner />
+              <ScrollToTop />
+              <div id="main-content" className="flex-1 flex flex-col">
+                <Suspense
+                  fallback={<LoadingSpinner className="py-24" message="Loading TownPulse..." />}
+                >
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/map" element={<MapView />} />
+                    <Route path="/listings/:id" element={<ListingDetail />} />
+                    <Route path="/submit" element={<SubmitListing />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/accessibility" element={<AccessibilityStatement />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/contact" element={<Contact />} />
 
-                {/* Business Owner Protected Route */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute requireBusiness>
-                      <BusinessDashboard />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* Business Owner Protected Route */}
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute requireBusiness>
+                          <BusinessDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* Admin Protected Route */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
+                    {/* Admin Protected Route */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* 404 Catch-all */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </div>
+              <Footer />
             </div>
-            <Footer />
-          </div>
+          </ErrorBoundary>
         </BrowserRouter>
       </BookmarkProvider>
     </ThemeProvider>

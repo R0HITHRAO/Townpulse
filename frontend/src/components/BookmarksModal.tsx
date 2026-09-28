@@ -1,7 +1,7 @@
 import React from 'react';
 import { useBookmarks } from '../context/BookmarkContext';
 import { Link } from 'react-router-dom';
-import { Bookmark, X, Phone, Navigation, Trash2, ExternalLink } from 'lucide-react';
+import { Bookmark, X, Phone, Navigation, Trash2 } from 'lucide-react';
 
 interface BookmarksModalProps {
   isOpen: boolean;

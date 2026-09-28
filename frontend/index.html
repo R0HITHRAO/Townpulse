@@ -11,6 +11,30 @@
     <meta property="og:title" content="TownPulse — Local Services Finder" />
     <meta property="og:description" content="Verified directory of essential local resources for small towns." />
     <meta property="og:type" content="website" />
+
+    <!-- Structured Data (SEO) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "TownPulse",
+        "description": "Community-first local resource & services finder for small towns.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "TownPulse",
+        "description": "Open-source, community-moderated directory of local services.",
+        "sameAs": ["https://github.com/R0HITHRAO/Townpulse"]
+      }
+    </script>
     
     <!-- Early theme initialization to prevent Flash of Light Theme -->
     <script>

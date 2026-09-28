@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Map } from '../components/Map';
 import { ListingCard } from '../components/ListingCard';
 import { CategoryChips } from '../components/CategoryChips';
@@ -22,7 +21,6 @@ import {
 type LayoutMode = 'split' | 'map' | 'list';
 
 export const MapView: React.FC = () => {
-  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);

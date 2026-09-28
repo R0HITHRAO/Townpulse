@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Category, Listing, api } from '../services/api';
-import { MapPin, Phone, Mail, Globe, Building, Check, Crosshair, Image as ImageIcon } from 'lucide-react';
+import { MapPin, Phone, Building, Check, Crosshair, Image as ImageIcon } from 'lucide-react';
 
 interface ListingFormProps {
   initialData?: Partial<Listing>;

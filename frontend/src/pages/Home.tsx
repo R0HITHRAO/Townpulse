@@ -8,6 +8,8 @@ import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
+import { Pagination } from '../components/Pagination';
+import { useSeo } from '../hooks/useSeo';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
@@ -23,6 +25,9 @@ export const Home: React.FC = () => {
   const [printableOpen, setPrintableOpen] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchParams>({ page: 1, per_page: 20 });
   const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useSeo(t('seo_home_title'), t('seo_home_desc'));
 
   // Load categories
   useEffect(() => {
@@ -43,6 +48,7 @@ export const Home: React.FC = () => {
       .then((res) => {
         setListings(res.items);
         setTotalCount(res.total);
+        setTotalPages(res.total_pages);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -114,7 +120,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-4 flex-1 w-full space-y-6 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-4 flex-1 w-full space-y-6 relative z-10">
         {/* Refined Filter & Category Bar */}
         <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors duration-200">
           {/* Top Row: Full width Category Slider */}
@@ -218,14 +224,14 @@ export const Home: React.FC = () => {
         </div>
 
         {/* Listings Grid + Preview Map */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="directory-results" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24">
           {/* Listings List (2 Cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Local Services</span>
                 <span className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold">
-                  {displayedListings.length} Found
+                  {totalCount} Found
                 </span>
               </h2>
             </div>
@@ -251,6 +257,21 @@ export const Home: React.FC = () => {
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && (
+              <Pagination
+                page={searchParams.page ?? 1}
+                totalPages={totalPages}
+                onPageChange={(p) => {
+                  setSearchParams((prev) => ({ ...prev, page: p }));
+                  document
+                    .getElementById('directory-results')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="pt-2"
+              />
             )}
           </div>
 

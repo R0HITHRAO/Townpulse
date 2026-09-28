@@ -21,12 +21,6 @@ export interface RouteResult {
   steps: RouteStep[];
 }
 
-const OSRM_PROFILES: Record<TravelMode, string> = {
-  driving: 'car',
-  walking: 'foot',
-  cycling: 'bike',
-};
-
 // Fallback speed estimates (meters per second) if routing service is offline
 const SPEED_ESTIMATES: Record<TravelMode, number> = {
   driving: 11.1, // ~40 km/h in small towns

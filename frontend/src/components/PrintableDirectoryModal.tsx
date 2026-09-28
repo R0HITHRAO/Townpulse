@@ -5,11 +5,8 @@ import {
   X,
   Phone,
   MapPin,
-  Clock,
   ShieldCheck,
-  FileText,
   AlertTriangle,
-  HeartPulse,
 } from 'lucide-react';
 
 interface PrintableDirectoryModalProps {

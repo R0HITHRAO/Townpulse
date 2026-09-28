@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Listing } from '../services/api';
 import {
-  MessageSquare,
   ThumbsUp,
   CornerDownRight,
   ShieldCheck,
   Send,
   HelpCircle,
-  Sparkles,
-  User,
-  Clock,
 } from 'lucide-react';
 
 interface QAAnswer {

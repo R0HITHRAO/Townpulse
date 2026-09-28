@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Phone, Mail, Globe, MapPin, CheckCircle2, Navigation, Star, Heart, MessageCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, CheckCircle2, Navigation, Star, Heart, MessageCircle } from 'lucide-react';
 import { Listing } from '../services/api';
 import { OpenStatusBadge } from './OpenStatusBadge';
 import { useBookmarks } from '../context/BookmarkContext';

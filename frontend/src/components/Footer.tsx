@@ -56,6 +56,9 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/about" className="hover:text-blue-600 dark:hover:text-blue-400 transition">{t('about')}</Link>
               </li>
+              <li>
+                <Link to="/contact" className="hover:text-blue-600 dark:hover:text-blue-400 transition">{t('contact')}</Link>
+              </li>
             </ul>
           </div>
 
@@ -67,6 +70,9 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-sm text-gray-600 dark:text-slate-400 font-medium">
               <li>
                 <Link to="/accessibility" className="hover:text-blue-600 dark:hover:text-blue-400 transition">{t('accessibility')}</Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 transition">{t('privacy')}</Link>
               </li>
               <li>
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 px-2.5 py-1 rounded-lg">

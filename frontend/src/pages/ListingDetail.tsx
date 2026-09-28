@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { api, Listing } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ClaimModal } from '../components/ClaimModal';
@@ -11,6 +10,7 @@ import { ReviewSection } from '../components/ReviewSection';
 import { StarRating } from '../components/StarRating';
 import { OpenStatusBadge } from '../components/OpenStatusBadge';
 import { useBookmarks } from '../context/BookmarkContext';
+import { useSeo } from '../hooks/useSeo';
 import { getWhatsAppShareUrl } from '../utils/whatsapp';
 import { Map } from '../components/Map';
 import {
@@ -33,7 +33,6 @@ import {
 
 export const ListingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +44,13 @@ export const ListingDetail: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const bookmarked = listing ? isBookmarked(listing.id) : false;
+
+  useSeo(
+    listing ? `${listing.name} — TownPulse` : 'TownPulse — Local Services Finder',
+    listing?.description
+      ? `${listing.description.slice(0, 155)} — find it on TownPulse.`
+      : `Verified details for ${listing?.name ?? 'this listing'} — address, hours, phone, and reviews on TownPulse.`
+  );
 
   const fetchListing = () => {
     if (!id) return;
@@ -103,11 +109,6 @@ export const ListingDetail: React.FC = () => {
       </div>
     );
   }
-
-  // Directions link
-  const directionsUrl = listing.lat && listing.lng
-    ? `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`
-    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(listing.address)}`;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">

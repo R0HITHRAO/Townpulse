@@ -67,7 +67,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeState(newTheme);
     try {
       localStorage.setItem('townpulse_theme', newTheme);
-    } catch {}
+    } catch {
+      // Storage unavailable (private mode) — theme falls back to session only
+    }
   };
 
   const toggleTheme = () => {
