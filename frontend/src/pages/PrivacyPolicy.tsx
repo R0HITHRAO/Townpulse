@@ -64,7 +64,7 @@ export const PrivacyPolicy: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-slide-up transition-colors duration-200">
+      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
         <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             Legal

@@ -26,6 +26,39 @@
   }
 }
 
+@layer utilities {
+  /* Stagger helpers — pair with `animate-*` classes (fill-mode: both prevents flashes) */
+  .anim-delay-1 {
+    animation-delay: 60ms;
+  }
+  .anim-delay-2 {
+    animation-delay: 120ms;
+  }
+  .anim-delay-3 {
+    animation-delay: 180ms;
+  }
+  .anim-delay-4 {
+    animation-delay: 240ms;
+  }
+  .anim-delay-5 {
+    animation-delay: 320ms;
+  }
+  .anim-delay-6 {
+    animation-delay: 400ms;
+  }
+  .anim-delay-7 {
+    animation-delay: 480ms;
+  }
+  .anim-delay-8 {
+    animation-delay: 560ms;
+  }
+
+  /* Gradient text that pans slowly (pairs with `animate-gradient-x`) */
+  .gradient-text-flow {
+    background-size: 220% auto;
+  }
+}
+
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -234,6 +267,223 @@
   background-image: 
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* ─── MOTION SYSTEM ────────────────────────────────────────────────────────
+   Dependency-free, reusable motion primitives shared across the app.
+   Every effect collapses to a static state for `prefers-reduced-motion` users. */
+
+/* Scroll reveal — driven by components/Reveal.tsx (IntersectionObserver) */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.7s ease-out;
+  will-change: opacity, transform;
+}
+
+.reveal-up {
+  transform: translate3d(0, 26px, 0);
+}
+
+.reveal-down {
+  transform: translate3d(0, -26px, 0);
+}
+
+.reveal-left {
+  transform: translate3d(-28px, 0, 0);
+}
+
+.reveal-right {
+  transform: translate3d(28px, 0, 0);
+}
+
+.reveal-scale {
+  transform: scale(0.94);
+}
+
+.reveal-blur {
+  transform: translate3d(0, 16px, 0);
+  filter: blur(10px);
+}
+
+.reveal-fade {
+  transform: none;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  /* Resolving to `none` releases the transform after the transition so the
+     wrapper never becomes a containing block for fixed-position children. */
+  transform: none;
+  filter: blur(0);
+  will-change: auto;
+}
+
+/* Soft lift on hover — for cards, tiles and panels */
+.hover-lift {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 45px -22px rgba(15, 23, 42, 0.45);
+}
+
+.dark .hover-lift:hover {
+  box-shadow: 0 22px 45px -18px rgba(2, 6, 23, 0.9), 0 0 0 1px rgba(59, 130, 246, 0.22);
+}
+
+/* Light sweep across a surface on hover — buttons, tiles, cards */
+.shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-120%) skewX(-12deg);
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    rgba(255, 255, 255, 0.42) 50%,
+    transparent 68%
+  );
+}
+
+.shine-sweep:hover::after {
+  opacity: 1;
+  animation: shineSweep 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark .shine-sweep::after {
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 68%
+  );
+}
+
+@keyframes shineSweep {
+  0% {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(120%) skewX(-12deg);
+  }
+}
+
+/* Underline that grows from the left on hover / active state */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 9999px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-underline:hover::after,
+.link-underline[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/* Accent line that expands from the left while the parent `.group` is hovered */
+.accent-line {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+.group:hover .accent-line {
+  transform: scaleX(1);
+}
+
+/* Auto-stagger the direct children of a container (menus, drawers, lists).
+   `backwards` fill keeps items hidden during their delay and releases the
+   transform afterwards, so hover effects on the children keep working. */
+.stagger-children > * {
+  animation: staggerIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.stagger-children > *:nth-child(1) {
+  animation-delay: 40ms;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 85ms;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 130ms;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 175ms;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 220ms;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 265ms;
+}
+.stagger-children > *:nth-child(7) {
+  animation-delay: 310ms;
+}
+.stagger-children > *:nth-child(8) {
+  animation-delay: 355ms;
+}
+.stagger-children > *:nth-child(n + 9) {
+  animation-delay: 400ms;
+}
+
+@keyframes staggerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── REDUCED MOTION SAFETY NET ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .accent-line {
+    transform: scaleX(1);
+  }
 }
 
 /* ─── PRINT / PDF EXPORT STYLES ─────────────────────────────────────────── */

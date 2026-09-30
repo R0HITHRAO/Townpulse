@@ -31,15 +31,15 @@ export const SubmitListing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div className="max-w-2xl mx-auto space-y-6 animate-slide-up">
+      <div className="max-w-2xl mx-auto space-y-6 animate-rise">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 ease-fluid hover:-translate-x-0.5"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Directory
         </Link>
 
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 animate-fade-in-up anim-delay-1">
           <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 rounded-2xl mb-1 shadow-xs animate-float">
             <PlusCircle className="w-6 h-6" />
           </div>
@@ -52,7 +52,7 @@ export const SubmitListing: React.FC = () => {
         </div>
 
         {!auth && (
-          <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+          <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 p-4 rounded-2xl flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300 animate-fade-in-up anim-delay-2">
             <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
               <span className="font-semibold">Sign in required:</span> You need an account so you can manage this listing later.

@@ -9,6 +9,7 @@ import { ListingCommunityQA } from '../components/ListingCommunityQA';
 import { ReviewSection } from '../components/ReviewSection';
 import { StarRating } from '../components/StarRating';
 import { OpenStatusBadge } from '../components/OpenStatusBadge';
+import { Reveal } from '../components/Reveal';
 import { useBookmarks } from '../context/BookmarkContext';
 import { useSeo } from '../hooks/useSeo';
 import { getWhatsAppShareUrl } from '../utils/whatsapp';
@@ -112,9 +113,9 @@ export const ListingDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Navigation & Action bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-in-up">
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
@@ -132,7 +133,11 @@ export const ListingDetail: React.FC = () => {
                   : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
-              <Heart className={`w-3.5 h-3.5 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+              <Heart
+                className={`w-3.5 h-3.5 ${
+                  bookmarked ? 'fill-rose-500 text-rose-500 animate-heartbeat' : ''
+                }`}
+              />
               <span>{bookmarked ? 'Saved' : 'Save'}</span>
             </button>
 
@@ -179,7 +184,7 @@ export const ListingDetail: React.FC = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-200">
+        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-200 animate-fade-in-up anim-delay-2">
           {/* Storefront Image Hero (if available) */}
           {listing.image_url && (
             <div className="relative w-full h-64 sm:h-80 overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -359,10 +364,14 @@ export const ListingDetail: React.FC = () => {
         </div>
 
         {/* Community Reviews & Ratings Section */}
-        <ReviewSection listingId={listing.id} />
+        <Reveal direction="up">
+          <ReviewSection listingId={listing.id} />
+        </Reveal>
 
         {/* Community Q&A Section */}
-        <ListingCommunityQA listing={listing} />
+        <Reveal direction="up" delay={90}>
+          <ListingCommunityQA listing={listing} />
+        </Reveal>
 
         {/* Storefront QR Code Modal */}
         <QRCodeModal

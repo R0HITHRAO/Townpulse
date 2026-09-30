@@ -33,7 +33,7 @@ export const Register: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
-      <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 sm:p-10 max-w-md w-full border border-gray-200 dark:border-slate-800 shadow-xl space-y-6 animate-scale-in transition-colors duration-200">
+      <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 sm:p-10 max-w-md w-full border border-gray-200 dark:border-slate-800 shadow-xl space-y-6 animate-rise transition-colors duration-200">
         <div className="text-center space-y-1">
           <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-2xl mb-1 shadow-xs animate-float">
             <UserPlus className="w-6 h-6" />

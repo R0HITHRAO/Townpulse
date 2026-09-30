@@ -10,13 +10,13 @@ export const NotFound: React.FC = () => {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
-      <div className="max-w-lg w-full text-center space-y-6 animate-slide-up">
-        <div className="inline-flex bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 p-4 rounded-3xl border border-blue-100 dark:border-blue-900/60">
+      <div className="max-w-lg w-full text-center space-y-6 animate-rise">
+        <div className="inline-flex bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 p-4 rounded-3xl border border-blue-100 dark:border-blue-900/60 animate-float">
           <Compass className="w-10 h-10" />
         </div>
 
         <div className="space-y-2">
-          <p className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-300 dark:to-indigo-300">
+          <p className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-300 dark:to-indigo-300 gradient-text-flow animate-gradient-x">
             404
           </p>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">

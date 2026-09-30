@@ -42,7 +42,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   const items = getPageItems(page, totalPages);
   const btnBase =
-    'inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-xl text-xs font-semibold transition border';
+    'inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-xl text-xs font-semibold transition-all duration-300 ease-fluid border';
 
   return (
     <nav aria-label="Pagination" className={`flex items-center justify-center gap-1.5 ${className}`}>
@@ -51,7 +51,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
         aria-label="Previous page"
-        className={`${btnBase} border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800`}
+        className={`${btnBase} border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-white dark:disabled:hover:bg-slate-800`}
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
@@ -74,8 +74,8 @@ export const Pagination: React.FC<PaginationProps> = ({
             aria-current={item === page ? 'page' : undefined}
             className={`${btnBase} ${
               item === page
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                ? 'bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-500/25 animate-pop-in'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-700'
             }`}
           >
             {item}
@@ -88,7 +88,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
         aria-label="Next page"
-        className={`${btnBase} border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-slate-800`}
+        className={`${btnBase} border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-white dark:disabled:hover:bg-slate-800`}
       >
         <ChevronRight className="w-4 h-4" />
       </button>

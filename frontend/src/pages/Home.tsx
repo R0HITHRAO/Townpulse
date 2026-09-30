@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { AnimatedBackground } from '../components/AnimatedBackground';
 import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { Pagination } from '../components/Pagination';
+import { Reveal } from '../components/Reveal';
 import { useSeo } from '../hooks/useSeo';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
@@ -97,32 +98,41 @@ export const Home: React.FC = () => {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-blue-50/70 via-indigo-50/30 to-slate-50 dark:from-slate-900/90 dark:via-blue-950/80 dark:to-slate-950 text-slate-900 dark:text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200 z-10">
-        <div className="max-w-5xl mx-auto text-center relative z-10 animate-slide-up">
-          <div className="inline-flex items-center gap-2 bg-blue-100/80 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-800 dark:text-blue-200 mb-5 border border-blue-200 dark:border-white/10 shadow-xs animate-float">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-300 animate-pulse" />
-            <span>Community-First Local Directory</span>
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="relative inline-flex mb-5 animate-rise anim-delay-1">
+            {/* Soft pulsing halo behind the badge */}
+            <span
+              className="absolute inset-0 rounded-full bg-blue-400/30 dark:bg-blue-500/25 blur-xl animate-glow-pulse"
+              aria-hidden="true"
+            />
+            <div className="relative inline-flex items-center gap-2 bg-blue-100/80 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-white/10 shadow-xs animate-float">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-300 animate-pulse" />
+              <span>Community-First Local Directory</span>
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight text-slate-900 dark:text-white animate-rise anim-delay-2">
             Find Essential Services in <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 dark:from-blue-300 dark:via-blue-100 dark:to-indigo-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 dark:from-blue-300 dark:via-blue-100 dark:to-indigo-300 gradient-text-flow animate-gradient-x">
               Your Local Community
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-600 dark:text-blue-200/80 max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-blue-200/80 max-w-2xl mx-auto mb-8 leading-relaxed animate-rise anim-delay-3">
             {t('tagline')}
           </p>
 
           {/* Hero Search Bar */}
-          <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
+          <div className="animate-rise anim-delay-4">
+            <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
+          </div>
         </div>
       </section>
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-4 flex-1 w-full space-y-6 relative z-10">
         {/* Refined Filter & Category Bar */}
-        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors duration-200">
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors duration-200 animate-fade-in-up anim-delay-5">
           {/* Top Row: Full width Category Slider */}
           <div className="w-full">
             <CategoryChips
@@ -230,7 +240,10 @@ export const Home: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Local Services</span>
-                <span className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold">
+                <span
+                  key={totalCount}
+                  className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
+                >
                   {totalCount} Found
                 </span>
               </h2>
@@ -239,7 +252,7 @@ export const Home: React.FC = () => {
             {loading ? (
               <LoadingSpinner message="Searching verified local services..." />
             ) : displayedListings.length === 0 ? (
-              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center animate-scale-in">
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
                   No local services found matching your criteria.
                 </p>
@@ -253,8 +266,15 @@ export const Home: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {displayedListings.map((listing) => (
-                  <ListingCard key={listing.id} listing={listing} />
+                {displayedListings.map((listing, index) => (
+                  <Reveal
+                    key={listing.id}
+                    direction="up"
+                    delay={Math.min(index, 7) * 55}
+                    className="h-full"
+                  >
+                    <ListingCard listing={listing} />
+                  </Reveal>
                 ))}
               </div>
             )}
@@ -277,7 +297,7 @@ export const Home: React.FC = () => {
 
           {/* Map Preview Sticky Sidebar (1 Col) - Compact & Elegant */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-3">
+            <div className="sticky top-24 space-y-3 animate-fade-in-right anim-delay-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Location Overview

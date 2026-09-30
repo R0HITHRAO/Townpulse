@@ -26,7 +26,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group hover:border-blue-400 dark:hover:border-blue-600 animate-fade-in backdrop-blur-xs overflow-hidden relative">
+    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs backdrop-blur-xs transition-all duration-400 ease-fluid hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-blue-600 shine-sweep">
+      {/* Gradient accent line that draws in from the left on hover */}
+      <span
+        className="accent-line pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400"
+        aria-hidden="true"
+      />
       <div>
         {/* Optional Thumbnail Image */}
         {listing.image_url && (
@@ -42,11 +47,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {/* Bookmark button on top of thumbnail */}
             <button
               onClick={() => toggleBookmark(listing)}
-              className="absolute right-2 top-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition hover:scale-110"
+              className="absolute right-2 top-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
               title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
               aria-label="Toggle favorite bookmark"
             >
-              <Heart className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+              <Heart
+                className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500 animate-heartbeat' : ''}`}
+              />
             </button>
           </div>
         )}
@@ -77,11 +84,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {!listing.image_url && (
               <button
                 onClick={() => toggleBookmark(listing)}
-                className="p-1 text-slate-400 hover:text-rose-500 transition hover:scale-110"
+                className="p-1 text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
                 title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
                 aria-label="Toggle favorite bookmark"
               >
-                <Heart className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500' : ''}`} />
+                <Heart
+                  className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500 animate-heartbeat' : ''}`}
+                />
               </button>
             )}
           </div>

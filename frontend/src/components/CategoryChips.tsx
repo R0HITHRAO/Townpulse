@@ -47,10 +47,10 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
       {showLeftArrow && (
         <button
           onClick={() => handleScroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-105 transition"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all duration-300 ease-fluid"
           aria-label="Scroll categories left"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 animate-fade-in" />
         </button>
       )}
 
@@ -63,30 +63,35 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
         {/* All Categories Chip */}
         <button
           onClick={() => onSelectCategory(null)}
-          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shadow-xs flex-shrink-0 hover:scale-[1.02] active:scale-[0.98] ${
+          className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
             selectedCategoryId === null
               ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-500/20'
               : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'
           }`}
         >
-          <span>🌟</span>
+          <span className="text-sm leading-none transition-transform duration-300 ease-fluid group-hover/chip:rotate-12 group-hover/chip:scale-125">
+            🌟
+          </span>
           <span>{t('all_categories')}</span>
         </button>
 
         {/* Individual Categories */}
-        {categories.map((cat) => {
+        {categories.map((cat, index) => {
           const isSelected = selectedCategoryId === cat.id;
           return (
             <button
               key={cat.id}
               onClick={() => onSelectCategory(isSelected ? null : cat.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 shadow-xs flex-shrink-0 hover:scale-[1.02] active:scale-[0.98] ${
+              style={{ animationDelay: `${Math.min(index + 1, 8) * 45}ms` }}
+              className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
                 isSelected
                   ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-600 dark:ring-blue-400 ring-offset-1 dark:ring-offset-slate-900'
                   : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
-              <span className="text-sm leading-none">{cat.icon || '📍'}</span>
+              <span className="text-sm leading-none transition-transform duration-300 ease-fluid group-hover/chip:rotate-12 group-hover/chip:scale-125">
+                {cat.icon || '📍'}
+              </span>
               <span>{cat.name}</span>
             </button>
           );
@@ -97,10 +102,10 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
       {showRightArrow && (
         <button
           onClick={() => handleScroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-105 transition"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all duration-300 ease-fluid"
           aria-label="Scroll categories right"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4 animate-fade-in" />
         </button>
       )}
     </div>

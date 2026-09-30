@@ -71,8 +71,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
       <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl shadow-md dark:shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500/40">
         {/* Search Keyword Input */}
-        <div className="flex-1 flex items-center gap-3 px-3 py-2 w-full">
-          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
+        <div className="group/field flex-1 flex items-center gap-3 px-3 py-2 w-full">
+          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-blue-600 dark:group-focus-within/field:text-blue-400 group-focus-within/field:scale-110" />
           <input
             type="text"
             value={query}
@@ -136,9 +136,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {/* Search Button */}
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95"
+            className="group/search bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ease-fluid shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md shine-sweep"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4 transition-transform duration-300 ease-fluid group-hover/search:scale-110 group-hover/search:-rotate-6" />
             <span>Search</span>
           </button>
         </div>

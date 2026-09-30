@@ -41,12 +41,12 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs transition-colors duration-200">
+      <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs transition-colors duration-200 animate-slide-down">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             {/* Logo & Brand */}
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2 rounded-xl group-hover:scale-105 shadow-sm transition">
+              <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-sm transition-all duration-400 ease-fluid group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-md">
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
@@ -61,7 +61,8 @@ export const Header: React.FC = () => {
             <nav className="hidden md:flex items-center gap-3">
               <Link
                 to="/map"
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
+                aria-current={isActive('/map') ? 'page' : undefined}
+                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
                   isActive('/map')
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
                     : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -72,7 +73,8 @@ export const Header: React.FC = () => {
 
               <Link
                 to="/about"
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
+                aria-current={isActive('/about') ? 'page' : undefined}
+                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
                   isActive('/about')
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
                     : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -84,14 +86,21 @@ export const Header: React.FC = () => {
               {/* Saved Places Bookmark Trigger */}
               <button
                 onClick={() => setBookmarksOpen(true)}
-                className="relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition"
+                className="relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all duration-300 ease-fluid"
                 title="View Saved Places"
                 aria-label="View Saved Places"
               >
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500/20" />
+                <Heart
+                  className={`w-4 h-4 text-rose-500 ${
+                    bookmarks.length > 0 ? 'fill-rose-500/30 animate-heartbeat' : 'fill-rose-500/20'
+                  }`}
+                />
                 <span>Saved</span>
                 {bookmarks.length > 0 && (
-                  <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                  <span
+                    key={bookmarks.length}
+                    className="inline-block bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pop-in"
+                  >
                     {bookmarks.length}
                   </span>
                 )}
@@ -100,7 +109,7 @@ export const Header: React.FC = () => {
               {/* Printable Emergency Directory Trigger */}
               <button
                 onClick={handleOpenPrintable}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all duration-300 ease-fluid"
                 title="Print Emergency Town Directory"
                 aria-label="Print Emergency Town Directory"
               >
@@ -110,9 +119,9 @@ export const Header: React.FC = () => {
 
               <Link
                 to="/submit"
-                className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 px-3.5 py-2 rounded-xl text-sm font-semibold transition hover:scale-[1.02] active:scale-[0.98]"
+                className="group/submit flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-fluid hover:scale-[1.03] active:scale-[0.97] shine-sweep"
               >
-                <PlusCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <PlusCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform duration-300 ease-fluid group-hover/submit:rotate-90" />
                 <span>{t('submit_listing')}</span>
               </Link>
 
@@ -179,13 +188,16 @@ export const Header: React.FC = () => {
             <div className="flex items-center gap-2 md:hidden">
               <button
                 onClick={() => setBookmarksOpen(true)}
-                className="relative p-2 text-rose-500 rounded-lg"
+                className="relative p-2 text-rose-500 rounded-lg transition-transform duration-300 ease-fluid hover:scale-110 active:scale-95"
                 title="Saved Places"
                 aria-label="Saved Places"
               >
                 <Heart className="w-5 h-5 fill-rose-500/20" />
                 {bookmarks.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-rose-500 text-white text-[9px] font-bold px-1 rounded-full">
+                  <span
+                    key={bookmarks.length}
+                    className="absolute top-1 right-1 bg-rose-500 text-white text-[9px] font-bold px-1 rounded-full animate-pop-in"
+                  >
                     {bookmarks.length}
                   </span>
                 )}
@@ -195,7 +207,7 @@ export const Header: React.FC = () => {
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform duration-300 ease-fluid active:scale-90"
                 aria-label="Toggle Mobile Menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -206,7 +218,7 @@ export const Header: React.FC = () => {
 
         {/* Mobile Drawer Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-slide-up">
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-drawer-in stagger-children">
             <Link
               to="/map"
               onClick={() => setMobileMenuOpen(false)}

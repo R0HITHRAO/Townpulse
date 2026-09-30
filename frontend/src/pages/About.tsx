@@ -1,11 +1,12 @@
 import React from 'react';
 import { ShieldCheck, Database, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Reveal } from '../components/Reveal';
 
 export const About: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-slide-up transition-colors duration-200">
+      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
         <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Mission</span>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">About TownPulse</h1>
@@ -25,7 +26,10 @@ export const About: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-slate-800">
-          <div className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-2">
+          <Reveal
+            className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-2"
+            direction="up"
+          >
             <div className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300 text-sm">
               <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               Verified Local Trust
@@ -33,9 +37,13 @@ export const About: React.FC = () => {
             <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
               Businesses and civic services undergo admin verification with phone OTP and registration proof.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800/60 space-y-2">
+          <Reveal
+            className="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800/60 space-y-2"
+            direction="up"
+            delay={90}
+          >
             <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-300 text-sm">
               <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               Open Data Ownership
@@ -43,7 +51,7 @@ export const About: React.FC = () => {
             <p className="text-xs text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
               Town data belongs to the community. Exportable datasets in open CSV formats for disaster relief and civic planning.
             </p>
-          </div>
+          </Reveal>
         </div>
 
         <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">

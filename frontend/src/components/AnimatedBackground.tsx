@@ -13,6 +13,12 @@ export const AnimatedBackground: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Respect the user's motion preference — skip the ambient particle loop entirely.
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
     let animationFrameId: number;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
@@ -42,6 +48,13 @@ export const AnimatedBackground: React.FC = () => {
 
     const render = () => {
       frame++;
+
+      // Pause the constellation while the tab is hidden to save battery/CPU.
+      if (typeof document !== 'undefined' && document.hidden) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+
       ctx.clearRect(0, 0, width, height);
 
       // Draw particle nodes
@@ -107,9 +120,25 @@ export const AnimatedBackground: React.FC = () => {
       {/* Background Gradient Mesh */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20" />
 
+      {/* Slow-drifting aurora veil — adds depth behind translucent surfaces */}
+      <div
+        className="absolute -inset-x-1/4 -top-1/4 h-[80vh] blur-3xl opacity-25 animate-aurora will-change-transform"
+        style={{
+          background: isDark
+            ? 'conic-gradient(from 120deg at 50% 50%, rgba(37, 99, 235, 0.28), rgba(139, 92, 246, 0.22), rgba(16, 185, 129, 0.18), rgba(37, 99, 235, 0.28))'
+            : 'conic-gradient(from 120deg at 50% 50%, rgba(191, 219, 254, 0.45), rgba(221, 214, 254, 0.4), rgba(167, 243, 208, 0.35), rgba(191, 219, 254, 0.45))',
+        }}
+      />
+
+      {/* Diagonal light beam that sweeps slowly across the page */}
+      <div
+        className="absolute -top-1/2 left-[-25%] h-[200%] w-[40%] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-blue-400/10 animate-beam will-change-transform"
+        style={{ animationDelay: '1.5s' }}
+      />
+
       {/* Floating Animated Gradient Orbs - Soft Light Mode / Deep Dark Mode */}
       <div
-        className="absolute -top-32 -left-32 w-96 h-96 sm:w-[500px] sm:h-[500px] rounded-full blur-3xl opacity-35 dark:opacity-25 animate-orb-1"
+        className="absolute -top-32 -left-32 w-96 h-96 sm:w-[500px] sm:h-[500px] rounded-full blur-3xl opacity-35 dark:opacity-25 animate-orb-1 will-change-transform"
         style={{
           background: isDark
             ? 'radial-gradient(circle, rgba(59, 130, 246, 0.45) 0%, rgba(37, 99, 235, 0) 70%)'
@@ -118,7 +147,7 @@ export const AnimatedBackground: React.FC = () => {
       />
 
       <div
-        className="absolute top-1/3 -right-32 w-96 h-96 sm:w-[550px] sm:h-[550px] rounded-full blur-3xl opacity-30 dark:opacity-20 animate-orb-2"
+        className="absolute top-1/3 -right-32 w-96 h-96 sm:w-[550px] sm:h-[550px] rounded-full blur-3xl opacity-30 dark:opacity-20 animate-orb-2 will-change-transform"
         style={{
           background: isDark
             ? 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0) 70%)'
@@ -127,7 +156,7 @@ export const AnimatedBackground: React.FC = () => {
       />
 
       <div
-        className="absolute -bottom-32 left-1/4 w-96 h-96 sm:w-[600px] sm:h-[600px] rounded-full blur-3xl opacity-25 dark:opacity-15 animate-orb-3"
+        className="absolute -bottom-32 left-1/4 w-96 h-96 sm:w-[600px] sm:h-[600px] rounded-full blur-3xl opacity-25 dark:opacity-15 animate-orb-3 will-change-transform"
         style={{
           background: isDark
             ? 'radial-gradient(circle, rgba(20, 184, 166, 0.35) 0%, rgba(16, 185, 129, 0) 70%)'

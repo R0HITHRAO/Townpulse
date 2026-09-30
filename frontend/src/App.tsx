@@ -10,6 +10,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { ScrollProgressBar } from './components/ScrollProgressBar';
+import { PageTransition } from './components/PageTransition';
 
 // Pages (route-level code splitting)
 const Home = lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
@@ -45,50 +47,53 @@ export const App: React.FC = () => {
         <BrowserRouter>
           <ErrorBoundary>
             <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+              <ScrollProgressBar />
               <OfflineNotice />
               <Header />
               <EmergencyAlertBanner />
               <ScrollToTop />
               <div id="main-content" className="flex-1 flex flex-col">
-                <Suspense
-                  fallback={<LoadingSpinner className="py-24" message="Loading TownPulse..." />}
-                >
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/map" element={<MapView />} />
-                    <Route path="/listings/:id" element={<ListingDetail />} />
-                    <Route path="/submit" element={<SubmitListing />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/accessibility" element={<AccessibilityStatement />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/contact" element={<Contact />} />
+                <PageTransition>
+                  <Suspense
+                    fallback={<LoadingSpinner className="py-24" message="Loading TownPulse..." />}
+                  >
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/map" element={<MapView />} />
+                      <Route path="/listings/:id" element={<ListingDetail />} />
+                      <Route path="/submit" element={<SubmitListing />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/accessibility" element={<AccessibilityStatement />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
+                      <Route path="/contact" element={<Contact />} />
 
-                    {/* Business Owner Protected Route */}
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <ProtectedRoute requireBusiness>
-                          <BusinessDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
+                      {/* Business Owner Protected Route */}
+                      <Route
+                        path="/dashboard"
+                        element={
+                          <ProtectedRoute requireBusiness>
+                            <BusinessDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    {/* Admin Protected Route */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute requireAdmin>
-                          <AdminDashboard />
-                        </ProtectedRoute>
-                      }
-                    />
+                      {/* Admin Protected Route */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute requireAdmin>
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
 
-                    {/* 404 Catch-all */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
+                      {/* 404 Catch-all */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </PageTransition>
               </div>
               <Footer />
             </div>

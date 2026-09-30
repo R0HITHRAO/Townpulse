@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSeo } from '../hooks/useSeo';
 import { Github, Bug, Lightbulb, HelpCircle, Send, ExternalLink } from 'lucide-react';
+import { Reveal } from '../components/Reveal';
 
 const TOPICS = [
   { id: 'bug', label: 'Bug report', icon: <Bug className="w-3.5 h-3.5" /> },
@@ -42,7 +43,7 @@ export const Contact: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-slide-up transition-colors duration-200">
+      <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
         <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             Get in touch
@@ -56,37 +57,41 @@ export const Contact: React.FC = () => {
 
         {/* Direct Channels */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <a
-            href="https://github.com/R0HITHRAO/Townpulse/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-1.5 hover:scale-[1.02] transition group"
-          >
-            <div className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300 text-sm">
-              <Github className="w-4 h-4" />
-              Open an issue
-              <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition" />
-            </div>
-            <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
-              Report bugs or request features on GitHub. We respond to every issue.
-            </p>
-          </a>
+          <Reveal direction="up" className="h-full">
+            <a
+              href="https://github.com/R0HITHRAO/Townpulse/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group h-full block p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-1.5 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700"
+            >
+              <div className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300 text-sm">
+                <Github className="w-4 h-4" />
+                Open an issue
+                <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition" />
+              </div>
+              <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+                Report bugs or request features on GitHub. We respond to every issue.
+              </p>
+            </a>
+          </Reveal>
 
-          <a
-            href="https://github.com/R0HITHRAO/Townpulse"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800/60 space-y-1.5 hover:scale-[1.02] transition group"
-          >
-            <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-300 text-sm">
-              <Github className="w-4 h-4" />
-              Contribute
-              <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition" />
-            </div>
-            <p className="text-xs text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
-              TownPulse is open-source under MIT. Star the repo or send a pull request.
-            </p>
-          </a>
+          <Reveal direction="up" delay={90} className="h-full">
+            <a
+              href="https://github.com/R0HITHRAO/Townpulse"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group h-full block p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800/60 space-y-1.5 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-700"
+            >
+              <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-300 text-sm">
+                <Github className="w-4 h-4" />
+                Contribute
+                <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition" />
+              </div>
+              <p className="text-xs text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
+                TownPulse is open-source under MIT. Star the repo or send a pull request.
+              </p>
+            </a>
+          </Reveal>
         </div>
         {/* Compose → opens prefilled GitHub issue */}
         <form
@@ -108,7 +113,7 @@ export const Contact: React.FC = () => {
                   type="button"
                   onClick={() => setTopic(tp.id)}
                   aria-pressed={topic === tp.id}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition hover:scale-105 active:scale-95 ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-300 ease-fluid hover:scale-105 active:scale-95 ${
                     topic === tp.id
                       ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
                       : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
@@ -163,9 +168,9 @@ export const Contact: React.FC = () => {
             <button
               type="submit"
               disabled={!message.trim()}
-              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0"
+              className="group/send inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ease-fluid hover:scale-105 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0 shine-sweep"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3.5 h-3.5 transition-transform duration-300 ease-fluid group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5" />
               Open GitHub Issue
             </button>
           </div>

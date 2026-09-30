@@ -52,11 +52,18 @@ export const EmergencyAlertBanner: React.FC = () => {
         return (
           <div
             key={alert.id}
-            className={`px-4 py-2.5 flex items-center justify-between text-xs sm:text-sm font-medium border-b shadow-sm animate-fade-in ${
+            className={`relative overflow-hidden px-4 py-2.5 flex items-center justify-between text-xs sm:text-sm font-medium border-b shadow-sm animate-slide-down ${
               severityStyles[alert.severity] || severityStyles.warning
             }`}
             role="alert"
           >
+            {/* Urgent light sweep reserved for critical alerts */}
+            {alert.severity === 'critical' && (
+              <span
+                className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-beam"
+                aria-hidden="true"
+              />
+            )}
             <div className="flex items-center gap-2.5 max-w-5xl mx-auto flex-1">
               <Icon className="w-4 h-4 flex-shrink-0 animate-pulse" />
               <div className="flex-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">

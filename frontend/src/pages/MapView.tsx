@@ -4,6 +4,7 @@ import { ListingCard } from '../components/ListingCard';
 import { CategoryChips } from '../components/CategoryChips';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { DirectionsModal } from '../components/DirectionsModal';
+import { Reveal } from '../components/Reveal';
 import { api, Category, Listing } from '../services/api';
 import { getOpenStatus } from '../utils/businessHours';
 import {
@@ -64,7 +65,7 @@ export const MapView: React.FC = () => {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       {/* Top Filter & Toolbar */}
-      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs animate-slide-down">
         {/* Search input */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -180,7 +181,10 @@ export const MapView: React.FC = () => {
                   <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                   <span>Town Directory Results</span>
                 </span>
-                <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold">
+                <span
+                  key={displayedListings.length}
+                  className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
+                >
                   {displayedListings.length} Found
                 </span>
               </div>
@@ -194,19 +198,25 @@ export const MapView: React.FC = () => {
                 </div>
               ) : (
                 <div className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
-                  {displayedListings.map((l) => (
-                    <div
+                  {displayedListings.map((l, index) => (
+                    <Reveal
                       key={l.id}
-                      onMouseEnter={() => setSelectedListing(l)}
-                      onClick={() => setSelectedListing(l)}
-                      className={`cursor-pointer transition-all ${
-                        selectedListing?.id === l.id && layoutMode === 'split'
-                          ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
-                          : ''
-                      }`}
+                      direction="up"
+                      delay={Math.min(index, 7) * 50}
+                      className="h-full"
                     >
-                      <ListingCard listing={l} />
-                    </div>
+                      <div
+                        onMouseEnter={() => setSelectedListing(l)}
+                        onClick={() => setSelectedListing(l)}
+                        className={`h-full cursor-pointer transition-all duration-300 ease-fluid ${
+                          selectedListing?.id === l.id && layoutMode === 'split'
+                            ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
+                            : ''
+                        }`}
+                      >
+                        <ListingCard listing={l} />
+                      </div>
+                    </Reveal>
                   ))}
                 </div>
               )}
