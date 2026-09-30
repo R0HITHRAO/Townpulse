@@ -63,6 +63,20 @@ services:
       - APP_ENV=production
       - DEBUG=false
       - SECRET_KEY=${SECRET_KEY}
+      # ── Photo uploads ──
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-s3}
+      - STORAGE_LOCAL_PATH=${STORAGE_LOCAL_PATH:-./uploads}
+      - MAX_UPLOAD_BYTES=${MAX_UPLOAD_BYTES:-5242880}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-ap-south-1}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-}
+      # ── Web Push (VAPID) — required for offline emergency delivery ──
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:ops@townpulse.example}
+      # ── Locality timezone for "open now" ──
+      - TZ_OFFSET_MINUTES=${TZ_OFFSET_MINUTES:-330}
     command: >
       sh -c "alembic upgrade head &&
              python scripts/seed.py &&

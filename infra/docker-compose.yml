@@ -69,8 +69,19 @@ services:
       # ── Email provider (optional) ──
       - EMAIL_PROVIDER=${EMAIL_PROVIDER:-mock}
       - EMAIL_FROM=${EMAIL_FROM:-noreply@townpulse.dev}
+      # ── Photo uploads ──
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - STORAGE_LOCAL_PATH=${STORAGE_LOCAL_PATH:-./uploads}
+      - MAX_UPLOAD_BYTES=${MAX_UPLOAD_BYTES:-5242880}
+      # ── Web Push (VAPID) — leave empty to disable ──
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:ops@townpulse.example}
+      # ── Locality timezone for "open now" ──
+      - TZ_OFFSET_MINUTES=${TZ_OFFSET_MINUTES:-330}
     volumes:
       - ../backend:/app
+      - uploads:/app/uploads
     command: >
       sh -c "alembic upgrade head &&
              python scripts/seed.py &&
@@ -91,3 +102,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads:
