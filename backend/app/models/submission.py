@@ -8,6 +8,7 @@ Allows unverified users to suggest new listings without creating them directly.
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -16,11 +17,14 @@ from sqlalchemy.sql import func
 
 from app.core.database import Base
 
+if TYPE_CHECKING:
+    from app.models.user import User
+
 
 class SubmissionStatus(str, enum.Enum):
     """Status of a public listing submission."""
 
-    pending = "pending"    # Waiting for admin review
+    pending = "pending"  # Waiting for admin review
     approved = "approved"  # Admin approved — listing created
     rejected = "rejected"  # Admin rejected
 

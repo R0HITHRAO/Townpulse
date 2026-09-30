@@ -5,8 +5,8 @@ Sets up the SQLAlchemy engine, session factory, and declarative base.
 Uses connection pooling and retry logic for production reliability.
 """
 
-from sqlalchemy import create_engine, event, text
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from app.core.config import settings
@@ -20,11 +20,11 @@ logger = get_logger(__name__)
 # Connection pool settings optimized for production use
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_size=10,           # Maximum number of connections in the pool
-    max_overflow=20,        # Extra connections allowed above pool_size
-    pool_pre_ping=True,     # Verify connections before using them
-    pool_recycle=3600,      # Recycle connections after 1 hour
-    echo=settings.DEBUG,    # Log SQL queries in debug mode
+    pool_size=10,  # Maximum number of connections in the pool
+    max_overflow=20,  # Extra connections allowed above pool_size
+    pool_pre_ping=True,  # Verify connections before using them
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    echo=settings.DEBUG,  # Log SQL queries in debug mode
 )
 
 
@@ -45,6 +45,7 @@ class Base(DeclarativeBase):
     Base class for all SQLAlchemy ORM models.
     All models should inherit from this class.
     """
+
     pass
 
 

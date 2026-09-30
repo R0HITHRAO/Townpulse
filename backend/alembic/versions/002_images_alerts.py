@@ -6,9 +6,8 @@ Create Date: 2024-01-02 00:00:00.000000
 """
 
 from typing import Sequence, Union
-import sqlalchemy as sa
+
 from alembic import op
-from sqlalchemy.dialects import postgresql
 
 revision: str = "002_images_alerts"
 down_revision: Union[str, None] = "001_initial"
@@ -18,7 +17,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # ─── Add image_url to listings if not exists ──────────────────────────────
-    op.execute("""
+    op.execute(
+        """
         DO $$ BEGIN
             IF NOT EXISTS (
                 SELECT 1 FROM information_schema.columns 
@@ -27,10 +27,12 @@ def upgrade() -> None:
                 ALTER TABLE listings ADD COLUMN image_url VARCHAR(500);
             END IF;
         END $$;
-    """)
+    """
+    )
 
     # ─── Create Emergency Alerts Table if not exists ─────────────────────────
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS emergency_alerts (
             id UUID PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -42,7 +44,8 @@ def upgrade() -> None:
             expires_at TIMESTAMPTZ
         );
         CREATE INDEX IF NOT EXISTS ix_emergency_alerts_is_active ON emergency_alerts(is_active);
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

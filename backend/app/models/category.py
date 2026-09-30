@@ -4,10 +4,15 @@ TownPulse Category Model
 Listing categories (grocery, clinic, mechanic, etc.)
 """
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.listing import Listing
 
 
 class Category(Base):

@@ -224,6 +224,7 @@ class AuthService:
             )
 
         import uuid
+
         user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
         if not user or not user.is_active:
             raise HTTPException(

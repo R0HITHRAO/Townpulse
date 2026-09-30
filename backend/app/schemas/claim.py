@@ -26,7 +26,9 @@ class ClaimCreate(BaseModel):
         None,
         max_length=1000,
         description="Optional message to the administrator explaining ownership",
-        examples=["I am the owner of this clinic and manage its day-to-day operations."],
+        examples=[
+            "I am the owner of this clinic and manage its day-to-day operations."
+        ],
     )
 
 

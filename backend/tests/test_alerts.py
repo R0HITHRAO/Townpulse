@@ -4,7 +4,6 @@ TownPulse Emergency Alert Integration Tests
 Tests emergency alert creation by admin, active alerts retrieval, and deactivation.
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 

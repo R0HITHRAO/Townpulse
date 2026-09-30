@@ -27,12 +27,11 @@ TEST_DB_URL = os.getenv(
 engine = create_engine(TEST_DB_URL, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-from app.core.database import Base, get_db
-from app.core.security import create_access_token, hash_password
-from app.main import app
-from app.models.category import Category
-from app.models.listing import Listing
-from app.models.user import User, UserRole
+from app.core.database import Base, get_db  # noqa: E402
+from app.core.security import create_access_token, hash_password  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.category import Category  # noqa: E402
+from app.models.user import User, UserRole  # noqa: E402
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -128,7 +127,11 @@ def admin_headers(admin_token: str) -> dict[str, str]:
 @pytest.fixture
 def sample_category(db_session: Session) -> Category:
     """Get or create a sample test category."""
-    cat = db_session.query(Category).filter(Category.name == "Healthcare & Clinics").first()
+    cat = (
+        db_session.query(Category)
+        .filter(Category.name == "Healthcare & Clinics")
+        .first()
+    )
     if not cat:
         cat = Category(
             name="Healthcare & Clinics",

@@ -7,13 +7,14 @@ so Alembic can auto-generate migrations.
 import os
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+# Import all models to ensure they're registered with Base.metadata
+import app.models  # noqa: F401
+from alembic import context
 
 # Import Base so Alembic can see all model metadata
 from app.core.database import Base
-# Import all models to ensure they're registered with Base.metadata
-import app.models  # noqa: F401
 
 # ─── Alembic Config ──────────────────────────────────────────────────────────
 config = context.config

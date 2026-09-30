@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
-from app.models.listing import Listing
 
 
 def test_get_categories(client: TestClient, sample_category: Category) -> None:
@@ -49,7 +48,9 @@ def test_create_listing_by_admin(
     assert "id" in data
 
 
-def test_search_listings(client: TestClient, db_session: Session, sample_category: Category) -> None:
+def test_search_listings(
+    client: TestClient, db_session: Session, sample_category: Category
+) -> None:
     """Test search with text query and category filter."""
     response = client.get(f"/listings?category_id={sample_category.id}&per_page=10")
     assert response.status_code == 200

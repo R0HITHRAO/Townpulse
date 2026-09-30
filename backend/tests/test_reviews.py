@@ -5,7 +5,7 @@ Tests review submission, average rating computation, and deletion permissions.
 """
 
 import uuid
-import pytest
+
 from fastapi.testclient import TestClient
 
 

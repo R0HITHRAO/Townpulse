@@ -7,7 +7,8 @@ Supports three roles: regular users, business owners, and admins.
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -16,13 +17,18 @@ from sqlalchemy.sql import func
 
 from app.core.database import Base
 
+if TYPE_CHECKING:
+    from app.models.claim import Claim
+    from app.models.listing import Listing
+    from app.models.review import Review
+
 
 class UserRole(str, enum.Enum):
     """Roles for access control throughout the application."""
 
-    user = "user"                    # Regular public user
+    user = "user"  # Regular public user
     business_owner = "business_owner"  # Can claim and manage listings
-    admin = "admin"                  # Full platform access
+    admin = "admin"  # Full platform access
 
 
 class User(Base):

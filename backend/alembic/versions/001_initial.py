@@ -18,8 +18,9 @@ from typing import Sequence, Union
 
 import geoalchemy2
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers
 revision: str = "001_initial"
@@ -34,30 +35,42 @@ def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
 
     # ─── Enums (Idempotent creation) ──────────────────────────────────────────
-    op.execute("""
+    op.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE user_role AS ENUM ('user', 'business_owner', 'admin');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE claim_status AS ENUM ('pending', 'approved', 'rejected');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE submission_status AS ENUM ('pending', 'approved', 'rejected');
         EXCEPTION WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    user_role_type = postgresql.ENUM("user", "business_owner", "admin", name="user_role", create_type=False)
-    claim_status_type = postgresql.ENUM("pending", "approved", "rejected", name="claim_status", create_type=False)
-    submission_status_type = postgresql.ENUM("pending", "approved", "rejected", name="submission_status", create_type=False)
+    user_role_type = postgresql.ENUM(
+        "user", "business_owner", "admin", name="user_role", create_type=False
+    )
+    claim_status_type = postgresql.ENUM(
+        "pending", "approved", "rejected", name="claim_status", create_type=False
+    )
+    submission_status_type = postgresql.ENUM(
+        "pending", "approved", "rejected", name="submission_status", create_type=False
+    )
 
     # ─── Users Table ──────────────────────────────────────────────────────────
     op.create_table(
@@ -165,7 +178,8 @@ def upgrade() -> None:
     )
 
     # Trigger to auto-update tsvector from name + description
-    op.execute("""
+    op.execute(
+        """
         CREATE OR REPLACE FUNCTION listings_tsvector_update()
         RETURNS trigger AS $$
         BEGIN
@@ -176,14 +190,17 @@ def upgrade() -> None:
             RETURN NEW;
         END
         $$ LANGUAGE plpgsql;
-    """)
-    op.execute("""
+    """
+    )
+    op.execute(
+        """
         DROP TRIGGER IF EXISTS listings_tsvector_trigger ON listings;
         CREATE TRIGGER listings_tsvector_trigger
         BEFORE INSERT OR UPDATE ON listings
         FOR EACH ROW
         EXECUTE FUNCTION listings_tsvector_update();
-    """)
+    """
+    )
 
     # ─── Claims Table ─────────────────────────────────────────────────────────
     op.create_table(

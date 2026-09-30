@@ -11,7 +11,6 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import UserRole
 
-
 # ─── Request Schemas ──────────────────────────────────────────────────────────
 
 
@@ -19,9 +18,7 @@ class UserCreate(BaseModel):
     """Schema for user registration."""
 
     name: str = Field(..., min_length=2, max_length=255, examples=["Jane Smith"])
-    email: EmailStr | None = Field(
-        None, examples=["jane@example.com"]
-    )
+    email: EmailStr | None = Field(None, examples=["jane@example.com"])
     phone: str | None = Field(
         None,
         pattern=r"^\+?[1-9]\d{6,14}$",
@@ -40,9 +37,17 @@ class UserCreate(BaseModel):
         """At least one of email or phone must be provided."""
         return v
 
-    model_config = {"json_schema_extra": {"examples": [
-        {"name": "Jane Smith", "email": "jane@example.com", "password": "Secret123!"}
-    ]}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "Jane Smith",
+                    "email": "jane@example.com",
+                    "password": "Secret123!",
+                }
+            ]
+        }
+    }
 
 
 class UserLogin(BaseModel):
@@ -124,16 +129,20 @@ class Token(BaseModel):
     token_type: str = "bearer"
     user: UserOut
 
-    model_config = {"json_schema_extra": {"examples": [
-        {
-            "access_token": "eyJhbGci...",
-            "refresh_token": "eyJhbGci...",
-            "token_type": "bearer",
-            "user": {
-                "id": "123e4567-e89b-12d3-a456-426614174000",
-                "name": "Jane Smith",
-                "email": "jane@example.com",
-                "role": "user",
-            },
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "access_token": "eyJhbGci...",
+                    "refresh_token": "eyJhbGci...",
+                    "token_type": "bearer",
+                    "user": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "name": "Jane Smith",
+                        "email": "jane@example.com",
+                        "role": "user",
+                    },
+                }
+            ]
         }
-    ]}}
+    }

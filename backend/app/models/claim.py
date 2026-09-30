@@ -8,6 +8,7 @@ Claims go through admin review before approval.
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -16,11 +17,15 @@ from sqlalchemy.sql import func
 
 from app.core.database import Base
 
+if TYPE_CHECKING:
+    from app.models.listing import Listing
+    from app.models.user import User
+
 
 class ClaimStatus(str, enum.Enum):
     """Status of a listing claim request."""
 
-    pending = "pending"    # Waiting for admin review
+    pending = "pending"  # Waiting for admin review
     approved = "approved"  # Admin approved — listing ownership transferred
     rejected = "rejected"  # Admin rejected — listing remains unowned
 

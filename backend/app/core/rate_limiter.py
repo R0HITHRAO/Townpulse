@@ -9,7 +9,7 @@ import time
 from collections.abc import Callable
 
 import redis
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 

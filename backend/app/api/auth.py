@@ -5,10 +5,9 @@ Routes for user registration, email/password login, phone OTP,
 session refreshing, and current user profile.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 
 from app.core.dependencies import CurrentUser, DbSession
-from app.schemas.common import MessageResponse
 from app.schemas.user import (
     OTPRequest,
     OTPRequestResponse,

@@ -5,6 +5,7 @@ Tests for registration, login, phone OTP flow, password security, and token refr
 """
 
 import uuid
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -29,7 +30,9 @@ def test_register_with_email(client: TestClient, db_session: Session) -> None:
     assert data["user"]["name"] == "Jane Doe"
 
 
-def test_register_duplicate_email_rejected(client: TestClient, sample_user: User) -> None:
+def test_register_duplicate_email_rejected(
+    client: TestClient, sample_user: User
+) -> None:
     """Test that registering with an existing email returns 409 Conflict."""
     payload = {
         "name": "Duplicate User",
@@ -63,7 +66,9 @@ def test_login_invalid_password(client: TestClient, sample_user: User) -> None:
     assert response.status_code == 401
 
 
-def test_get_current_user_profile(client: TestClient, user_token: str, sample_user: User) -> None:
+def test_get_current_user_profile(
+    client: TestClient, user_token: str, sample_user: User
+) -> None:
     """Test fetching /auth/me with valid Bearer token."""
     headers = {"Authorization": f"Bearer {user_token}"}
     response = client.get("/auth/me", headers=headers)
@@ -98,9 +103,7 @@ def test_otp_request_and_verify_login_flow(client: TestClient) -> None:
     dev_otp = request_resp.json()["dev_otp"]
     assert dev_otp
 
-    verify_resp = client.post(
-        "/auth/otp/verify", json={"phone": phone, "otp": dev_otp}
-    )
+    verify_resp = client.post("/auth/otp/verify", json={"phone": phone, "otp": dev_otp})
     assert verify_resp.status_code == 200
     data = verify_resp.json()
     assert "access_token" in data

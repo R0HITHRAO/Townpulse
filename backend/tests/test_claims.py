@@ -8,8 +8,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.category import Category
-from app.models.listing import Listing
-from app.models.user import User
 
 
 def test_claim_listing_flow(
@@ -24,7 +22,11 @@ def test_claim_listing_flow(
     headers_user = {"Authorization": f"Bearer {user_token}"}
     create_res = client.post(
         "/listings",
-        json={"name": "Auto Works Garage", "address": "Bypass Junction", "category_id": sample_category.id},
+        json={
+            "name": "Auto Works Garage",
+            "address": "Bypass Junction",
+            "category_id": sample_category.id,
+        },
         headers=headers_user,
     )
     listing_id = create_res.json()["id"]
@@ -63,7 +65,11 @@ def test_duplicate_claim_rejected(
     headers = {"Authorization": f"Bearer {user_token}"}
     create_res = client.post(
         "/listings",
-        json={"name": "Duplicate Test Clinic", "address": "123 Main St", "category_id": sample_category.id},
+        json={
+            "name": "Duplicate Test Clinic",
+            "address": "123 Main St",
+            "category_id": sample_category.id,
+        },
         headers=headers,
     )
     listing_id = create_res.json()["id"]
