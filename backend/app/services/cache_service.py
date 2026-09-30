@@ -5,7 +5,7 @@ Provides caching helpers for hot queries like categories, popular listings, and 
 """
 
 import json
-from typing import Any
+from typing import Any, cast
 
 from app.core.logging import get_logger
 from app.core.rate_limiter import get_redis_client
@@ -29,7 +29,9 @@ class CacheService:
         """
         try:
             client = get_redis_client()
-            val = client.get(key)
+            # Cast: redis-py's stubs type a bare `Redis` command as
+            # `Awaitable[Any] | Any`; this client is synchronous.
+            val = cast("str | None", client.get(key))
             if val:
                 return json.loads(val)
         except Exception as e:
@@ -79,9 +81,10 @@ class CacheService:
         """
         try:
             client = get_redis_client()
-            keys = client.keys(pattern)
+            # Cast for the same reason as `get()` above — synchronous client.
+            keys = cast("list[str]", client.keys(pattern))
             if keys:
-                return client.delete(*keys)
+                return int(cast("int", client.delete(*keys)))
         except Exception as e:
             logger.warning("Cache delete_pattern failed", pattern=pattern, error=str(e))
         return 0

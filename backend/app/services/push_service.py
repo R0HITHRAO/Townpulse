@@ -145,7 +145,12 @@ class PushService:
             return [
                 sub
                 for sub in candidates
-                if haversine_metres(
+                # The bounding-box filter above already excludes NULL
+                # coordinates, but that is invisible to the type checker —
+                # and `float(None)` would raise, so re-check explicitly.
+                if sub.lat is not None
+                and sub.lng is not None
+                and haversine_metres(
                     float(sub.lat), float(sub.lng), target_lat, target_lng
                 )
                 <= radius

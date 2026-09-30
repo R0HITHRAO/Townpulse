@@ -7,6 +7,7 @@ Applies per-IP and per-endpoint rate limits with configurable windows.
 
 import time
 from collections.abc import Callable
+from typing import cast
 
 import redis
 from fastapi import Request, Response, status
@@ -80,7 +81,14 @@ def check_rate_limit(
 
     # Calculate retry-after if limit exceeded
     if not is_allowed:
-        oldest_score = client.zrange(key, 0, 0, withscores=True)
+        # Cast to the concrete sync shape: redis-py's stubs type a bare `Redis`
+        # command as `Awaitable[Any] | Any`, which mypy rejects on indexing even
+        # though this client is synchronous (redis.Redis, not
+        # redis.asyncio.Redis).
+        oldest_score = cast(
+            "list[tuple[str, float]]",
+            client.zrange(key, 0, 0, withscores=True),
+        )
         if oldest_score:
             oldest_time = oldest_score[0][1]
             retry_after = int(oldest_time + window_seconds - now) + 1

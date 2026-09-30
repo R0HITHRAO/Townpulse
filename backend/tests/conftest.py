@@ -13,16 +13,25 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-# Set test environment defaults
+# Set test environment defaults.
+# These must be exported into os.environ (not just used locally) because
+# `app.core.config` builds a cached `Settings` instance at import time, and
+# Settings.SECRET_KEY / Settings.DATABASE_URL are required fields. Reading
+# DATABASE_URL from the environment alone is not enough — pydantic-settings
+# only sees variables that actually exist in os.environ, so the suite died at
+# collection with `ValidationError: DATABASE_URL Field required`.
 os.environ["APP_ENV"] = "development"
 os.environ["SECRET_KEY"] = "test-secret-key-32-characters-long!!"
 os.environ["OTP_PROVIDER"] = "mock"
 os.environ["EMAIL_PROVIDER"] = "mock"
 
-TEST_DB_URL = os.getenv(
+# Keep the engine and the app's settings pointed at the same database.
+os.environ.setdefault(
     "DATABASE_URL",
     "postgresql://townpulse:townpulse_dev_password@localhost:5432/townpulse",
 )
+
+TEST_DB_URL = os.environ["DATABASE_URL"]
 
 engine = create_engine(TEST_DB_URL, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

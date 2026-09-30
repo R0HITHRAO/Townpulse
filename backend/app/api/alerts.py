@@ -15,8 +15,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request, status
+from geoalchemy2 import Geography
 from geoalchemy2.functions import ST_DWithin, ST_MakePoint, ST_SetSRID
-from sqlalchemy import case, func, or_
+from sqlalchemy import case, cast, func, or_
+from sqlalchemy.orm import Query as SAQuery
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import AdminUser, DbSession, OptionalUser
@@ -54,7 +56,7 @@ def _set_location(alert: EmergencyAlert) -> None:
         alert.location = None
 
 
-def _visible(query: Session, now: datetime) -> Session:
+def _visible(query: SAQuery[EmergencyAlert], now: datetime) -> SAQuery[EmergencyAlert]:
     """Active, unexpired, and already-published alerts only."""
     return query.filter(
         EmergencyAlert.is_active.is_(True),
@@ -136,7 +138,12 @@ def get_active_alerts(
     query = _visible(db.query(EmergencyAlert), now)
 
     if lat is not None and lng is not None:
-        point = func.cast(ST_SetSRID(ST_MakePoint(lng, lat), 4326), func.geography())
+        # SQLAlchemy's `cast()` (not `func.cast`) — the latter builds the
+        # PostgreSQL cast() function and cannot compile the geography type.
+        point = cast(
+            ST_SetSRID(ST_MakePoint(lng, lat), 4326),
+            Geography(geometry_type="POINT", srid=4326),
+        )
         query = query.filter(
             or_(
                 # Town-wide alert (no geo fence at all).
@@ -350,7 +357,11 @@ def _tally(db: Session, alert_id: uuid.UUID) -> tuple[int, int]:
         .group_by(AlertCheckIn.status)
         .all()
     )
-    counts = dict(rows)
+    # Rows are (status, count) pairs. `dict(rows)` is wrong here: SQLAlchemy
+    # Row objects are not 2-tuples for dict() purposes, so the resulting dict
+    # was keyed by Row rather than by status and both .get() calls below always
+    # missed, reporting zero safe check-ins for every alert.
+    counts: dict[Any, int] = {row[0]: int(row[1]) for row in rows}
     return (
         int(counts.get(CheckInStatus.SAFE, 0)),
         int(counts.get(CheckInStatus.NEEDS_HELP, 0)),

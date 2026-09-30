@@ -6,18 +6,10 @@ Municipal emergency and public broadcast announcements (weather, flood, power ou
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from geoalchemy2 import Geography
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    Numeric,
-    String,
-    Text,
-)
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -66,7 +58,10 @@ class EmergencyAlert(Base):
     district: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
 
     # NULL location == platform-wide alert.
-    location = Column(
+    # Mapped[Any] rather than a bare `Column(...)` so writes of WKT strings
+    # (see `_set_location`) type-check; geoalchemy2 has no precise Python type
+    # for this attribute.
+    location: Mapped[Any] = mapped_column(
         Geography(geometry_type="POINT", srid=4326),
         nullable=True,
     )

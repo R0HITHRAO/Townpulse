@@ -8,7 +8,8 @@ and PostgreSQL full-text search with tsvector.
 import uuid
 from typing import Any
 
-from sqlalchemy import func, text
+from geoalchemy2 import Geography
+from sqlalchemy import cast, func, text
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.logging import get_logger
@@ -135,15 +136,22 @@ class ListingService:
         has_geo = params.lat is not None and params.lng is not None
         if has_geo and params.lat is not None and params.lng is not None:
             # Create PostGIS point geography: ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography
-            center_point = func.ST_SetSRID(
-                func.ST_MakePoint(params.lng, params.lat),
-                4326,
+            #
+            # This must use SQLAlchemy's `cast()` with a real type object.
+            # `func.cast(...)` resolves to the *PostgreSQL* cast() SQL function,
+            # not the SQL type-cast constructor, so passing `func.geography()`
+            # there makes the statement fail to compile with
+            # "AttributeError: 'Function' object has no attribute
+            # '_variant_mapping'" the moment anyone searches with coordinates.
+            center_point = cast(
+                func.ST_SetSRID(func.ST_MakePoint(params.lng, params.lat), 4326),
+                Geography(geometry_type="POINT", srid=4326),
             )
             # ST_DWithin checks if distance is <= radius_meters (in meters on geography)
             base = base.filter(
                 func.ST_DWithin(
                     Listing.location,
-                    func.cast(center_point, func.geography),
+                    center_point,
                     params.radius_meters or 10000.0,
                 )
             )
@@ -160,13 +168,10 @@ class ListingService:
             and params.lat is not None
             and params.lng is not None
         ):
-            center_point = func.ST_SetSRID(
-                func.ST_MakePoint(params.lng, params.lat), 4326
-            )
             query = query.order_by(
                 func.ST_Distance(
                     Listing.location,
-                    func.cast(center_point, func.geography),
+                    center_point,
                 )
             )
         elif params.sort_by == "name":

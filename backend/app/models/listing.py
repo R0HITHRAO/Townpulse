@@ -12,7 +12,7 @@ Key features:
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from geoalchemy2 import Geography
 from sqlalchemy import (
@@ -89,7 +89,12 @@ class Listing(Base):
     # ─── Geospatial Location ──────────────────────────────────────────────────
     # PostGIS geography column — stores lat/lng as WGS84 point
     # Use ST_DWithin for radius queries and ST_Distance for sorting by distance
-    location = Column(
+    #
+    # Annotated as Mapped[Any] rather than a bare `Column(...)`: geoalchemy2 has
+    # no precise Python type for this attribute (it holds WKT strings on write
+    # and WKBElement on read), and an unannotated Column makes mypy treat every
+    # assignment as a Column, not the value.
+    location: Mapped[Any] = mapped_column(
         Geography(geometry_type="POINT", srid=4326),
         nullable=True,
     )

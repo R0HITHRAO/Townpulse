@@ -23,15 +23,15 @@ from app.schemas.saved_place import SavedPlaceIn, SavedPlaceOut, SavedPlaceUpdat
 router = APIRouter(prefix="/saved-places", tags=["Saved Places"])
 
 
-def _serialize(place: SavedPlace) -> dict:
+def _serialize(place: SavedPlace) -> SavedPlaceOut:
     """Flatten a save plus the listing fields the list view needs."""
     listing: Listing | None = place.listing
-    return {
-        "id": place.id,
-        "listing_id": place.listing_id,
-        "note": place.note,
-        "created_at": place.created_at,
-        "listing": (
+    return SavedPlaceOut(
+        id=place.id,
+        listing_id=place.listing_id,
+        note=place.note,
+        created_at=place.created_at,
+        listing=(
             {
                 "id": listing.id,
                 "name": listing.name,
@@ -52,7 +52,7 @@ def _serialize(place: SavedPlace) -> dict:
             if listing
             else None
         ),
-    }
+    )
 
 
 @router.get(
@@ -72,7 +72,7 @@ def list_saved_places(
         .order_by(SavedPlace.created_at.desc())
         .all()
     )
-    return [_serialize(place) for place in places]  # type: ignore[misc]
+    return [_serialize(place) for place in places]
 
 
 @router.post(

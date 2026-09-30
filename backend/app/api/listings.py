@@ -201,12 +201,11 @@ def update_listing(
     db: DbSession,
 ) -> ListingOut:
     """Update listing details (permitted for owner or admin)."""
-    listing = ListingService.get_by_id(db, listing_id)
-    if not listing:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Listing not found",
-        )
+    # Ownership and the mutation both need the real ORM row. `get_by_id`
+    # returns a serialised dict for the response, so reading `owner_user_id`
+    # off it raised AttributeError and handing it to `update_listing` would
+    # have setattr()'d onto a dict instead of the database row.
+    listing = _require_listing(db, listing_id)
 
     # Permission check: must be admin or the verified owner
     is_owner = listing.owner_user_id == current_user.id
@@ -217,9 +216,10 @@ def update_listing(
             detail="You do not have permission to edit this listing.",
         )
 
-    updated = ListingService.update_listing(db, listing, data)
+    ListingService.update_listing(db, listing, data)
     CacheService.delete_pattern("listings:*")
-    return updated  # type: ignore[return-value]
+    # Re-read as a serialised payload for the response contract.
+    return ListingOut.model_validate(ListingService.get_by_id(db, listing_id))
 
 
 @router.delete(
@@ -233,12 +233,9 @@ def delete_listing(
     db: DbSession,
 ) -> MessageResponse:
     """Delete a listing (permitted for owner or admin)."""
-    listing = ListingService.get_by_id(db, listing_id)
-    if not listing:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Listing not found",
-        )
+    # Needs the ORM row: `delete_listing` calls db.delete(), which would fail
+    # on the serialised dict that `get_by_id` returns.
+    listing = _require_listing(db, listing_id)
 
     is_owner = listing.owner_user_id == current_user.id
     is_admin = current_user.role == UserRole.admin
@@ -286,18 +283,15 @@ def report_listing(
     db: DbSession,
 ) -> MessageResponse:
     """Report an inaccurate, fraudulent, or permanently closed listing."""
-    listing = ListingService.get_by_id(db, listing_id)
-    if not listing:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Listing not found",
-        )
+    _require_listing(db, listing_id)
     return MessageResponse(
         message="Thank you. Your report has been submitted to moderators."
     )
 
 
 # ─── Freshness (trust decay) ──────────────────────────────────────────────────
+# `_require_listing` / `_require_owner_or_admin` are also reused by the
+# mutation endpoints above; they live here next to the other shared helpers.
 
 
 def _require_listing(db: DbSession, listing_id: uuid.UUID) -> Listing:

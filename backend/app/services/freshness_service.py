@@ -136,8 +136,13 @@ class FreshnessService:
             expiry = listing.verification_expires_at
             if expiry.tzinfo is None:
                 expiry = expiry.replace(tzinfo=timezone.utc)
-            days_left = (expiry - current).days
-            state = STATE_EXPIRING if days_left <= EXPIRING_SOON_DAYS else STATE_FRESH
+            # Use the value computed below rather than recomputing it here.
+            days_until_expiry = (expiry - current).days
+            state = (
+                STATE_EXPIRING
+                if days_until_expiry <= EXPIRING_SOON_DAYS
+                else STATE_FRESH
+            )
 
         expires_at = listing.verification_expires_at
         days_left: int | None = None
