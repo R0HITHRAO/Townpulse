@@ -17,6 +17,7 @@ import {
   Clock,
   Sparkles,
   Navigation,
+  RefreshCw,
 } from 'lucide-react';
 
 type LayoutMode = 'split' | 'map' | 'list';
@@ -25,6 +26,8 @@ export const MapView: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [radius, setRadius] = useState(15000);
@@ -34,11 +37,20 @@ export const MapView: React.FC = () => {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
 
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(console.error);
+    // Same reasoning as the listings fetch: a failed category load used to be
+    // logged and forgotten, leaving an empty chip row with no explanation.
+    api
+      .getCategories()
+      .then(setCategories)
+      .catch((err: unknown) => {
+        console.error(err);
+        setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+      });
   }, []);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
     api
       .searchListings({
         q: searchQuery || undefined,
@@ -52,9 +64,17 @@ export const MapView: React.FC = () => {
           setSelectedListing(res.items[0]);
         }
       })
-      .catch(console.error)
+      // Previously swallowed into console.error, which left `listings` empty
+      // and rendered "No services found in this search area." — so a dead
+      // backend, a database that is down, or a network failure were all
+      // reported to the user as "this town has no services".
+      .catch((err: unknown) => {
+        console.error(err);
+        setListings([]);
+        setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+      })
       .finally(() => setLoading(false));
-  }, [searchQuery, selectedCategory, radius]);
+  }, [searchQuery, selectedCategory, radius, retryKey]);
 
   // Filter listings by open status if enabled
   const displayedListings = useMemo(() => {
@@ -191,10 +211,53 @@ export const MapView: React.FC = () => {
 
               {loading ? (
                 <LoadingSpinner message="Locating community services..." />
+              ) : error ? (
+                <div
+                  role="alert"
+                  className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-red-200 dark:border-red-900 text-xs text-slate-600 dark:text-slate-300 space-y-3 shadow-xs"
+                >
+                  <p className="font-semibold text-sm text-red-700 dark:text-red-400">
+                    Could not load services
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                    The TownPulse server did not respond, so this is not an empty
+                    result. Check that the backend is running and the database is
+                    reachable, then try again.
+                  </p>
+                  <p className="text-[11px] font-mono text-slate-400 break-words">
+                    {error}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRetryKey((key) => key + 1)}
+                    className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Retry
+                  </button>
+                </div>
               ) : displayedListings.length === 0 ? (
                 <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
                   <p className="font-semibold text-sm">No services found in this search area.</p>
                   <p className="text-xs text-slate-400">Try expanding the search radius or resetting category filters.</p>
+                  {searchQuery || selectedCategory ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory(null);
+                      }}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    >
+                      Reset filters
+                    </button>
+                  ) : (
+                    <p className="text-xs text-slate-400 pt-1">
+                      The directory loaded successfully but has no listings for this area yet.
+                      Seed it with <code className="font-mono">python scripts/import_osm.py</code>{' '}
+                      to pull real services from OpenStreetMap.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>

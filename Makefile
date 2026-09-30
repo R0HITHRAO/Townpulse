@@ -13,7 +13,7 @@
 
 .PHONY: dev seed test test-backend test-frontend lint lint-backend lint-frontend \
         format format-backend format-frontend build deploy down clean \
-        migrate migrate-create health logs
+        migrate migrate-create health logs import-osm
 
 # ─── Colors ──────────────────────────────────────────────────────────────────
 GREEN  := \033[0;32m
@@ -62,6 +62,13 @@ migrate-create:
 seed:
 	@echo "$(GREEN)Seeding database with 50 sample listings...$(RESET)"
 	docker compose -f $(COMPOSE_FILE) exec backend python scripts/seed.py
+
+## Import REAL services from OpenStreetMap (ODbL) for a town
+## Usage: make import-osm lat=12.9716 lng=77.5946 radius=3000
+import-osm:
+	@echo "$(GREEN)Importing real services from OpenStreetMap...$(RESET)"
+	docker compose -f $(COMPOSE_FILE) exec backend python scripts/import_osm.py \
+		--lat $(or $(lat),12.9716) --lng $(or $(lng),77.5946) --radius $(or $(radius),3000)
 
 # ─── Testing ─────────────────────────────────────────────────────────────────
 
