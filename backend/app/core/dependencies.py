@@ -133,6 +133,35 @@ def require_admin(
     return current_user
 
 
+def get_optional_user(
+    db: DbSession,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> User | None:
+    """
+    Best-effort authentication for endpoints that serve both anonymous
+    residents and signed-in users (analytics ingest, bookmark sync).
+
+    Missing, malformed or expired credentials resolve to None instead of 401 —
+    the endpoint must keep working for anonymous traffic.
+    """
+    if credentials is None:
+        return None
+    try:
+        user_id = verify_access_token(credentials.credentials)
+        user_uuid = uuid.UUID(user_id)
+    except (JWTError, ValueError, TypeError):
+        return None
+
+    user = db.query(User).filter(User.id == user_uuid).first()
+    if user is None or not user.is_active:
+        return None
+    return user
+
+
+# Type alias for optional authentication
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
 # ─── Pagination Dependencies ──────────────────────────────────────────────────
 
 

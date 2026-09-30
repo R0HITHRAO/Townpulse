@@ -6,19 +6,25 @@ Configures CORS, rate limiting, structured logging, OpenAPI documentation, and A
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api import (
     admin_router,
     alerts_router,
+    analytics_router,
     auth_router,
     health_router,
     listings_router,
+    photos_router,
+    push_router,
     reviews_router,
+    saved_places_router,
+    submissions_router,
 )
 from app.core.config import settings
 from app.core.database import check_database_connection
@@ -92,6 +98,18 @@ def create_app() -> FastAPI:
     app.include_router(reviews_router)
     app.include_router(alerts_router)
     app.include_router(admin_router)
+    app.include_router(analytics_router)
+    app.include_router(submissions_router)
+    app.include_router(saved_places_router)
+    app.include_router(push_router)
+    app.include_router(photos_router)
+
+    # ─── Local media ──────────────────────────────────────────────────────────
+    # Uploaded photos served read-only when STORAGE_PROVIDER=local; with S3 the
+    # upload endpoint hands back a bucket URL instead.
+    uploads_dir = Path(settings.STORAGE_LOCAL_PATH).resolve()
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
     # Global root redirect or info
     @app.get("/", include_in_schema=False)

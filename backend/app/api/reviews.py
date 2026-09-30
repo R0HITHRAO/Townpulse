@@ -5,18 +5,42 @@ Community citizen reviews and star ratings for local service listings.
 """
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_active_user, require_admin
+from app.core.dependencies import get_current_active_user
+from app.models.audit_log import AuditAction
 from app.models.listing import Listing
 from app.models.review import Review
 from app.models.user import User
 from app.schemas.review import ReviewCreate, ReviewListResponse, ReviewResponse
+from app.services.audit_service import AuditService
 
 router = APIRouter(tags=["Reviews"])
+
+
+def _refresh_listing_rating(db: Session, listing_id: uuid.UUID) -> None:
+    """
+    Recompute and persist the listing's denormalised rating columns.
+
+    Search results sort and filter on `avg_rating` / `review_count`; if those
+    are stale the review endpoints and the search index drift apart, and every
+    result row has to re-load all its reviews to render one star.
+    """
+    total, average = (
+        db.query(func.count(Review.id), func.avg(Review.rating))
+        .filter(Review.listing_id == listing_id)
+        .one()
+    )
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if listing is None:
+        return
+    listing.review_count = int(total or 0)
+    listing.avg_rating = round(float(average), 2) if average is not None else None
+    db.flush()
 
 
 @router.get("/listings/{listing_id}/reviews", response_model=ReviewListResponse)
@@ -51,7 +75,11 @@ def get_listing_reviews(
     )
 
 
-@router.post("/listings/{listing_id}/reviews", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/listings/{listing_id}/reviews",
+    response_model=ReviewResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_or_update_review(
     listing_id: uuid.UUID,
     review_in: ReviewCreate,
@@ -76,6 +104,7 @@ def create_or_update_review(
     if existing_review:
         existing_review.rating = review_in.rating
         existing_review.comment = review_in.comment
+        _refresh_listing_rating(db, listing_id)
         db.commit()
         db.refresh(existing_review)
         return existing_review
@@ -87,6 +116,7 @@ def create_or_update_review(
         comment=review_in.comment,
     )
     db.add(new_review)
+    _refresh_listing_rating(db, listing_id)
     db.commit()
     db.refresh(new_review)
     return new_review
@@ -112,5 +142,22 @@ def delete_review(
             detail="Not authorized to delete this review.",
         )
 
+    listing_id = review.listing_id
+    snapshot = {"rating": review.rating, "comment": review.comment}
+    author_id = review.user_id
     db.delete(review)
+    db.flush()
+    _refresh_listing_rating(db, listing_id)
     db.commit()
+
+    if author_id != current_user.id:
+        # A moderator deleting someone else's review is a privileged act.
+        AuditService.record(
+            db,
+            actor=current_user,
+            action=AuditAction.REVIEW_DELETE,
+            entity_type="review",
+            entity_id=review_id,
+            summary=f"Deleted review on listing {listing_id}",
+            before=snapshot,
+        )

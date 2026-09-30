@@ -8,16 +8,14 @@ and PostgreSQL full-text search with tsvector.
 import uuid
 from typing import Any
 
-from geoalchemy2.functions import ST_DWithin, ST_Distance, ST_MakePoint, ST_SetSRID
-from sqlalchemy import desc, func, text
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.logging import get_logger
-from app.models.category import Category
 from app.models.listing import Listing
-from app.models.review import Review
-from app.models.user import User, UserRole
 from app.schemas.listing import ListingCreate, ListingSearch, ListingUpdate
+from app.services.freshness_service import FreshnessService
+from app.services.hours_service import OPEN_NOW_SQL, normalize_hours, open_now_window
 
 logger = get_logger(__name__)
 
@@ -30,7 +28,11 @@ class ListingService:
         """Fetch a single listing with category, owner, and reviews stats."""
         listing = (
             db.query(Listing)
-            .options(joinedload(Listing.category), joinedload(Listing.owner), joinedload(Listing.reviews))
+            .options(
+                joinedload(Listing.category),
+                joinedload(Listing.owner),
+                joinedload(Listing.reviews),
+            )
             .filter(Listing.id == listing_id)
             .first()
         )
@@ -84,23 +86,50 @@ class ListingService:
         Returns:
             Tuple of (list_of_listing_dicts_with_distance, total_count).
         """
-        query = db.query(Listing).options(joinedload(Listing.category), joinedload(Listing.reviews))
+        # Filters run on `base` (no eager loads) so `count()` sees one row per
+        # listing — joinedload rows multiply inside a count subquery and
+        # inflate the total, which is how "50 results" pages showed 500.
+        base = db.query(Listing)
 
         # Filter by verified only if requested
         if params.verified_only:
-            query = query.filter(Listing.verified.is_(True))
+            base = base.filter(Listing.verified.is_(True))
 
         # Filter by category
         if params.category_id:
-            query = query.filter(Listing.category_id == params.category_id)
+            base = base.filter(Listing.category_id == params.category_id)
 
-        # Full-text search using tsvector
+        # Map viewport bounding box (cheap range scan on lat/lng columns).
+        if params.min_lat is not None:
+            base = base.filter(Listing.lat >= params.min_lat)
+        if params.max_lat is not None:
+            base = base.filter(Listing.lat <= params.max_lat)
+        if params.min_lng is not None:
+            base = base.filter(Listing.lng >= params.min_lng)
+        if params.max_lng is not None:
+            base = base.filter(Listing.lng <= params.max_lng)
+
+        # Full-text search: websearch_to_tsquery parses what people actually
+        # paste ("clinic near me -dentist"), with a substring fallback so
+        # transliterated aliases and addresses still match.
         if params.q and params.q.strip():
             search_query = params.q.strip()
-            # Use websearch_to_tsquery for natural query parsing
-            query = query.filter(
-                text("search_vector @@ plainto_tsquery('english', :q)")
-            ).params(q=search_query)
+            base = base.filter(
+                text(
+                    "search_vector @@ websearch_to_tsquery('english', :q)"
+                    " OR lower(name) LIKE :like"
+                    " OR lower(coalesce(search_aliases, '')) LIKE :like"
+                    " OR lower(coalesce(address, '')) LIKE :like"
+                )
+            ).params(
+                q=search_query,
+                like=f"%{search_query.lower()}%",
+            )
+
+        # Server-side "open now": normalised hours, one SQL predicate, so the
+        # map can filter by open-now without shipping every row to the browser.
+        if params.open_now:
+            base = base.filter(text(OPEN_NOW_SQL)).params(**open_now_window())
 
         # Geospatial radius search using PostGIS ST_DWithin
         has_geo = params.lat is not None and params.lng is not None
@@ -111,7 +140,7 @@ class ListingService:
                 4326,
             )
             # ST_DWithin checks if distance is <= radius_meters (in meters on geography)
-            query = query.filter(
+            base = base.filter(
                 func.ST_DWithin(
                     Listing.location,
                     func.cast(center_point, func.geography),
@@ -119,10 +148,18 @@ class ListingService:
                 )
             )
 
-        total = query.count()
+        total = base.count()
+
+        # Eager loads are attached only for the row fetch (see the count note).
+        query = base.options(joinedload(Listing.category))
 
         # Sorting
-        if has_geo and params.sort_by == "distance" and params.lat is not None and params.lng is not None:
+        if (
+            has_geo
+            and params.sort_by == "distance"
+            and params.lat is not None
+            and params.lng is not None
+        ):
             center_point = func.ST_SetSRID(
                 func.ST_MakePoint(params.lng, params.lat), 4326
             )
@@ -134,7 +171,16 @@ class ListingService:
             )
         elif params.sort_by == "name":
             query = query.order_by(
-                Listing.name.asc() if params.sort_order == "asc" else Listing.name.desc()
+                Listing.name.asc()
+                if params.sort_order == "asc"
+                else Listing.name.desc()
+            )
+        elif params.sort_by == "rating":
+            # Denormalised avg_rating; reviews with no rating sink to the end.
+            query = query.order_by(
+                Listing.avg_rating.desc().nullslast()
+                if params.sort_order == "desc"
+                else Listing.avg_rating.asc().nullsfirst()
             )
         else:
             query = query.order_by(
@@ -148,34 +194,35 @@ class ListingService:
         listings = query.offset(offset).limit(params.per_page).all()
 
         results = []
-        for l in listings:
-            reviews = l.reviews or []
-            review_count = len(reviews)
+        for listing_row in listings:
+            # Denormalised on write by the review endpoints — no per-row
+            # review loading just to render one row of stars.
+            review_count = listing_row.review_count or 0
             avg_rating = (
-                round(sum(r.rating for r in reviews) / review_count, 1)
-                if review_count > 0
+                round(float(listing_row.avg_rating), 1)
+                if listing_row.avg_rating is not None
                 else None
             )
 
             data = {
-                "id": l.id,
-                "name": l.name,
-                "description": l.description,
-                "address": l.address,
-                "image_url": l.image_url,
-                "category_id": l.category_id,
-                "lat": float(l.lat) if l.lat is not None else None,
-                "lng": float(l.lng) if l.lng is not None else None,
-                "phone": l.phone,
-                "email": l.email,
-                "website": l.website,
-                "hours": l.hours,
-                "verified": l.verified,
-                "status": l.status,
-                "owner_user_id": l.owner_user_id,
-                "created_at": l.created_at,
-                "updated_at": l.updated_at,
-                "category": l.category,
+                "id": listing_row.id,
+                "name": listing_row.name,
+                "description": listing_row.description,
+                "address": listing_row.address,
+                "image_url": listing_row.image_url,
+                "category_id": listing_row.category_id,
+                "lat": float(listing_row.lat) if listing_row.lat is not None else None,
+                "lng": float(listing_row.lng) if listing_row.lng is not None else None,
+                "phone": listing_row.phone,
+                "email": listing_row.email,
+                "website": listing_row.website,
+                "hours": listing_row.hours,
+                "verified": listing_row.verified,
+                "status": listing_row.status,
+                "owner_user_id": listing_row.owner_user_id,
+                "created_at": listing_row.created_at,
+                "updated_at": listing_row.updated_at,
+                "category": listing_row.category,
                 "distance_meters": None,
                 "average_rating": avg_rating,
                 "review_count": review_count,
@@ -204,6 +251,7 @@ class ListingService:
             email=data.email,
             website=data.website,
             hours=data.hours,
+            normalized_hours=normalize_hours(data.hours),
             verified=auto_verify,
             status="approved" if auto_verify else "pending",
             owner_user_id=owner_id,
@@ -212,6 +260,11 @@ class ListingService:
         if data.lat is not None and data.lng is not None:
             # Set geography point in WGS84
             listing.location = f"SRID=4326;POINT({data.lng} {data.lat})"
+
+        if auto_verify:
+            # An admin-created listing starts its verification clock like any
+            # other — "verified forever" is exactly what we are fixing.
+            FreshnessService.mark_verified(listing)
 
         db.add(listing)
         db.commit()
@@ -229,6 +282,11 @@ class ListingService:
         update_dict = data.model_dump(exclude_unset=True)
         for key, value in update_dict.items():
             setattr(listing, key, value)
+
+        if "hours" in update_dict:
+            # Keep the structured projection in lockstep with the free text —
+            # the server-side open-now filter reads only normalized_hours.
+            listing.normalized_hours = normalize_hours(listing.hours)
 
         if "lat" in update_dict or "lng" in update_dict:
             lat = listing.lat

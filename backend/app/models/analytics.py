@@ -8,7 +8,7 @@ Stores events as JSONB for schema flexibility.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -56,12 +56,34 @@ class Analytics(Base):
         index=True,
     )
 
+    # ─── Attribution ──────────────────────────────────────────────────────────
+    # Promoted out of the payload so per-listing analytics ("how many people
+    # tapped 'call' on my clinic this week?") is an indexed lookup instead of a
+    # JSONB scan over the whole event history.
+    listing_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("listings.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    # Anonymous, per-session id for de-duplicated visitor counts (no fingerprint).
+    session_id: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+    # Client-side route the event came from, e.g. "/listings/12ab#call".
+    path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
     # ─── Timestamp ────────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
         index=True,
+    )
+
+    __table_args__ = (
+        # "Events of this type in this window" — every aggregate query shape.
+        Index("ix_analytics_type_created", "event_type", "created_at"),
     )
 
     def __repr__(self) -> str:

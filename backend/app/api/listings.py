@@ -6,16 +6,25 @@ Routes for discovering, searching, creating, editing, and claiming listings.
 
 import math
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, Request, status
 
 from app.core.dependencies import CurrentUser, DbSession
+from app.models.audit_log import AuditAction
 from app.models.category import Category
 from app.models.listing import Listing
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from app.schemas.claim import ClaimCreate, ClaimOut
 from app.schemas.common import MessageResponse, PaginatedResponse
+from app.schemas.freshness import (
+    ConfirmOut,
+    FreshnessBadgeOut,
+    ReverifyConfirmIn,
+    ReverifyConfirmOut,
+    ReverifyRequestOut,
+    StaleReportIn,
+    StaleReportOut,
+)
 from app.schemas.listing import (
     CategoryOut,
     ListingCreate,
@@ -24,8 +33,11 @@ from app.schemas.listing import (
     ListingSearch,
     ListingUpdate,
 )
+from app.services.analytics_service import EventType, track
+from app.services.audit_service import AuditService
 from app.services.cache_service import CacheService
 from app.services.claim_service import ClaimService
+from app.services.freshness_service import FreshnessService
 from app.services.listing_service import ListingService
 
 router = APIRouter(tags=["Listings"])
@@ -68,10 +80,19 @@ def search_listings(
     q: str | None = Query(None, description="Full-text search query"),
     category_id: int | None = Query(None, description="Filter by category"),
     lat: float | None = Query(None, ge=-90.0, le=90.0, description="Center latitude"),
-    lng: float | None = Query(None, ge=-180.0, le=180.0, description="Center longitude"),
+    lng: float
+    | None = Query(None, ge=-180.0, le=180.0, description="Center longitude"),
     radius: float | None = Query(10000.0, description="Search radius in meters"),
     verified_only: bool = Query(False, description="Verified listings only"),
-    sort_by: str = Query("created_at", description="Sort by: created_at | name | distance"),
+    open_now: bool = Query(False, description="Only listings open at this instant"),
+    min_lat: float | None = Query(None, ge=-90.0, le=90.0),
+    max_lat: float | None = Query(None, ge=-90.0, le=90.0),
+    min_lng: float | None = Query(None, ge=-180.0, le=180.0),
+    max_lng: float | None = Query(None, ge=-180.0, le=180.0),
+    sort_by: str = Query(
+        "created_at",
+        description="Sort by: created_at | name | distance | rating",
+    ),
     sort_order: str = Query("desc", description="Sort order: asc | desc"),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
@@ -84,6 +105,11 @@ def search_listings(
         lng=lng,
         radius_meters=radius,
         verified_only=verified_only,
+        open_now=open_now,
+        min_lat=min_lat,
+        max_lat=max_lat,
+        min_lng=min_lng,
+        max_lng=max_lng,
         sort_by=sort_by,
         sort_order=sort_order,
         page=page,
@@ -91,6 +117,20 @@ def search_listings(
     )
     items, total = ListingService.search_listings(db, params)
     total_pages = math.ceil(total / per_page) if total > 0 else 1
+
+    # Demand signal: what people looked for and how much they found. Recorded
+    # best-effort — a tracking hiccup must not fail a search.
+    if q and q.strip():
+        track(
+            db,
+            event_type=EventType.SEARCH_PERFORMED,
+            payload={
+                "query": q.strip()[:200],
+                "result_count": total,
+                "open_now": open_now,
+                "has_geo": lat is not None and lng is not None,
+            },
+        )
 
     return PaginatedResponse(
         items=[ListingOut(**item) for item in items],
@@ -139,7 +179,9 @@ def create_listing(
     listing = ListingService.create_listing(
         db,
         data,
-        owner_id=current_user.id if current_user.role == UserRole.business_owner else None,
+        owner_id=current_user.id
+        if current_user.role == UserRole.business_owner
+        else None,
         auto_verify=is_admin,
     )
     # Invalidate cache
@@ -252,4 +294,168 @@ def report_listing(
         )
     return MessageResponse(
         message="Thank you. Your report has been submitted to moderators."
+    )
+
+
+# ─── Freshness (trust decay) ──────────────────────────────────────────────────
+
+
+def _require_listing(db: DbSession, listing_id: uuid.UUID) -> Listing:
+    listing = db.query(Listing).filter(Listing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Listing not found",
+        )
+    return listing
+
+
+def _require_owner_or_admin(listing: Listing, user: User) -> None:
+    if user.role == UserRole.admin:
+        return
+    if listing.owner_user_id == user.id:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Only the listing owner or an admin may do this.",
+    )
+
+
+@router.get(
+    "/listings/{listing_id}/freshness",
+    response_model=FreshnessBadgeOut,
+    summary="Freshness / verification-expiry badge for a listing",
+)
+def get_listing_freshness(
+    listing_id: uuid.UUID,
+    db: DbSession,
+) -> FreshnessBadgeOut:
+    """
+    Trust score and expiry state behind the verified badge.
+
+    `state` is one of fresh | expiring | expired | needs_review | unverified.
+    """
+    listing = _require_listing(db, listing_id)
+    badge = FreshnessService.badge(listing)
+    return FreshnessBadgeOut(listing_id=listing_id, **badge)  # type: ignore[arg-type]
+
+
+@router.post(
+    "/listings/{listing_id}/confirm",
+    response_model=ConfirmOut,
+    summary="Confirm this place is still open",
+)
+def confirm_listing(
+    listing_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ConfirmOut:
+    """
+    One tap: "still open / the number works".
+
+    De-duplicated per user per 24h, so tapping repeatedly cannot farm the score.
+    """
+    listing = _require_listing(db, listing_id)
+    result = FreshnessService.confirm(db, listing, user_id=current_user.id)
+    return ConfirmOut(**result)  # type: ignore[arg-type]
+
+
+@router.post(
+    "/listings/{listing_id}/report-stale",
+    response_model=StaleReportOut,
+    summary="Report a listing as closed or inaccurate",
+)
+def report_listing_stale(
+    listing_id: uuid.UUID,
+    payload: StaleReportIn,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> StaleReportOut:
+    """
+    One tap: closed / wrong number / moved.
+
+    Three reports escalate the listing into the moderation queue — escalated,
+    never hidden, because wrongly hiding a working shop costs more.
+    """
+    listing = _require_listing(db, listing_id)
+    result = FreshnessService.report_stale(
+        db,
+        listing,
+        user_id=current_user.id,
+        reason=f"{payload.reason}: {payload.detail or ''}",
+    )
+    return StaleReportOut(**result)
+
+
+@router.post(
+    "/listings/{listing_id}/reverify/request",
+    response_model=ReverifyRequestOut,
+    summary="Ask for an SMS re-verification code (owner)",
+)
+async def request_listing_reverify(
+    listing_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ReverifyRequestOut:
+    """
+    Owner (or admin) requests a fresh verification code by SMS.
+
+    Reuses the configured OTP provider, so municipalities that already send
+    login OTPs get re-confirmation with no extra integration.
+    """
+    listing = _require_listing(db, listing_id)
+    _require_owner_or_admin(listing, current_user)
+    result = await FreshnessService.request_reverify_code(
+        db,
+        listing,
+        user_id=current_user.id,
+    )
+    return ReverifyRequestOut(**result)  # type: ignore[arg-type]
+
+
+@router.post(
+    "/listings/{listing_id}/reverify/confirm",
+    response_model=ReverifyConfirmOut,
+    summary="Submit the SMS code and refresh verification (owner)",
+)
+def confirm_listing_reverify(
+    listing_id: uuid.UUID,
+    payload: ReverifyConfirmIn,
+    current_user: CurrentUser,
+    request: Request,
+    db: DbSession,
+) -> ReverifyConfirmOut:
+    """Consume the code; on match, stamp a fresh 180-day verification window."""
+    listing = _require_listing(db, listing_id)
+    _require_owner_or_admin(listing, current_user)
+
+    before = FreshnessService.badge(listing)
+    verified = FreshnessService.confirm_reverify_code(
+        db,
+        listing,
+        payload.code,
+        user_id=current_user.id,
+    )
+    if not verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired code.",
+        )
+
+    AuditService.record(
+        db,
+        actor=current_user,
+        action=AuditAction.LISTING_REVERIFY,
+        entity_type="listing",
+        entity_id=listing.id,
+        summary=f"Owner re-verified '{listing.name}'",
+        before=before,
+        after=FreshnessService.badge(listing),
+        request=request,
+    )
+
+    badge = FreshnessService.badge(listing)
+    return ReverifyConfirmOut(
+        verified=True,
+        badge=FreshnessBadgeOut(listing_id=listing_id, **badge),  # type: ignore[arg-type]
     )

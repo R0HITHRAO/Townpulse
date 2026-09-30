@@ -7,13 +7,13 @@ and retrieving moderation queues.
 
 from typing import Any
 
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.claim import Claim, ClaimStatus
 from app.models.listing import Listing
 from app.models.submission import Submission, SubmissionStatus
 from app.models.user import User, UserRole
+from app.services.freshness_service import FreshnessService
 
 
 class AdminService:
@@ -28,9 +28,7 @@ class AdminService:
             Dictionary with counts and ratios.
         """
         total_listings = db.query(Listing).count()
-        verified_listings = (
-            db.query(Listing).filter(Listing.verified.is_(True)).count()
-        )
+        verified_listings = db.query(Listing).filter(Listing.verified.is_(True)).count()
         unverified_listings = total_listings - verified_listings
 
         total_users = db.query(User).count()
@@ -80,10 +78,11 @@ class AdminService:
 
     @staticmethod
     def verify_listing(db: Session, listing_id: Any) -> Listing | None:
-        """Mark a listing as verified by admin."""
+        """Mark a listing as verified and start a fresh verification window."""
         listing = db.query(Listing).filter(Listing.id == listing_id).first()
         if listing:
-            listing.verified = True
+            # Stamp expiry, not just the boolean — verification must decay.
+            FreshnessService.mark_verified(listing)
             listing.status = "approved"
             db.commit()
             db.refresh(listing)

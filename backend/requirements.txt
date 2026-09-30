@@ -42,6 +42,12 @@ sendgrid==6.11.0
 # AWS S3 (optional, for file storage)
 boto3==1.33.6
 
+# Web Push (optional, for emergency alert delivery when the tab is closed)
+# Pinned to the last releases compatible with the cryptography==41.0.7 pin
+# above — pywebpush >=2.4.0 and py-vapid >=1.9.3 require cryptography>=46/47.
+pywebpush==2.3.0
+py-vapid==1.9.2
+
 # Monitoring & Logging
 structlog==23.2.0
 sentry-sdk[fastapi]==1.38.0

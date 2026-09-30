@@ -12,6 +12,7 @@ Key features:
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from geoalchemy2 import Geography
 from sqlalchemy import (
@@ -31,6 +32,12 @@ from sqlalchemy.sql import func
 from sqlalchemy.types import UserDefinedType
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.category import Category
+    from app.models.claim import Claim
+    from app.models.review import Review
+    from app.models.user import User
 
 
 class TSVector(UserDefinedType):
@@ -119,8 +126,76 @@ class Listing(Base):
         index=True,
     )
 
+    # ─── Verification & Freshness ─────────────────────────────────────────────
+    # `verified` alone is a lie over time: a pharmacy that shut down in 2023
+    # stays "verified" forever, which is exactly how directories die. These
+    # columns make trust a decaying quantity that must be refreshed.
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    verification_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    # Last time the owner or the crowd confirmed this listing is live.
+    last_confirmed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    # Community "still open / phone works" confirmations (positive signal).
+    confirmation_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    # "Closed / wrong number" reports (negative signal).
+    staleness_reports: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    # Negative signals demote a listing into the moderation queue rather than
+    # silently hiding it — hiding real businesses is worse than flagging them.
+    needs_review: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+    )
+
+    # ─── Denormalised Ratings ─────────────────────────────────────────────────
+    # Maintained by the review endpoints. Without these, every search had to
+    # eager-load every Review row for every result and average them in Python.
+    avg_rating: Mapped[float | None] = mapped_column(Numeric(3, 2), nullable=True)
+    review_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+
+    # ─── Structured Hours & Media ─────────────────────────────────────────────
+    # Parsed projection of `hours` ("9am-5pm" -> {open: 540, close: 1020}),
+    # which is what makes a *server-side* "open now" filter possible.
+    normalized_hours: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Additional gallery images produced by the upload endpoint.
+    photos: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+
+    # ─── Locality Scoping ─────────────────────────────────────────────────────
+    # Free-text town/ward for now; the hook that multi-town scoping needs.
+    town: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+
     # ─── Full-Text Search ─────────────────────────────────────────────────────
-    # tsvector computed from name + description, updated via trigger
+    # Romanised/regional spellings and local names ("kiranastore", "दवा की दुकान")
+    # are what users actually type; they are indexed alongside name/address.
+    search_aliases: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # tsvector computed by trigger from name, description, address, category
+    # and aliases — see the listings_tsvector_update() function in migration 003.
     search_vector = Column(TSVector, nullable=True)
 
     # ─── Timestamps ───────────────────────────────────────────────────────────
@@ -169,6 +244,15 @@ class Listing(Base):
             "search_vector",
             postgresql_using="gin",
         ),
+        # Trigram index: typo + substring tolerance for transliterated names
+        Index(
+            "ix_listings_name_trgm",
+            "name",
+            postgresql_using="gin",
+            postgresql_ops={"name": "gin_trgm_ops"},
+        ),
+        # Freshness queue: "verified but nobody has confirmed it lately"
+        Index("ix_listings_freshness", "verified", "verified_at"),
     )
 
     def __repr__(self) -> str:

@@ -11,7 +11,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-
 # ─── Category Schemas ─────────────────────────────────────────────────────────
 
 
@@ -43,7 +42,9 @@ class CategoryOut(CategoryBase):
 class ListingBase(BaseModel):
     """Base schema for listing fields."""
 
-    name: str = Field(..., min_length=2, max_length=255, examples=["Town Health Clinic"])
+    name: str = Field(
+        ..., min_length=2, max_length=255, examples=["Town Health Clinic"]
+    )
     description: str | None = Field(
         None,
         examples=["Primary care, emergency first aid, and vaccinations."],
@@ -53,7 +54,9 @@ class ListingBase(BaseModel):
         min_length=5,
         examples=["123 Main St, Smalltown, ST 12345"],
     )
-    image_url: str | None = Field(None, examples=["https://images.unsplash.com/photo-storefront"])
+    image_url: str | None = Field(
+        None, examples=["https://images.unsplash.com/photo-storefront"]
+    )
     category_id: int | None = Field(None, examples=[1])
     lat: float | None = Field(None, ge=-90.0, le=90.0, examples=[12.9716])
     lng: float | None = Field(None, ge=-180.0, le=180.0, examples=[77.5946])
@@ -136,9 +139,18 @@ class ListingSearch(BaseModel):
         description="Search radius in meters",
     )
     verified_only: bool = Field(False, description="Filter only verified listings")
+    open_now: bool = Field(
+        False,
+        description="Only listings whose normalised hours are open at this instant",
+    )
+    # Map viewport bounding box (MapView renders a fixed window, not a radius).
+    min_lat: float | None = Field(None, ge=-90.0, le=90.0)
+    max_lat: float | None = Field(None, ge=-90.0, le=90.0)
+    min_lng: float | None = Field(None, ge=-180.0, le=180.0)
+    max_lng: float | None = Field(None, ge=-180.0, le=180.0)
     sort_by: str = Field(
         "created_at",
-        description="Sort by: created_at | name | distance",
+        description="Sort by: created_at | name | distance | rating",
     )
     sort_order: str = Field("desc", description="Sort order: asc | desc")
     page: int = Field(1, ge=1)
@@ -148,4 +160,6 @@ class ListingSearch(BaseModel):
 class ListingReport(BaseModel):
     """Schema for reporting an inaccurate or malicious listing."""
 
-    reason: str = Field(..., min_length=10, max_length=1000, examples=["Listing is closed permanently"])
+    reason: str = Field(
+        ..., min_length=10, max_length=1000, examples=["Listing is closed permanently"]
+    )

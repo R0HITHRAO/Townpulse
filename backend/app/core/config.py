@@ -75,7 +75,9 @@ class Settings(BaseSettings):
         """Parse comma-separated CORS origins into a list with wildcard and multi-origin support."""
         if not self.CORS_ORIGINS or self.CORS_ORIGINS.strip() == "*":
             return ["*"]
-        origins = [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        origins = [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
         if "*" in origins:
             return ["*"]
         return origins
@@ -83,12 +85,27 @@ class Settings(BaseSettings):
     # ─── Storage ────────────────────────────────────────────
     STORAGE_PROVIDER: Literal["local", "s3"] = "local"
     STORAGE_LOCAL_PATH: str = "./uploads"
+    # Max bytes accepted by the photo upload endpoint.
+    MAX_UPLOAD_BYTES: int = 5 * 1024 * 1024
 
     # AWS S3 (optional — required when STORAGE_PROVIDER=s3)
     AWS_ACCESS_KEY_ID: str = ""
     AWS_SECRET_ACCESS_KEY: str = ""
     AWS_REGION: str = "ap-south-1"
     AWS_S3_BUCKET: str = ""
+
+    # ─── Web Push (VAPID) ───────────────────────────────────
+    # Generate a key pair once with:
+    #   python -m py_vapid --gen --applicationServerKey
+    # Private key is either the PEM contents or a path to the PEM file.
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_SUBJECT: str = "mailto:ops@townpulse.example"
+
+    # ─── Timezone ───────────────────────────────────────────
+    # Offset applied to UTC when deciding "open now" and the local day name.
+    # 330 = IST. Hours are local phenomena, so this must match the town.
+    TZ_OFFSET_MINUTES: int = 330
 
     # ─── Monitoring ─────────────────────────────────────────
     SENTRY_DSN: str = ""
