@@ -10,7 +10,7 @@ from typing import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 # Set test environment defaults
@@ -36,8 +36,49 @@ from app.models.user import User, UserRole  # noqa: E402
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db() -> Generator[None, None, None]:
-    """Ensure database schema is created for test session."""
+    """
+    Ensure the database can hold the schema before creating it.
+
+    `Base.metadata.create_all()` only issues CREATE TABLE — it has no notion of
+    database extensions. Listings store their point as a PostGIS `geography`
+    column, so against a fresh database (a CI service container, or a new
+    developer machine) the very first statement fails with
+    `type "geography" does not exist` and every test errors out.
+
+    Migrations create these extensions, but tests deliberately build the schema
+    from the models instead of running Alembic. That asymmetry is the bug: the
+    database has to be able to represent the models before they are created.
+    """
+    with engine.begin() as connection:
+        for extension in ("postgis", "pg_trgm"):
+            connection.execute(text(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))
+
     Base.metadata.create_all(bind=engine)
+    yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def reset_redis() -> Generator[None, None, None]:
+    """
+    Give the suite a clean Redis before it starts.
+
+    Rate limiting and the OTP store live in Redis, and the tests use fixed
+    phone numbers. Those keys carry a one-hour TTL, so without this the suite
+    is only green on a pristine Redis: after a handful of runs the counters
+    exceed OTP_MAX_REQUESTS_PER_HOUR and the OTP tests fail with 429 for
+    reasons that have nothing to do with the code under test.
+
+    Flushing up front makes a run reproducible instead of dependent on how
+    many times the suite ran in the last hour. Redis is optional for the
+    majority of tests (the limiter fails open), so a missing Redis must not
+    abort the session.
+    """
+    try:
+        from app.core.rate_limiter import get_redis_client
+
+        get_redis_client().flushdb()
+    except Exception:  # noqa: BLE001 - Redis being down must not block tests
+        pass
     yield
 
 
