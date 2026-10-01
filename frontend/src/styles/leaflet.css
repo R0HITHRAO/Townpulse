@@ -4,11 +4,16 @@
  *
  * Bundled locally rather than pulled from unpkg.com: the old external
  * <link> in index.html was a render-blocking third-party round trip on the
- * critical path of every page, which is exactly the wrong trade for a slow-3G
- * audience. This file is only imported by map routes.
+ * critical path of every page. When that CDN was slow or blocked, Leaflet
+ * loaded with no stylesheet at all and the map was unusable.
+ *
+ * Imported by `src/components/Map.tsx`, so it only downloads on routes that
+ * actually render a map.
+ *
+ * Note: leaflet's own stylesheet is NOT imported here. Vite resolves the
+ * `leaflet/dist/leaflet.css` import inside Map.tsx, which keeps this file free
+ * of a node_modules @import that some PostCSS setups fail to resolve.
  */
-
-@import 'leaflet/dist/leaflet.css';
 
 .leaflet-container {
   width: 100%;

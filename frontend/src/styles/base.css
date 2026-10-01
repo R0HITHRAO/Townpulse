@@ -6,7 +6,7 @@
  * `components.css`; the token layer lives in `tokens.css`.
  */
 
-@layer base {
+@layer tp-base {
   *,
   *::before,
   *::after {
@@ -107,7 +107,7 @@
     max-width: 100%;
   }
 
-@layer components {
+@layer tp-components {
   /* Layout container: 1216px max, fluid gutters. */
   .tp-container {
     width: 100%;

@@ -5,17 +5,27 @@
  *   tokens.css  — the design system (colour, type, space, radius, motion)
  *   base.css    — reset, document defaults, focus, shared components
  *   print.css   — paper output, for the "print my emergency numbers" case
- *   leaflet.css — map styling, imported only by map routes (see MapView.tsx)
+ *   leaflet.css — map styling, imported by Map.tsx only (not here)
  *
- * Tailwind is still available for layout utilities, but the colour scale is
- * remapped onto the tokens so nothing can reintroduce a hardcoded hex.
+ * ── Why the layer order statement is here ───────────────────────────────────
+ * Tailwind v3 tree-shakes anything inside `@layer base/components/utilities`:
+ * it emits a rule only if it finds the class name in scanned source. Our
+ * design-system classes (.tp-btn, .tp-badge, .tp-skeleton, ...) were therefore
+ * being deleted from the production bundle, and the build shipped a site with
+ * no button styles at all.
+ *
+ * So our styles live in dedicated `tp-base` / `tp-components` layers, which
+ * Tailwind does not manage and therefore never purges. Declaring the layer
+ * order up front keeps them *below* Tailwind's utilities, so a utility class
+ * can still override a component class — the cascade we want.
  */
 
+@layer tp-base, tp-components, base, components, utilities;
+
 @import './tokens.css';
+@import './base.css';
+@import './print.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './base.css';
-@import './print.css';

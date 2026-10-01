@@ -6,6 +6,14 @@ import { Listing } from '../services/api';
 import { Phone, CheckCircle2, Star } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { OpenStatusBadge } from './OpenStatusBadge';
+import { town } from '../config/site';
+// Leaflet's stylesheet is bundled from node_modules instead of being fetched
+// from unpkg.com in index.html. A render-blocking third-party request meant a
+// slow or blocked CDN produced a completely unstyled, unusable map.
+import '../styles/leaflet.css';
+// Resolved by Vite from node_modules, so Leaflet's own stylesheet ships with
+// the bundle instead of being fetched from a CDN at runtime.
+import 'leaflet/dist/leaflet.css';
 
 // Fix default leaflet marker icon issue in bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -48,16 +56,23 @@ function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
 
 interface MapProps {
   listings: Listing[];
+  /** Defaults to the configured town centre, never a hardcoded city. */
   center?: [number, number];
   zoom?: number;
   selectedListingId?: string | null;
   onSelectListing?: (listing: Listing) => void;
   className?: string;
   autoFitBounds?: boolean;
+  /** Zoom used when there is exactly one pin to frame. */
+  singleMarkerZoom?: number;
 }
 
 // Auto Fit Bounds to all markers with comfortable margin
-const AutoFitBounds: React.FC<{ listings: Listing[]; enabled?: boolean }> = ({ listings, enabled = true }) => {
+const AutoFitBounds: React.FC<{
+  listings: Listing[];
+  enabled?: boolean;
+  singleZoom?: number;
+}> = ({ listings, enabled = true, singleZoom = 15 }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -70,12 +85,15 @@ const AutoFitBounds: React.FC<{ listings: Listing[]; enabled?: boolean }> = ({ l
     if (validCoords.length === 0) return;
 
     if (validCoords.length === 1) {
-      map.setView(validCoords[0], 15, { animate: true });
+      map.setView(validCoords[0], singleZoom, { animate: true });
     } else {
       const bounds = L.latLngBounds(validCoords);
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15, animate: true });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16, animate: true });
     }
-  }, [listings, enabled, map]);
+    // `map` is stable across renders; including it caused the map to re-fit
+    // and fight with user panning.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listings, enabled, singleZoom]);
 
   return null;
 };
@@ -100,15 +118,22 @@ const FocusSelectedListing: React.FC<{ listings: Listing[]; selectedListingId?: 
 
 export const Map: React.FC<MapProps> = ({
   listings,
-  center = [12.9716, 77.5946],
-  zoom = 13,
+  center,
+  zoom,
   selectedListingId,
   onSelectListing,
   className = 'h-[280px] w-full',
   autoFitBounds = true,
+  singleMarkerZoom = 15,
 }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+
+  // Default to the configured town. The previous hardcoded default was
+  // Bengaluru (12.9716, 77.5946), so every map opened on the wrong city and
+  // showed no pins at all.
+  const mapCenter: [number, number] = center ?? [town.lat, town.lng];
+  const mapZoom = zoom ?? town.zoom;
 
   // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
   const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -118,8 +143,8 @@ export const Map: React.FC<MapProps> = ({
   return (
     <div className={`rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative z-10 ${className}`}>
       <MapContainer
-        center={center}
-        zoom={zoom}
+        center={mapCenter}
+        zoom={mapZoom}
         scrollWheelZoom={true}
         className="w-full h-full"
       >
@@ -131,7 +156,11 @@ export const Map: React.FC<MapProps> = ({
           maxZoom={19}
         />
 
-        <AutoFitBounds listings={listings} enabled={autoFitBounds} />
+        <AutoFitBounds
+          listings={listings}
+          enabled={autoFitBounds}
+          singleZoom={singleMarkerZoom}
+        />
         <FocusSelectedListing listings={listings} selectedListingId={selectedListingId} />
 
         {listings.map((l) => {
