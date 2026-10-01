@@ -13,7 +13,8 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "validate:contrast": "node scripts/validate-contrast.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync:directory": "node scripts/sync-directory.mjs"
   },
   "dependencies": {
     "clsx": "^2.0.0",

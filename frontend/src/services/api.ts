@@ -25,6 +25,11 @@ export interface User {
 export interface Category {
   id: number;
   name: string;
+  /**
+   * Stable slug (e.g. "healthcare") used for shareable /c/<slug> URLs. Present
+   * on both the API and the static offline snapshot.
+   */
+  slug?: string;
   icon?: string;
   description?: string;
 }
@@ -32,25 +37,33 @@ export interface Category {
 export interface Listing {
   id: string;
   name: string;
-  description?: string;
+  /** Name in the local language(s) where the source recorded one. */
+  name_local?: string | null;
+  description?: string | null;
   address: string;
   image_url?: string;
-  category_id?: number;
-  category?: Category;
+  category_id?: number | null;
+  category?: Category | null;
   lat?: number;
   lng?: number;
-  phone?: string;
-  email?: string;
-  website?: string;
-  hours?: Record<string, string>;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  hours?: Record<string, string> | null;
+  /** Free-text service bullets, e.g. "Wheelchair access: yes". */
+  services?: string[];
+  /** Where this record came from. Rendered so a listing is auditable. */
+  source?: string | null;
+  /** Link to the upstream record, when there is one. */
+  source_url?: string | null;
   verified: boolean;
   status: string;
   owner_user_id?: string;
   distance_meters?: number;
   average_rating?: number;
   review_count?: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface Review {

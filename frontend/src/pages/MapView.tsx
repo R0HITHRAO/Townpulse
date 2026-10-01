@@ -6,6 +6,8 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { DirectionsModal } from '../components/DirectionsModal';
 import { Reveal } from '../components/Reveal';
 import { api, ApiError, Category, Listing } from '../services/api';
+import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
+import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { getOpenStatus } from '../utils/businessHours';
 import { town } from '../config/site';
 import {
@@ -37,6 +39,9 @@ export const MapView: React.FC = () => {
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [directionsListing, setDirectionsListing] = useState<Listing | null>(null);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
+  // True when we fell back to the bundled offline snapshot, so the page can say
+  // so honestly instead of pretending it is live data.
+  const [offlineData, setOfflineData] = useState(false);
 
   // The map is always centred on the configured town, so there is one
   // coordinate pair for both the fetch and the viewport.
@@ -58,9 +63,14 @@ export const MapView: React.FC = () => {
     api
       .getCategories()
       .then(setCategories)
-      .catch((err: unknown) => {
+      .catch(async (err: unknown) => {
         console.error(err);
-        recordError(err);
+        const snapshotCategories = await loadSnapshotCategories();
+        if (snapshotCategories.length > 0) {
+          setCategories(snapshotCategories);
+        } else {
+          recordError(err);
+        }
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -82,16 +92,32 @@ export const MapView: React.FC = () => {
       })
       .then((res) => {
         setListings(res.items);
+        setOfflineData(false);
         setSelectedListing((current) => current ?? res.items[0] ?? null);
       })
-      // Previously swallowed into console.error, which left `listings` empty
-      // and rendered "No services found in this search area." — so a dead
-      // backend, a database that is down, or a network failure were all
-      // reported to the user as "this town has no services".
-      .catch((err: unknown) => {
+      // A dead backend used to be swallowed into console.error, leaving
+      // `listings` empty and rendering "No services found in this search
+      // area." — so a broken server was reported to the user as "this town has
+      // no services". Now we fall back to the bundled real-data snapshot and
+      // tell the visitor what they are looking at.
+      .catch(async (err: unknown) => {
         console.error(err);
-        setListings([]);
-        recordError(err);
+        const snapshot = await searchSnapshot({
+          q: searchQuery || undefined,
+          category_id: selectedCategory || undefined,
+          lat: townCenter[0],
+          lng: townCenter[1],
+          radius,
+          per_page: 100,
+        });
+        if (snapshot.items.length > 0) {
+          setListings(snapshot.items);
+          setOfflineData(true);
+          setSelectedListing((current) => current ?? snapshot.items[0] ?? null);
+        } else {
+          setListings([]);
+          recordError(err);
+        }
       })
       .finally(() => setLoading(false));
     // `selectedListing` is intentionally read through a functional update and
@@ -217,6 +243,12 @@ export const MapView: React.FC = () => {
       {/* Main Content Body - Clean Website-First Proportion */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
         <div className="flex flex-col lg:flex-row gap-6">
+          {offlineData && (
+            <OfflineDataBanner
+              onRetry={() => setRetryKey((key) => key + 1)}
+              className="lg:col-span-2"
+            />
+          )}
           {/* Main Listings Grid (Primary Focus of the Page) */}
           {(layoutMode === 'split' || layoutMode === 'list') && (
             <div className={`flex-1 space-y-4 ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>

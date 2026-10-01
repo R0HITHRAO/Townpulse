@@ -13,6 +13,8 @@ import { Reveal } from '../components/Reveal';
 import { useSeo } from '../hooks/useSeo';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
+import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
+import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -27,12 +29,24 @@ export const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useState<SearchParams>({ page: 1, per_page: 20 });
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  // True when we fell back to the bundled offline snapshot.
+  const [offlineData, setOfflineData] = useState(false);
 
   useSeo(t('seo_home_title'), t('seo_home_desc'));
 
-  // Load categories
+  // Load categories. Previously `.catch(console.error)`, which left the chip
+  // row silently empty with no explanation.
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(console.error);
+    api
+      .getCategories()
+      .then(setCategories)
+      .catch(async (err: unknown) => {
+        console.error(err);
+        const snapshotCategories = await loadSnapshotCategories();
+        if (snapshotCategories.length > 0) {
+          setCategories(snapshotCategories);
+        }
+      });
   }, []);
 
   // Fetch listings on filter change
@@ -50,8 +64,20 @@ export const Home: React.FC = () => {
         setListings(res.items);
         setTotalCount(res.total);
         setTotalPages(res.total_pages);
+        setOfflineData(false);
       })
-      .catch(console.error)
+      // `.catch(console.error)` left `listings` empty and the page rendered
+      // "No local services found matching your criteria." — telling the user
+      // this town has no services when the truth was that the server was
+      // unreachable. Fall back to the bundled real-data snapshot instead.
+      .catch(async (err: unknown) => {
+        console.error(err);
+        const snapshot = await searchSnapshot(params);
+        setListings(snapshot.items);
+        setTotalCount(snapshot.total);
+        setTotalPages(snapshot.total_pages);
+        setOfflineData(true);
+      })
       .finally(() => setLoading(false));
   }, [searchParams, selectedCategory, verifiedOnly]);
 
@@ -237,6 +263,11 @@ export const Home: React.FC = () => {
         <div id="directory-results" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24">
           {/* Listings List (2 Cols on desktop) */}
           <div className="lg:col-span-2 space-y-4">
+            {offlineData && (
+              <OfflineDataBanner
+                onRetry={() => setSearchParams((prev) => ({ ...prev }))}
+              />
+            )}
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Local Services</span>

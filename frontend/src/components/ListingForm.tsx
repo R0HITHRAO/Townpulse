@@ -17,7 +17,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState(initialData.name || '');
-  const [categoryId, setCategoryId] = useState<number | ''>(initialData.category_id || '');
+  // `category_id` is `number | string | null` on Listing: a numeric id from the
+// API, or a slug from the static offline snapshot. Narrow to a number here
+// because the submit endpoint is the API and only accepts numeric ids.
+  const [categoryId, setCategoryId] = useState<number | ''>(
+    initialData.category_id ?? ''
+  );
   const [description, setDescription] = useState(initialData.description || '');
   const [address, setAddress] = useState(initialData.address || '');
   const [imageUrl, setImageUrl] = useState(initialData.image_url || '');
