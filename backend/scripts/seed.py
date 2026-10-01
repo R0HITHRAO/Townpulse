@@ -84,25 +84,53 @@ def seed_database() -> None:
         else:
             print(f"ℹ️  Business owner already exists: {owner.email}")
 
-        # ─── 3. Seed Categories ───────────────────────────────────────────────
-        seed_path = Path(__file__).resolve().parent.parent / "seed" / "seed_data.json"
+        # ─── 3. Load the seed file ─────────────────────────────────────────────
+        # Prefer the real OpenStreetMap extract. `seed_data.json` contained
+        # invented clinics and diagnostics with made-up phone numbers, all
+        # flagged verified=true, so it must never be the default.
+        seed_dir = Path(__file__).resolve().parent.parent / "seed"
+        osm_seed = seed_dir / "hampi_osm.json"
+        legacy_seed = seed_dir / "seed_data.json"
+
+        if osm_seed.exists():
+            seed_path = osm_seed
+            print(f"ℹ️  Using real OpenStreetMap data: {osm_seed.name}")
+        elif legacy_seed.exists():
+            seed_path = legacy_seed
+            print(
+                "⚠️  WARNING: falling back to seed_data.json, which contains "
+                "INVENTED businesses with fake phone numbers.\n"
+                "    Generate real data first:\n"
+                "      python scripts/import_osm.py --lat 15.335 --lng 76.46\n"
+                "      python scripts/build_seed_from_osm.py seed/_osm_raw_hampi.json"
+            )
+        else:
+            raise FileNotFoundError(
+                f"No seed file found. Expected {osm_seed} or {legacy_seed}."
+            )
+
         with open(seed_path, encoding="utf-8") as f:
             data = json.load(f)
 
+        # The OSM extract keys categories by slug, the legacy file by name.
+        # Normalise to a lookup map that accepts either.
         category_map: dict[str, Category] = {}
         for cat_data in data["categories"]:
-            cat = db.query(Category).filter(Category.name == cat_data["name"]).first()
+            name = cat_data["name"]
+            cat = db.query(Category).filter(Category.name == name).first()
             if not cat:
                 cat = Category(
-                    name=cat_data["name"],
+                    name=name,
                     icon=cat_data.get("icon"),
                     description=cat_data.get("description"),
                 )
                 db.add(cat)
                 db.commit()
                 db.refresh(cat)
-                print(f"✅ Category added: {cat.name} ({cat.icon})")
-            category_map[cat.name] = cat
+                print(f"✅ Category added: {cat.name}")
+            category_map[name] = cat
+            if cat_data.get("slug"):
+                category_map[cat_data["slug"]] = cat
 
         # ─── 4. Seed Listings ─────────────────────────────────────────────────
         created_listings_count = 0
@@ -111,23 +139,36 @@ def seed_database() -> None:
         for item in data["listings"]:
             existing = db.query(Listing).filter(Listing.name == item["name"]).first()
             if not existing:
-                cat = category_map.get(item["category"])
+                # `category` may be a slug or a display name depending on file.
+                cat = category_map.get(item.get("category", ""))
                 lat = item.get("lat")
                 lng = item.get("lng")
+                # Real data is never pre-verified: "verified" means a human
+                # checked it, and nobody has checked these.
+                verified = bool(item.get("verified", False))
 
                 listing = Listing(
                     name=item["name"],
                     description=item.get("description"),
-                    address=item["address"],
+                    address=item.get("address") or "Address not listed",
                     category_id=cat.id if cat else None,
                     lat=lat,
                     lng=lng,
-                    phone=item.get("phone"),
-                    email=item.get("email"),
-                    website=item.get("website"),
-                    hours=item.get("hours"),
-                    verified=item.get("verified", False),
-                    status="approved" if item.get("verified", False) else "pending",
+                    phone=item.get("phone") or None,
+                    email=item.get("email") or None,
+                    website=item.get("website") or None,
+                    hours=item.get("hours") or None,
+                    verified=verified,
+                    # Visibility and trust are separate questions. These are
+                    # real, mapped places, so they belong in the public
+                    # directory (approved). They are NOT verified, because
+                    # nobody has called or visited them — that is what the
+                    # "Not yet verified" badge in the UI is for.
+                    #
+                    # Seeding them as "pending" would also dump all 170 into the
+                    # admin moderation queue on first boot.
+                    status="approved",
+                    town=item.get("town"),
                 )
 
                 if lat is not None and lng is not None:
