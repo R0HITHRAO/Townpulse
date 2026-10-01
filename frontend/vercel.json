@@ -2,7 +2,8 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "//": "SPA fallback for client-side routes. The negative lookahead is essential: without it /(.*) also matches /api/*, so every API call returned index.html and the browser failed with \"Unexpected token '<' ... is not valid JSON\".",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
@@ -13,6 +14,16 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "//": "Never cache the API. A stale listings response is worse than an error: it shows someone a shop that has already closed.",
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
         }
       ]
     },
