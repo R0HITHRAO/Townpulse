@@ -1,0 +1,255 @@
+/**
+ * TownPulse design tokens
+ * =======================
+ *
+ * Single source of truth for colour, type, spacing, radius, elevation and
+ * motion. Every component reads these variables — nothing hardcodes a hex
+ * value — so the identity can be retuned in one place and both themes stay in
+ * sync automatically.
+ *
+ * Identity: "Clay & Teak". A warm terracotta primary (the colour of the town's
+ * own earth and brickwork) paired with a deep pine green for care and civic
+ * trust. Deliberately *not* blue: blue reads as generic SaaS, and this is a
+ * public service, not a product.
+ *
+ * Every foreground/background pair used for text meets WCAG 2.2 AA (>= 4.5:1
+ * for body copy, >= 3:1 for large text and UI boundaries). `npm run
+ * validate:contrast` re-checks these ratios against this file.
+ */
+
+:root {
+  /* ── Colour: neutrals ────────────────────────────────────────────────────
+     Warm greige rather than slate — slate reads cold and clinical next to a
+     terracotta primary. */
+  --tp-bg: #fbf7f0;
+  --tp-bg-subtle: #f4ede1;
+  --tp-surface: #ffffff;
+  --tp-surface-2: #f7f2e9;
+  --tp-surface-3: #efe6d8;
+  --tp-surface-inset: #fbf8f2;
+
+  --tp-border: #e3d9c8;
+  --tp-border-strong: #9c8462; /* 3.3:1 on --tp-bg — input/control borders */
+  --tp-border-focus: #9a3412;
+
+  /* ── Colour: text ──────────────────────────────────────────────────────── */
+  --tp-text: #2b211a; /* 14.7:1 on --tp-bg */
+  --tp-text-muted: #6a5a4a; /* 6.2:1 on --tp-bg */
+  --tp-text-subtle: #7f6d59; /* 4.6:1 on --tp-bg */
+  --tp-text-inverse: #fdfaf5;
+
+  /* ── Colour: brand (terracotta) ─────────────────────────────────────────── */
+  --tp-primary: #9a3412; /* 7.4:1 vs white text */
+  --tp-primary-hover: #7c2a0d;
+  --tp-primary-active: #63220a;
+  --tp-primary-soft: #fbeade;
+  --tp-primary-soft-text: #7c2a0d; /* 7.0:1 on --tp-primary-soft */
+  --tp-on-primary: #ffffff; /* 7.4:1 on --tp-primary */
+
+  /* ── Colour: care & civic (pine) ───────────────────────────────────────── */
+  --tp-accent: #14543c; /* 7.8:1 vs white text */
+  --tp-accent-hover: #0e3f2c;
+  --tp-accent-soft: #e2f0e9;
+  --tp-accent-soft-text: #0e3f2c; /* 8.1:1 on --tp-accent-soft */
+  --tp-on-accent: #ffffff;
+
+  /* ── Colour: attention (marigold) ──────────────────────────────────────── */
+  --tp-warn: #8a4108; /* 6.4:1 vs white text */
+  --tp-warn-soft: #fbeedb;
+  --tp-warn-soft-text: #7a3a07;
+
+  /* ── Colour: urgent (deep crimson) ─────────────────────────────────────── */
+  --tp-urgent: #9f1239; /* 7.1:1 vs white text */
+  --tp-urgent-hover: #7f0e2c;
+  --tp-urgent-soft: #fdeaef;
+  --tp-urgent-soft-text: #8c0f33;
+
+  /* ── Colour: status ───────────────────────────────────────────────────────
+     Each status pairs a colour with a distinct icon and word in the UI, so
+     colour is never the sole carrier of meaning (WCAG 1.4.1). */
+  --tp-verified: #14543c;
+  --tp-verified-soft: #e2f0e9;
+  --tp-unverified: #8a4108;
+  --tp-unverified-soft: #fbeedb;
+  --tp-closed: #6a5a4a;
+  --tp-closed-soft: #efe9df;
+  --tp-open: #14663f;
+  --tp-open-soft: #e0f2e8;
+
+  /* ── Colour: focus & map ──────────────────────────────────────────────── */
+  --tp-focus-ring: #1d4ed8; /* high-visibility focus, distinct from brand */
+  --tp-map-pin: #9a3412;
+  --tp-map-pin-selected: #14543c;
+
+  /* ── Typography ───────────────────────────────────────────────────────────
+     Deliberately webfont-free. On a throttled 3G connection a Google Fonts
+     round trip costs ~40 KB and a blocking render, which buys nothing here.
+     The display face is a serif stack (civic, institutional, legible at large
+     sizes) and the body face is a system sans that explicitly includes the
+     Devanagari and Kannada fallbacks the site needs. */
+  --tp-font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino,
+    'Book Antiqua', Georgia, ui-serif, serif;
+  --tp-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Kannada', Arial, sans-serif;
+  --tp-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    monospace;
+
+  /* Fluid type scale, 375px -> 1440px. */
+  --tp-text-2xs: 0.6875rem; /* 11px — badges only, never body copy */
+  --tp-text-xs: 0.75rem; /*   12px */
+  --tp-text-sm: 0.875rem; /*  14px — default UI */
+  --tp-text-base: 1rem; /*     16px — default body */
+  --tp-text-lg: clamp(1.0625rem, 0.3vw + 1rem, 1.125rem);
+  --tp-text-xl: clamp(1.1875rem, 0.5vw + 1.0625rem, 1.3125rem);
+  --tp-text-2xl: clamp(1.375rem, 1.1vw + 1.125rem, 1.625rem);
+  --tp-text-3xl: clamp(1.625rem, 2vw + 1.1875rem, 2.125rem);
+  --tp-text-4xl: clamp(1.875rem, 3vw + 1.25rem, 2.75rem);
+  --tp-text-5xl: clamp(2.125rem, 4.4vw + 1.25rem, 3.5rem);
+
+  --tp-leading-tight: 1.15;
+  --tp-leading-snug: 1.3;
+  --tp-leading-normal: 1.55;
+  --tp-leading-relaxed: 1.7;
+
+  --tp-weight-regular: 400;
+  --tp-weight-medium: 500;
+  --tp-weight-semibold: 600;
+  --tp-weight-bold: 700;
+
+  --tp-tracking-tight: -0.015em;
+  --tp-tracking-normal: 0;
+  --tp-tracking-wide: 0.02em;
+  --tp-tracking-caps: 0.08em;
+
+  /* ── Spacing: 8px base scale ─────────────────────────────────────────────*/
+  --tp-space-1: 0.25rem; /*  4px — hairline nudges only */
+  --tp-space-2: 0.5rem; /*  8px */
+  --tp-space-3: 0.75rem; /* 12px */
+  --tp-space-4: 1rem; /*    16px */
+  --tp-space-5: 1.5rem; /*  24px */
+  --tp-space-6: 2rem; /*    32px */
+  --tp-space-7: 3rem; /*    48px */
+  --tp-space-8: 4rem; /*    64px */
+  --tp-space-9: 6rem; /*    96px */
+
+  /* ── Layout ──────────────────────────────────────────────────────────────*/
+  --tp-container: 76rem; /* 1216px */
+  --tp-container-prose: 44rem;
+
+  /* ── Radius ──────────────────────────────────────────────────────────────*/
+  --tp-radius-sm: 0.375rem; /*   6px */
+  --tp-radius-md: 0.625rem; /*  10px */
+  --tp-radius-lg: 0.875rem; /*  14px */
+  --tp-radius-xl: 1.25rem; /*   20px */
+  --tp-radius-2xl: 1.75rem; /*  28px */
+  --tp-radius-full: 9999px;
+
+  /* ── Elevation ───────────────────────────────────────────────────────────*/
+  --tp-shadow-xs: 0 1px 2px rgb(43 33 26 / 0.06);
+  --tp-shadow-sm: 0 1px 3px rgb(43 33 26 / 0.08), 0 1px 2px rgb(43 33 26 / 0.04);
+  --tp-shadow-md: 0 4px 12px rgb(43 33 26 / 0.09), 0 2px 4px rgb(43 33 26 / 0.05);
+  --tp-shadow-lg: 0 10px 28px rgb(43 33 26 / 0.12), 0 4px 8px rgb(43 33 26 / 0.06);
+  --tp-shadow-xl: 0 20px 48px rgb(43 33 26 / 0.16), 0 8px 16px rgb(43 33 26 / 0.07);
+  --tp-shadow-focus: 0 0 0 3px rgb(29 78 216 / 0.4);
+
+  /* ── Touch targets (WCAG 2.2 AA 2.5.8 needs 24px; we ship 44px) ───────────*/
+  --tp-touch-min: 44px;
+
+  /* ── Motion ────────────────────────────────────────────────────────────────
+     Short, purposeful, few. A stressed user in a hurry should not wait on
+     choreography. Durations stay under 280ms and everything is disabled under
+     prefers-reduced-motion (see base.css). */
+  --tp-duration-instant: 80ms;
+  --tp-duration-fast: 140ms;
+  --tp-duration-base: 200ms;
+  --tp-duration-slow: 280ms;
+  --tp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --tp-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --tp-ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* ── Z-index ─────────────────────────────────────────────────────────────*/
+  --tp-z-base: 0;
+  --tp-z-sticky: 20;
+  --tp-z-header: 40;
+  --tp-z-drawer: 50;
+  --tp-z-modal: 60;
+  --tp-z-toast: 70;
+
+  color-scheme: light;
+}
+/* ── Dark theme ────────────────────────────────────────────────────────────
+   Not an inversion: it is a re-tuned palette. Primary becomes a light clay so
+   it still reads as "the action colour", with dark text on top, which keeps
+   every primary button above 4.5:1 on a dark background. */
+.dark {
+  --tp-bg: #17120e;
+  --tp-bg-subtle: #1f1813;
+  --tp-surface: #241c16;
+  --tp-surface-2: #2d241d;
+  --tp-surface-3: #392d24;
+  --tp-surface-inset: #1c1611;
+
+  --tp-border: #3d3129;
+  --tp-border-strong: #786355; /* 3.3:1 on --tp-bg — input/control borders */
+  --tp-border-focus: #fb923c;
+
+  --tp-text: #f8f2e9; /* 15.2:1 on --tp-bg */
+  --tp-text-muted: #cbbba8; /* 8.9:1 */
+  --tp-text-subtle: #a4937f; /* 5.7:1 */
+  --tp-text-inverse: #1c1611;
+
+  --tp-primary: #fb923c; /* 9.1:1 vs --tp-on-primary */
+  --tp-primary-hover: #fca55c;
+  --tp-primary-active: #fdba74;
+  --tp-primary-soft: #3a2114;
+  --tp-primary-soft-text: #fdba74; /* 7.2:1 on --tp-primary-soft */
+  --tp-on-primary: #1c1611; /* 9.1:1 on --tp-primary */
+
+  --tp-accent: #6ee7b7;
+  --tp-accent-hover: #86efac;
+  --tp-accent-soft: #14312a;
+  --tp-accent-soft-text: #a7f3d0;
+  --tp-on-accent: #0d2b22;
+
+  --tp-warn: #fbbf24;
+  --tp-warn-soft: #35260f;
+  --tp-warn-soft-text: #fcd34d;
+
+  --tp-urgent: #fb7185;
+  --tp-urgent-hover: #fda4af;
+  --tp-urgent-soft: #3d1420;
+  --tp-urgent-soft-text: #fecdd3;
+
+  --tp-verified: #6ee7b7;
+  --tp-verified-soft: #14312a;
+  --tp-unverified: #fbbf24;
+  --tp-unverified-soft: #35260f;
+  --tp-closed: #a4937f;
+  --tp-closed-soft: #2d241d;
+  --tp-open: #4ade80;
+  --tp-open-soft: #10301f;
+
+  --tp-focus-ring: #93c5fd;
+  --tp-map-pin: #fb923c;
+  --tp-map-pin-selected: #6ee7b7;
+
+  --tp-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --tp-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
+  --tp-shadow-md: 0 4px 12px rgb(0 0 0 / 0.5), 0 2px 4px rgb(0 0 0 / 0.35);
+  --tp-shadow-lg: 0 10px 28px rgb(0 0 0 / 0.55), 0 4px 8px rgb(0 0 0 / 0.4);
+  --tp-shadow-xl: 0 20px 48px rgb(0 0 0 / 0.6), 0 8px 16px rgb(0 0 0 / 0.45);
+  --tp-shadow-focus: 0 0 0 3px rgb(147 197 253 / 0.5);
+
+  color-scheme: dark;
+}
+
+/* Forced-colours (Windows High Contrast): let the OS win, so borders and focus
+   indicators stay visible when the user has overridden our palette. */
+@media (forced-colors: active) {
+  :root,
+  .dark {
+    --tp-border: CanvasText;
+    --tp-border-strong: CanvasText;
+    --tp-focus-ring: Highlight;
+  }
+}

@@ -1,0 +1,105 @@
+/**
+ * Leaflet map styling
+ * ===================
+ *
+ * Bundled locally rather than pulled from unpkg.com: the old external
+ * <link> in index.html was a render-blocking third-party round trip on the
+ * critical path of every page, which is exactly the wrong trade for a slow-3G
+ * audience. This file is only imported by map routes.
+ */
+
+@import 'leaflet/dist/leaflet.css';
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: var(--tp-surface-2);
+  font-family: var(--tp-font-body);
+  z-index: var(--tp-z-base);
+  /* OSM raster tiles are photographs of a map; sharpen them slightly. */
+  image-rendering: auto;
+}
+
+.dark .leaflet-container {
+  background-color: var(--tp-surface-2);
+}
+
+/*
+ * Zero-API-key dark map: invert and re-tint the standard OSM tiles so they
+ * read correctly on a dark background without a paid tile provider.
+ */
+.dark .leaflet-tile-pane {
+  filter: brightness(0.72) invert(1) contrast(0.92) hue-rotate(185deg)
+    saturate(0.28);
+}
+
+/* Marker pins: an SVG-free CSS pin keeps the map dependency-free. */
+.tp-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background-color: var(--tp-map-pin);
+  border: 2px solid var(--tp-surface);
+  box-shadow: var(--tp-shadow-md);
+  color: var(--tp-on-primary);
+  transition:
+    transform var(--tp-duration-fast) var(--tp-ease-out),
+    background-color var(--tp-duration-fast) var(--tp-ease-out);
+}
+
+.tp-pin > * {
+  transform: rotate(45deg);
+}
+
+.tp-pin:hover,
+.tp-pin:focus-visible {
+  transform: rotate(-45deg) scale(1.12);
+  z-index: 500;
+}
+
+.tp-pin.is-selected {
+  background-color: var(--tp-map-pin-selected);
+  transform: rotate(-45deg) scale(1.2);
+  z-index: 600;
+}
+
+/* Leaflet's default focus outline on the icon anchor is hard to see. */
+.leaflet-marker-icon:focus-visible {
+  outline: 3px solid var(--tp-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--tp-radius-sm);
+}
+
+/* Attribution must stay legible — it is an ODbL licence requirement. */
+.leaflet-control-attribution {
+  background-color: color-mix(in srgb, var(--tp-surface) 88%, transparent) !important;
+  color: var(--tp-text-muted) !important;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.leaflet-control-attribution a {
+  color: var(--tp-primary) !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--tp-surface);
+  color: var(--tp-text);
+  border-bottom-color: var(--tp-border);
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--tp-surface-2);
+  color: var(--tp-text);
+}
+
+/* Leaflet sets its own focus ring; ours is more visible. */
+.leaflet-bar a:focus-visible,
+.leaflet-control-attribution a:focus-visible {
+  outline: 3px solid var(--tp-focus-ring);
+  outline-offset: -1px;
+}

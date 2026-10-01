@@ -1,0 +1,69 @@
+/**
+ * Print styles — "print this page and take it with you".
+ *
+ * A real requirement for the audience: many users have no reliable data and
+ * print the emergency numbers to stick on the wall. The printed page must be
+ * legible in black and white on a cheap laser printer.
+ */
+
+@media print {
+  :root {
+    /* Force light tokens: a dark background wastes toner and is unreadable. */
+    --tp-bg: #ffffff;
+    --tp-surface: #ffffff;
+    --tp-text: #000000;
+    --tp-text-muted: #333333;
+    --tp-text-subtle: #333333;
+    --tp-border: #999999;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  /* Chrome that is meaningless on paper. */
+  header[data-tp-header],
+  footer[data-tp-footer],
+  nav,
+  [data-tp-print-hidden],
+  .leaflet-container {
+    display: none !important;
+  }
+
+  .tp-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .tp-card {
+    border: 1px solid #999;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Make every link's destination visible — URLs are the only way to act on
+     a printed page. */
+  a[href^='http']::after,
+  a[href^='tel']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #555555;
+    word-break: break-all;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  @page {
+    margin: 1.4cm;
+    size: A4 portrait;
+  }
+}
