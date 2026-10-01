@@ -5,8 +5,9 @@ import { CategoryChips } from '../components/CategoryChips';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { DirectionsModal } from '../components/DirectionsModal';
 import { Reveal } from '../components/Reveal';
-import { api, Category, Listing } from '../services/api';
+import { api, ApiError, Category, Listing } from '../services/api';
 import { getOpenStatus } from '../utils/businessHours';
+import { town } from '../config/site';
 import {
   Search,
   SlidersHorizontal,
@@ -27,6 +28,7 @@ export const MapView: React.FC = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<ApiError['kind'] | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +38,20 @@ export const MapView: React.FC = () => {
   const [directionsListing, setDirectionsListing] = useState<Listing | null>(null);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('split');
 
+  // The map is always centred on the configured town, so there is one
+  // coordinate pair for both the fetch and the viewport.
+  const townCenter = useMemo<[number, number]>(() => [town.lat, town.lng], []);
+
+  const recordError = (err: unknown) => {
+    if (err instanceof ApiError) {
+      setErrorKind(err.kind);
+      setError(err.message);
+    } else {
+      setErrorKind('server');
+      setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+    }
+  };
+
   useEffect(() => {
     // Same reasoning as the listings fetch: a failed category load used to be
     // logged and forgotten, leaving an empty chip row with no explanation.
@@ -44,25 +60,29 @@ export const MapView: React.FC = () => {
       .then(setCategories)
       .catch((err: unknown) => {
         console.error(err);
-        setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+        recordError(err);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setErrorKind(null);
     api
       .searchListings({
         q: searchQuery || undefined,
         category_id: selectedCategory || undefined,
+        // Send the town centre. Without lat/lng the backend has no origin to
+        // apply `radius` to, so the radius selector silently did nothing.
+        lat: townCenter[0],
+        lng: townCenter[1],
         radius: radius,
-        per_page: 50,
+        per_page: 100,
       })
       .then((res) => {
         setListings(res.items);
-        if (res.items.length > 0 && !selectedListing) {
-          setSelectedListing(res.items[0]);
-        }
+        setSelectedListing((current) => current ?? res.items[0] ?? null);
       })
       // Previously swallowed into console.error, which left `listings` empty
       // and rendered "No services found in this search area." — so a dead
@@ -71,10 +91,14 @@ export const MapView: React.FC = () => {
       .catch((err: unknown) => {
         console.error(err);
         setListings([]);
-        setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+        recordError(err);
       })
       .finally(() => setLoading(false));
-  }, [searchQuery, selectedCategory, radius, retryKey]);
+    // `selectedListing` is intentionally read through a functional update and
+    // left out of the deps: listing it previously re-ran the fetch on every
+    // pin selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
 
   // Filter listings by open status if enabled
   const displayedListings = useMemo(() => {
@@ -214,27 +238,55 @@ export const MapView: React.FC = () => {
               ) : error ? (
                 <div
                   role="alert"
-                  className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-red-200 dark:border-red-900 text-xs text-slate-600 dark:text-slate-300 space-y-3 shadow-xs"
+                  aria-live="assertive"
+                  className="p-10 sm:p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-red-200 dark:border-red-900 text-slate-600 dark:text-slate-300 space-y-3 shadow-xs"
                 >
-                  <p className="font-semibold text-sm text-red-700 dark:text-red-400">
-                    Could not load services
+                  <p className="font-semibold text-base text-red-700 dark:text-red-400">
+                    {errorKind === 'offline'
+                      ? 'You are offline'
+                      : errorKind === 'timeout'
+                        ? 'The server took too long'
+                        : errorKind === 'not-json'
+                          ? 'Wrong server response'
+                          : 'Could not load services'}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                    The TownPulse server did not respond, so this is not an empty
-                    result. Check that the backend is running and the database is
-                    reachable, then try again.
+                  {/* Name the broken link in the chain instead of one generic
+                      sentence, so the user knows whether to check their phone,
+                      their connection, or the backend. */}
+                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                    {errorKind === 'offline'
+                      ? 'This is not an empty result — your device has no connection. Reconnect and try again.'
+                      : errorKind === 'timeout'
+                        ? 'The backend accepted the connection but did not answer. It may be starting up, or the database may be unreachable.'
+                        : errorKind === 'not-json'
+                          ? 'The request was answered with a web page instead of data. This usually means the SPA fallback is handling /api, or a proxy is pointing at the wrong place.'
+                          : 'The backend is not answering, so this is not an empty result. Start it with `docker compose up -d`, or `uvicorn app.main:app --reload` in backend/.'}
                   </p>
-                  <p className="text-[11px] font-mono text-slate-400 break-words">
+                  <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 break-words max-w-lg mx-auto">
                     {error}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setRetryKey((key) => key + 1)}
-                    className="mt-1 inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    Retry
-                  </button>
+                  <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setRetryKey((key) => key + 1)}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Try again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory(null);
+                        setRadius(15000);
+                        setRetryKey((key) => key + 1);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    >
+                      Reset filters and reload
+                    </button>
+                  </div>
                 </div>
               ) : displayedListings.length === 0 ? (
                 <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
@@ -288,7 +340,16 @@ export const MapView: React.FC = () => {
 
           {/* Compact Sticky Companion Map (Right Side) */}
           {(layoutMode === 'split' || layoutMode === 'map') && (
-            <div className={`${layoutMode === 'map' ? 'w-full h-[550px]' : 'w-full lg:w-[320px] xl:w-[340px] flex-shrink-0'}`}>
+            <div
+              className={
+                // "Map" mode is the full-screen map: it fills the viewport
+                // below the sticky toolbar instead of being capped at 550px,
+                // which made it look like a broken preview rather than a map.
+                layoutMode === 'map'
+                  ? 'w-full flex-1 min-h-[calc(100vh-9rem)]'
+                  : 'w-full lg:w-[320px] xl:w-[340px] flex-shrink-0'
+              }
+            >
               <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
                 {layoutMode === 'split' && (
                   <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
@@ -302,13 +363,22 @@ export const MapView: React.FC = () => {
                   </div>
                 )}
 
-                <div className={`${layoutMode === 'split' ? 'h-[240px]' : 'h-full'} rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800`}>
+                <div
+                  className={
+                    layoutMode === 'split'
+                      ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
+                      : 'h-full min-h-[calc(100vh-9rem)] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
+                  }
+                >
                   <Map
                     listings={displayedListings}
+                    center={townCenter}
+                    zoom={town.zoom}
                     selectedListingId={selectedListing?.id}
                     onSelectListing={(l) => setSelectedListing(l)}
-                    className="h-full w-full rounded-2xl border-none"
-                    autoFitBounds={true}
+                    className="h-full w-full border-none"
+                    autoFitBounds={layoutMode === 'split'}
+                    singleMarkerZoom={town.zoom + 1}
                   />
                 </div>
 
