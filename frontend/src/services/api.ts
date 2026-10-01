@@ -134,6 +134,44 @@ export function clearStoredTokens(): void {
   localStorage.removeItem('townpulse_user');
 }
 
+// ─── Errors ───────────────────────────────────────────────────────────────
+
+/**
+ * Distinguishes the failure modes a user actually hits, so the UI can say
+ * something true instead of "something went wrong".
+ */
+export type ApiErrorKind =
+  /** The browser has no connection at all. */
+  | 'offline'
+  /** The request timed out — usually a slow link or a hung backend. */
+  | 'timeout'
+  /**
+   * A response arrived, but it was HTML rather than JSON. This is the
+   * "Unexpected token '<'" case: the request was answered by the SPA fallback
+   * or a proxy error page, not by the API.
+   */
+  | 'not-json'
+  /** The server answered, or could not be reached. */
+  | 'server';
+
+export class ApiError extends Error {
+  readonly kind: ApiErrorKind;
+  readonly status?: number;
+  /** True when suggesting "try again later" is honest. */
+  readonly retryable: boolean;
+
+  constructor(kind: ApiErrorKind, message: string, status?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.kind = kind;
+    this.status = status;
+    this.retryable = kind !== 'server' || (status ?? 500) >= 500;
+  }
+}
+
+/** Abort a request that has hung past this — a slow link, not a dead one. */
+const REQUEST_TIMEOUT_MS = 15000;
+
 // ─── Core Request Wrapper ─────────────────────────────────────────────────────
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -147,21 +185,92 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ detail: 'An unexpected network error occurred' }));
-    throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    // AbortError thrown by our own timer, not by the caller.
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError(
+        'timeout',
+        `The server did not answer within ${REQUEST_TIMEOUT_MS / 1000} seconds.`
+      );
+    }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new ApiError('offline', 'You appear to be offline.');
+    }
+    throw new ApiError(
+      'server',
+      `Could not reach the API at ${API_BASE_URL}. Is the backend running?`
+    );
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 204) {
     return {} as T;
   }
 
-  return response.json();
+  // Read as text first. response.json() throws the unhelpful
+  // "Unexpected token '<'" whenever the body is HTML, and it discards the body
+  // that would have told us *why* it was HTML.
+  const raw = await response.text();
+  const contentType = response.headers.get('content-type') ?? '';
+  const trimmed = raw.trimStart();
+  const looksJson =
+    contentType.includes('application/json') ||
+    trimmed.startsWith('{') ||
+    trimmed.startsWith('[');
+
+  let data: unknown = null;
+  if (raw && looksJson) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      data = null;
+    }
+  }
+
+  if (!response.ok) {
+    // A proxy error page served as text/html must not be reported as a JSON
+    // parse failure.
+    if (!data && !looksJson) {
+      throw new ApiError(
+        'server',
+        `The server returned ${response.status} ${response.statusText || ''}`.trim() +
+          ' but not JSON. Check that the backend is running and that /api is proxied to it.',
+        response.status
+      );
+    }
+    const detail = (data as { detail?: unknown })?.detail;
+    throw new ApiError(
+      'server',
+      typeof detail === 'string'
+        ? detail
+        : detail
+          ? JSON.stringify(detail)
+          : `Request failed with status ${response.status}`,
+      response.status
+    );
+  }
+
+  if (!data) {
+    throw new ApiError(
+      'not-json',
+      'The server returned an HTML page instead of data. This usually means the ' +
+        'SPA fallback answered an /api request, or a proxy is misconfigured.',
+      response.status
+    );
+  }
+
+  return data as T;
 }
 
 // ─── API Endpoints ────────────────────────────────────────────────────
@@ -272,6 +381,14 @@ export const api = {
     }),
 
   getMe: () => request<User>('/auth/me'),
+
+  // ─── Diagnostics ──────────────────────────────────────────────────────────
+  /**
+   * Probes the backend. Used by the error panels so the user is told *which*
+   * link in the chain is broken (frontend -> proxy -> backend -> database)
+   * rather than a generic "could not load".
+   */
+  checkHealth: () => request<{ status?: string; database?: string; version?: string }>('/health'),
 
   // Admin
   getAnalytics: () => request<Record<string, any>>('/admin/analytics'),
