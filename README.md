@@ -28,6 +28,105 @@
 
 ---
 
+## 📌 Rebuild status (read this first)
+
+TownPulse is mid-rebuild from a prototype into a production site. This section
+is the honest map of what is done and what is not.
+
+| Phase | Status |
+|---|---|
+| 1. Audit | ✅ [`AUDIT.md`](./AUDIT.md) — 40 findings, severity-ranked |
+| 2. Design system | ✅ "Clay & Teak" token layer, 36/36 contrast checks pass |
+| 4. Data integrity | ✅ Fabricated seed removed; 170 real OSM listings, all honestly `unverified` |
+| 7. i18n (registration) | ✅ All languages registered + language switcher plumbing |
+| 3. Information architecture | ⏳ Partial — routes and new pages still to build |
+| 5. Discovery | ⏳ Not started |
+| 6. Performance / SSG | ⏳ Not started (SSR + `<noscript>` still the top open P0) |
+| 7. Accessibility | ⏳ Partial — tokens and focus done, components not yet migrated |
+| 8. SEO / sharing | ⏳ Not started — `og:image` + canonical + sitemap still open |
+| 9. Polish | ⏳ Not started |
+| 10. Verification | ✅ build, typecheck, contrast and 43 unit tests all green |
+
+See [`AUDIT.md`](./AUDIT.md) for the full defect list and
+[`DATA_NEEDED.md`](./DATA_NEEDED.md) for the data you must collect.
+
+> **The three most important open items**, in order:
+> 1. Server-side rendering or static generation + a `<noscript>` fallback.
+>    Today the page is blank without JavaScript — unacceptable for the audience.
+> 2. `og:image` per listing. Every WhatsApp share is currently a bare link.
+> 3. Migrating the remaining components from hardcoded Tailwind blue and
+>    hardcoded English onto the new token and catalogue layers.
+
+---
+
+## 🎨 Design system
+
+All colour, type, spacing, radius, elevation and motion live in CSS custom
+properties in [`frontend/src/styles/tokens.css`](./frontend/src/styles/tokens.css).
+Components never hardcode a hex value.
+
+**Identity: "Clay & Teak"** — a warm terracotta primary with deep pine for care
+and civic trust. Deliberately not blue: blue reads as generic SaaS, and this is
+a public service.
+
+```bash
+cd frontend
+npm run validate:contrast   # checks every text/background pair against WCAG 2.2 AA
+npm run typecheck
+```
+
+The contrast validator parses `tokens.css` directly and exits non-zero on any
+failure, so a palette regression is caught in CI rather than by a user.
+
+### Retuning the identity
+
+Change the hex values in `tokens.css` — light and dark are separate blocks — and
+run `npm run validate:contrast`. The dark theme is a re-tuned palette, not an
+inversion, so both blocks need editing.
+
+---
+
+## 🗺️ Targeting a town
+
+Town identity is configured in one place:
+[`frontend/src/config/site.ts`](./frontend/src/config/site.ts) (name, region,
+district, map centre, timezone, emergency numbers) and mirrored in the backend
+`.env`. Full instructions are in [`DATA_NEEDED.md`](./DATA_NEEDED.md) §5.
+
+The current default is **Hampi, Vijayanagara district, Karnataka**.
+
+---
+
+## 🚨 Data honesty
+
+The previous seed file contained invented clinics, mechanics and diagnostics
+with made-up phone numbers, all marked `verified: true`. Fabricated contact
+details for health services is the most harmful thing this project could ship.
+
+It has been replaced with real OpenStreetMap data. Every listing now carries:
+
+```json
+{
+  "verified": false,
+  "status": "unverified",
+  "source": "openstreetmap",
+  "source_url": "https://www.openstreetmap.org/node/4550586390"
+}
+```
+
+Regenerate for any town:
+
+```bash
+cd backend
+python scripts/import_osm.py --lat <lat> --lng <lng> --radius 6000
+python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json
+```
+
+The second command prints a coverage report — how many listings still need a
+phone number, opening hours or an address.
+
+---
+
 ## 🎯 Problem Statement
 
 In small towns and rural communities, finding reliable local services — clinics, mechanics, volunteer orgs, shelters, grocery stores — is surprisingly hard. Google Maps is incomplete, Yelp doesn't cover small towns, and word-of-mouth doesn't scale.
