@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
+    "validate:contrast": "node scripts/validate-contrast.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "clsx": "^2.0.0",
