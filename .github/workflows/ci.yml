@@ -156,17 +156,40 @@ jobs:
           node scripts/verify-og-images.mjs
 
       # Proves the build survives a host where the native `sharp` module cannot
-      # load, which is what broke the Vercel deployment. Runs with sharp hidden
-      # and asserts the fallback og:image still resolves.
+      # load, which is what broke the Vercel deployment.
+      #
+      # Notes on the ordering, each of which fixes a real defect:
+      #  - `generate:og` rewrites public/og/manifest.json, and that file IS
+      #    committed (it is the committed fallback list). A degraded run reduces
+      #    it to one entry, so `git checkout` restores it afterwards. Without
+      #    this the job finishes with a dirty tree and a stale manifest.
+      #  - The exit status of `npm run build` is captured and re-raised, because
+      #    the cleanup commands in between would otherwise mask a failed build.
+      #  - The degraded build runs in a step of its own, so a failure surfaces as
+      #    its own check rather than being hidden inside a combined step.
       - name: Build with `sharp` unavailable
         run: |
           cd frontend
           mv node_modules/sharp node_modules/.sharp-hidden
           npm run build
+          status=$?
+          mv node_modules/.sharp-hidden node_modules/sharp
+          git checkout -- public/og/manifest.json
+          exit $status
+
+      - name: Assert the fallback og:image survives a degraded build
+        run: |
+          cd frontend
+          mv node_modules/sharp node_modules/.sharp-hidden
+          npm run build
+          degraded=$?
           mv node_modules/.sharp-hidden node_modules/sharp
           node scripts/verify-og-images.mjs
-          # Leave dist/ from the normal build, not the degraded one.
+          verify=$?
+          git checkout -- public/og/manifest.json
+          # Rebuild so dist/ reflects a normal build for anything downstream.
           npm run build
+          if [ $degraded -ne 0 ] || [ $verify -ne 0 ]; then exit 1; fi
 
   # ─── Docker Container Build Verification ───────────────────────────────────
   docker-build:
