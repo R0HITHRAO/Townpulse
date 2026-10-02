@@ -59,6 +59,13 @@ frontend/dist/
 backend/staticfiles/
 *.log
 
+# Generated on every build by scripts/generate-og.mjs, generate-sitemap.mjs and
+# prerender.mjs. Regenerating costs ~2s and the filenames derive from listing ids,
+# so committing 6 MB of PNGs would only create merge conflicts.
+frontend/public/og/
+frontend/public/sitemap.xml
+frontend/public/robots.txt
+
 # ----- OS Files -----
 *.DS_Store
 ehthumbs.db

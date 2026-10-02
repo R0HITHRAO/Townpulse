@@ -1,8 +1,8 @@
 {
   "version": 2,
+  "//rewrites": "SPA fallback for client-side routes. Vercel checks the filesystem before applying rewrites, so the static pages written by scripts/prerender.mjs (e.g. /listings/osm-n3c45x/index.html) are served as pre-rendered HTML; this rule only catches the routes that have no static file. The negative lookahead is essential: without it /(.*) also matches /api/*, so every API call returned index.html and the browser failed with \"Unexpected token '<' ... is not valid JSON\".",
   "rewrites": [
     {
-      "//": "SPA fallback for client-side routes. The negative lookahead is essential: without it /(.*) also matches /api/*, so every API call returned index.html and the browser failed with \"Unexpected token '<' ... is not valid JSON\".",
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -24,6 +24,16 @@
         {
           "key": "Cache-Control",
           "value": "no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "//": "Open Graph images are content-addressed by name (og/listing-<id>.png), so they can be cached hard. A slow share preview is a certain problem; a stale card for a renamed listing is a minor one.",
+      "source": "/og/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800"
         }
       ]
     },

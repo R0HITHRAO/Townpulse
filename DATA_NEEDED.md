@@ -142,7 +142,7 @@ mapper community) you should see 30–60% phone coverage instead of 6%.
 | Logo | ❌ needed | Wordmark only; see `AUDIT.md` §3.1 |
 | Kannada translation | ❌ needed | `frontend/src/i18n/kn.json` does not exist yet; falls back to English |
 | Full Hindi translation | ⚠️ partial | Core strings done (~90 of 258) |
-| Open Graph images | ❌ needed | `og:image` is still the P0 gap from `AUDIT.md` §5.1 |
+| Open Graph images | ✅ done | `npm run generate:og` renders 179 cards from `tokens.css` (1 homepage, 8 categories, 170 listings) |
 | Analytics | ❌ decision | Recommend a self-hosted, cookieless counter; no third-party trackers |
 
 ---

@@ -5,14 +5,34 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#9a3412" />
+    <!--
+      Everything between the two SEO markers below is owned by
+      `scripts/prerender.mjs`, which rewrites it per route (title, description,
+      canonical, og:*, twitter:*, hreflang and JSON-LD). These defaults are what
+      the homepage and any route the script does not pre-render will serve, so
+      they must stay valid on their own.
+
+      The markers exist so the script can splice by explicit boundaries. An
+      earlier version located the head block by searching for the title tag and
+      the last closing script tag, which silently produced duplicate tags
+      because the title element sits *after* the JSON-LD blocks in this file.
+    -->
+    <!-- SEO:START -->
+    <title>TownPulse — Local Services Finder</title>
     <meta name="description" content="TownPulse — find clinics, mechanics, food, shelter and civic offices in your town, with the source and last-checked date shown for every listing." />
 
-    <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="TownPulse — local services for your town" />
     <meta property="og:description" content="Clinics, mechanics, food, shelter and civic offices — with the source and the date checked for every entry." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TownPulse" />
+    <meta property="og:image" content="/og/home.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TownPulse — local services for your town" />
+    <meta name="twitter:description" content="Clinics, mechanics, food, shelter and civic offices — with the source and the date checked for every entry." />
+    <meta name="twitter:image" content="/og/home.png" />
+    <link rel="canonical" href="https://hampi.townpulse.app/" />
 
     <!-- Structured Data (SEO) -->
     <script type="application/ld+json">
@@ -37,6 +57,7 @@
         "sameAs": ["https://github.com/R0HITHRAO/Townpulse"]
       }
     </script>
+    <!-- SEO:END -->
     
     <!-- Early theme initialization to prevent Flash of Light Theme -->
     <script>
@@ -64,15 +85,80 @@
     <!-- Manifest for PWA -->
     <link rel="manifest" href="/manifest.json" />
 
-    <title>TownPulse — Local Services Finder</title>
+    <!--
+      Static pre-rendered fallback.
+
+      AUDIT.md 1.1 / 1.2: `index.html` shipped an empty `<div id="root">` with no
+      server rendering and no `<noscript>` block, so the entire page was blank
+      without JavaScript — on a crawler, on a mid-load failure, or on the
+      low-end Android device this audience actually uses.
+
+      `scripts/prerender.mjs` runs after `vite build` and writes a real,
+      readable page into `#root`: town identity, the emergency numbers, and the
+      directory as plain links. React replaces it on hydration; a crawler or a
+      no-JS visitor reads it as-is.
+
+      The `<noscript>` block below is the second layer. It is deliberately
+      inline and dependency-free so it works even if the CSS bundle fails to
+      load — the emergency numbers are the single most important thing on this
+      page and must never depend on a stylesheet.
+    -->
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased font-sans transition-colors duration-200 min-h-screen">
     <!-- Accessibility: Skip Link -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-blue-600 focus:text-white focus:p-3 focus:rounded-md">
-      Skip to main content
-    </a>
-    
+    <a href="#main-content" class="tp-skip-link">Skip to main content</a>
+
     <div id="root" class="min-h-screen flex flex-col"></div>
+
+    <!--
+      No-JS fallback (AUDIT.md 1.2).
+
+      Inline styles are used deliberately: this block must render correctly even
+      if the stylesheet never loads, which is exactly the scenario it exists for.
+      It leads with the emergency numbers because that is what a visitor on a
+      phone with no data connection is actually looking for.
+    -->
+    <noscript>
+      <div style="max-width:42rem;margin:0 auto;padding:1.5rem;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#2b211a;line-height:1.6">
+        <h1 style="font-size:1.5rem;margin:0 0 .25rem">TownPulse</h1>
+        <p style="margin:0 0 1.5rem;color:#6a5a4a">
+          Local services in Hampi, Karnataka. This page needs JavaScript for search and
+          the map, but the information below works without it.
+        </p>
+
+        <h2 style="font-size:1.125rem;margin:1.5rem 0 .5rem">Emergency numbers</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:1rem">
+          <tbody>
+            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Police</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:100">100</a></td></tr>
+            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Fire</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:101">101</a></td></tr>
+            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Ambulance</th><td style="text-align:right;border-bottom:1px solid #e3d9c8;color:#6a5a4a">Not yet collected</td></tr>
+            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Women &amp; child helpline</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:1091">1091</a></td></tr>
+            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Emergency (all)</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:112">112</a></td></tr>
+          </tbody>
+        </table>
+
+        <h2 style="font-size:1.125rem;margin:1.5rem 0 .5rem">Browse the directory</h2>
+        <ul style="margin:0 0 1rem;padding-left:1.25rem">
+          <li><a href="/categories">All categories</a></li>
+          <li><a href="/c/healthcare">Health &amp; clinics</a></li>
+          <li><a href="/c/food">Food &amp; groceries</a></li>
+          <li><a href="/c/shelter">Shelter &amp; emergency</a></li>
+          <li><a href="/c/civic">Civic &amp; government</a></li>
+        </ul>
+
+        <h2 style="font-size:1.125rem;margin:1.5rem 0 .5rem">Other pages</h2>
+        <ul style="margin:0 0 1rem;padding-left:1.25rem">
+          <li><a href="/map">Map view</a></li>
+          <li><a href="/report">Report wrong information</a></li>
+          <li><a href="/about">About &amp; how we verify</a></li>
+        </ul>
+
+        <p style="font-size:.875rem;color:#6a5a4a;margin-top:2rem">
+          Listing data from OpenStreetMap contributors (ODbL).
+        </p>
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

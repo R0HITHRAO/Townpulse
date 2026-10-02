@@ -18,9 +18,17 @@
  * tree can be deployed for several towns without a code change.
  */
 
+/**
+ * Build scripts (`generate-og.mjs`, `generate-sitemap.mjs`, `prerender.mjs`) also
+ * need the town identity, but they run in plain Node and cannot import this
+ * module. The values therefore live in `site.defaults.json`, read by both sides,
+ * so retargeting the site means editing one file.
+ */
+import defaults from './site.defaults.json';
+
 const env = import.meta.env;
 
-/** Read a build-time env override, falling back to the literal below. */
+/** Read a build-time env override, falling back to the value below. */
 function setting(key: string, fallback: string): string {
   const value = env[key];
   return typeof value === 'string' && value.length > 0 ? value : fallback;
@@ -33,21 +41,21 @@ function num(key: string, fallback: number): number {
 
 export const town = {
   /** Short name used throughout the UI: "Hampi". */
-  name: setting('VITE_TOWN_NAME', 'Hampi'),
+  name: setting('VITE_TOWN_NAME', defaults.town.name),
   /** State / province / region: "Karnataka". */
-  region: setting('VITE_TOWN_REGION', 'Karnataka'),
+  region: setting('VITE_TOWN_REGION', defaults.town.region),
   /** District, shown in page titles and structured data. */
-  district: setting('VITE_TOWN_DISTRICT', 'Vijayanagara'),
+  district: setting('VITE_TOWN_DISTRICT', defaults.town.district),
   /** Map centre for the directory and the map view. */
-  lat: num('VITE_TOWN_LAT', 15.335),
-  lng: num('VITE_TOWN_LNG', 76.46),
+  lat: num('VITE_TOWN_LAT', defaults.town.lat),
+  lng: num('VITE_TOWN_LNG', defaults.town.lng),
   /** Default zoom and search radius in metres. */
-  zoom: num('VITE_TOWN_ZOOM', 14),
-  radiusMeters: num('VITE_TOWN_RADIUS_M', 6000),
+  zoom: num('VITE_TOWN_ZOOM', defaults.town.zoom),
+  radiusMeters: num('VITE_TOWN_RADIUS_M', defaults.town.radiusMeters),
   /** UTC offset in minutes — drives "open now" in the backend. */
-  timezoneOffsetMinutes: num('VITE_TOWN_TZ_OFFSET', 330),
+  timezoneOffsetMinutes: num('VITE_TOWN_TZ_OFFSET', defaults.town.timezoneOffsetMinutes),
   /** IANA timezone, for display only. */
-  timezone: setting('VITE_TOWN_TZ', 'Asia/Kolkata'),
+  timezone: setting('VITE_TOWN_TZ', defaults.town.timezone),
 } as const;
 
 /** "Hampi, Karnataka" — used in prose, titles and structured data. */
@@ -55,22 +63,19 @@ export const townLabel = `${town.name}, ${town.region}`;
 
 export const site = {
   /** Canonical origin. Must be set to the real domain in production. */
-  url: setting('VITE_SITE_URL', 'https://hampi.townpulse.app').replace(/\/$/, ''),
+  url: setting('VITE_SITE_URL', defaults.site.url).replace(/\/$/, ''),
   name: 'TownPulse',
   /** Wordmark suffix shown beside the name. */
-  tagline: setting(
-    'VITE_SITE_TAGLINE',
-    'Find clinics, mechanics, shelter and food in your town'
-  ),
+  tagline: setting('VITE_SITE_TAGLINE', defaults.site.tagline),
   description: setting(
     'VITE_SITE_DESCRIPTION',
     `A community directory of local services in ${townLabel} — clinics, mechanics, shops, civic offices and emergency numbers, with the source and date shown for every entry.`
   ),
-  locale: 'en_IN',
-  themeColor: '#9a3412',
-  themeColorDark: '#17120e',
-  contactEmail: setting('VITE_CONTACT_EMAIL', 'hello@townpulse.app'),
-  githubUrl: 'https://github.com/R0HITHRAO/Townpulse',
+  locale: defaults.site.locale,
+  themeColor: defaults.site.themeColor,
+  themeColorDark: defaults.site.themeColorDark,
+  contactEmail: setting('VITE_CONTACT_EMAIL', defaults.site.contactEmail),
+  githubUrl: defaults.site.githubUrl,
 } as const;
 
 /**
@@ -92,28 +97,10 @@ export interface EmergencyContact {
   noteKey?: string;
 }
 
-export const emergencyContacts: EmergencyContact[] = [
-  { id: 'ambulance', labelKey: 'emergency.ambulance', phone: '' },
-  { id: 'police', labelKey: 'emergency.police', phone: '100' },
-  { id: 'fire', labelKey: 'emergency.fire', phone: '101' },
-  { id: 'women', labelKey: 'emergency.women', phone: '1091' },
-  { id: 'child', labelKey: 'emergency.child', phone: '1098' },
-  { id: 'tollfree', labelKey: 'emergency.tollfree', phone: '112' },
-];
+export const emergencyContacts: EmergencyContact[] = defaults.emergencyContacts;
 
 /** Canonical routes that must exist, be linked in the footer, and enter the sitemap. */
-export const routes = {
-  home: '/',
-  emergency: '/emergency',
-  categories: '/categories',
-  map: '/map',
-  about: '/about',
-  suggest: '/suggest',
-  report: '/report',
-  privacy: '/privacy',
-  accessibility: '/accessibility',
-  submit: '/submit',
-} as const;
+export const routes: Record<string, string> = defaults.routes;
 
 export const isProduction = env.PROD === true;
 

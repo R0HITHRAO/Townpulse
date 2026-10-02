@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { api, Listing } from '../services/api';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -11,7 +12,8 @@ import { StarRating } from '../components/StarRating';
 import { OpenStatusBadge } from '../components/OpenStatusBadge';
 import { Reveal } from '../components/Reveal';
 import { useBookmarks } from '../context/BookmarkContext';
-import { useSeo } from '../hooks/useSeo';
+import { useSeo, listingJsonLd } from '../hooks/useSeo';
+import { site, town } from '../config/site';
 import { getWhatsAppShareUrl } from '../utils/whatsapp';
 import { Map } from '../components/Map';
 import {
@@ -33,6 +35,7 @@ import {
 } from 'lucide-react';
 
 export const ListingDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -46,12 +49,37 @@ export const ListingDetail: React.FC = () => {
 
   const bookmarked = listing ? isBookmarked(listing.id) : false;
 
-  useSeo(
-    listing ? `${listing.name} — TownPulse` : 'TownPulse — Local Services Finder',
-    listing?.description
-      ? `${listing.description.slice(0, 155)} — find it on TownPulse.`
-      : `Verified details for ${listing?.name ?? 'this listing'} — address, hours, phone, and reviews on TownPulse.`
-  );
+  useSeo({
+    title: listing
+      ? `${listing.name}, ${town.name} — address, phone & hours | TownPulse`
+      : `${t('seo.loadingTitle')}`,
+    description: listing
+      ? t('seo.listingDescription', {
+          name: listing.name,
+          town: town.name,
+          verification: listing.verified
+            ? t('seo.verifiedOnListing', { date: 'a recent check' })
+            : t('seo.unverifiedOnListing'),
+        })
+      : site.description,
+    path: `/listings/${id}`,
+    ogKey: `listing-${id}`,
+    ogType: 'place',
+    // `LocalBusiness` markup only once the record has actually loaded: emitting
+    // it for a placeholder would describe a business that does not exist yet.
+    jsonLd: listing
+      ? listingJsonLd({
+          id: listing.id,
+          name: listing.name,
+          address: listing.address,
+          lat: listing.lat,
+          lng: listing.lng,
+          phone: listing.phone,
+          website: listing.website,
+          sourceUrl: listing.source_url,
+        })
+      : undefined,
+  });
 
   const fetchListing = () => {
     if (!id) return;

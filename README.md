@@ -39,23 +39,25 @@ is the honest map of what is done and what is not.
 | 2. Design system | ✅ "Clay & Teak" token layer, 36/36 contrast checks pass |
 | 4. Data integrity | ✅ Fabricated seed removed; 170 real OSM listings, all honestly `unverified` |
 | 7. i18n (registration) | ✅ All languages registered + language switcher plumbing |
-| 3. Information architecture | ⏳ Partial — routes and new pages still to build |
+| 6. Performance / SSG | ✅ Build-time static generation — 181 pre-rendered pages + a real `<noscript>` fallback |
+| 8. SEO / sharing | ✅ 179 `og:image` cards, canonicals, `sitemap.xml`, `robots.txt`, per-listing JSON-LD |
+| 3. Information architecture | ⏳ Partial — `/emergency` and `/c/:slug` are pre-rendered, but not yet React routes |
 | 5. Discovery | ⏳ Not started |
-| 6. Performance / SSG | ⏳ Not started (SSR + `<noscript>` still the top open P0) |
 | 7. Accessibility | ⏳ Partial — tokens and focus done, components not yet migrated |
-| 8. SEO / sharing | ⏳ Not started — `og:image` + canonical + sitemap still open |
 | 9. Polish | ⏳ Not started |
-| 10. Verification | ✅ build, typecheck, contrast and 43 unit tests all green |
+| 10. Verification | ✅ build, typecheck, contrast and 55 unit tests all green |
 
 See [`AUDIT.md`](./AUDIT.md) for the full defect list and
 [`DATA_NEEDED.md`](./DATA_NEEDED.md) for the data you must collect.
 
 > **The three most important open items**, in order:
-> 1. Server-side rendering or static generation + a `<noscript>` fallback.
->    Today the page is blank without JavaScript — unacceptable for the audience.
-> 2. `og:image` per listing. Every WhatsApp share is currently a bare link.
-> 3. Migrating the remaining components from hardcoded Tailwind blue and
+> 1. `/emergency`, `/categories` and `/c/:slug` exist as static HTML but have
+>    **no React route yet**, so navigating to them client-side renders the 404
+>    page. The header and footer must link to them.
+> 2. Migrating the remaining components from hardcoded Tailwind blue and
 >    hardcoded English onto the new token and catalogue layers.
+> 3. A Kannada (`kn.json`) translation. `kn` is registered but inherits English,
+>    so a Kannada speaker gets a mostly-English page.
 
 ---
 
@@ -83,6 +85,38 @@ failure, so a palette regression is caught in CI rather than by a user.
 Change the hex values in `tokens.css` — light and dark are separate blocks — and
 run `npm run validate:contrast`. The dark theme is a re-tuned palette, not an
 inversion, so both blocks need editing.
+
+---
+
+## 🔎 SEO and static generation
+
+Everything below is produced at build time by `npm run build`. There are no
+runtime image or sitemap services, and nothing needs a headless browser.
+
+| Script | Output | Why |
+|---|---|---|
+| `generate:og` | `public/og/*.png` + `manifest.json` | One 1200×630 share card per listing, per category and for the homepage |
+| `generate:sitemap` | `public/sitemap.xml`, `public/robots.txt` | 188 URLs derived from routes that actually exist |
+| `generate:prerender` | `dist/**/index.html` | 181 static pages: real content for crawlers and no-JS visitors |
+
+Three things worth knowing before you change these:
+
+- **Order matters.** OG images and the sitemap are written into `public/`, which
+  Vite copies into `dist/`. They are generated in a `prebuild` hook for exactly
+  this reason — running them after `vite build` shipped a `dist/` with no images
+  at all, and every share silently 404'd.
+- **Glyph widths are measured, not estimated.** The card renderer calibrates real
+  advance widths by rendering the alphabet and scanning the ink, because an
+  estimated width ratio overflowed long place names off the edge of the card.
+- **The `SEO:START` / `SEO:END` markers in `index.html` are load-bearing.** The
+  prerenderer splices between them. Deleting them fails the build loudly rather
+  than silently shipping duplicate `<title>` and `og:` tags.
+
+### Retargeting to another town
+
+Edit `frontend/src/config/site.defaults.json` (shared by the app and the build
+scripts), set `VITE_SITE_URL`, then rebuild. The sitemap, share cards and
+pre-rendered pages all regenerate from it.
 
 ---
 

@@ -19,18 +19,20 @@ import { initReactI18next } from 'react-i18next';
 
 import en from './en.json';
 import hi from './hi.json';
+import {
+  SUPPORTED_LANGUAGES,
+  LanguageCode,
+  STORAGE_KEY,
+  FALLBACK,
+} from './languages';
 
-export const SUPPORTED_LANGUAGES = [
-  { code: 'en', label: 'English', nativeLabel: 'English' },
-  { code: 'hi', label: 'Hindi', nativeLabel: 'हिन्दी' },
-  { code: 'kn', label: 'Kannada', nativeLabel: 'ಕನ್ನಡ' },
-] as const;
-
-export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
-
-export const STORAGE_KEY = 'townpulse_lang';
-
-const FALLBACK: LanguageCode = 'en';
+/**
+ * Re-exported so existing `from '../i18n'` imports keep working, but the
+ * language table itself lives in `languages.ts` so it can be read without
+ * booting i18next (see the note there).
+ */
+export { SUPPORTED_LANGUAGES, STORAGE_KEY, FALLBACK } from './languages';
+export type { LanguageCode } from './languages';
 
 /** True when a code (or locale like `hi-IN`) is one we support. */
 function resolveLanguage(raw?: string | null): LanguageCode | null {

@@ -11,6 +11,7 @@ import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
 import { useSeo } from '../hooks/useSeo';
+import { town } from '../config/site';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
@@ -32,7 +33,12 @@ export const Home: React.FC = () => {
   // True when we fell back to the bundled offline snapshot.
   const [offlineData, setOfflineData] = useState(false);
 
-  useSeo(t('seo_home_title'), t('seo_home_desc'));
+  useSeo({
+    title: t('seo.homeTitle', { town: town.name, region: town.region }),
+    description: t('seo.homeDescription', { town: town.name, region: town.region }),
+    path: '/',
+    ogKey: 'home',
+  });
 
   // Load categories. Previously `.catch(console.error)`, which left the chip
   // row silently empty with no explanation.

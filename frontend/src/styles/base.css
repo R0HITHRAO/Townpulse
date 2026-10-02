@@ -4,6 +4,18 @@
  *
  * Resets, document defaults and focus handling. Layout primitives live in
  * `components.css`; the token layer lives in `tokens.css`.
+ *
+ * ── Why this file has a CI guard ─────────────────────────────────────────────
+ * This file previously shipped with three unclosed braces. CSS nesting then
+ * reinterpreted everything after them, so the compiled bundle contained
+ * selectors like `.tp-btn-secondary:hover .tp-badge` and `.tp-skeleton::after
+ * .tp-prose` — meaning those classes matched nowhere useful and the affected
+ * components rendered unstyled. The build passed and every test passed; only
+ * looking at the compiled CSS revealed it.
+ *
+ * A missing brace is therefore a *silent* defect here, so
+ * `scripts/check-css-structure.mjs` asserts balance and nesting depth and runs
+ * in CI. Do not remove the guards below without adding an equivalent check.
  */
 
 @layer tp-base {
@@ -106,6 +118,7 @@
     display: block;
     max-width: 100%;
   }
+}
 
 @layer tp-components {
   /* Layout container: 1216px max, fluid gutters. */
@@ -240,6 +253,9 @@
 
   .tp-btn-secondary:hover:not(:disabled) {
     background-color: var(--tp-surface-2);
+    border-color: var(--tp-border-strong);
+  }
+
 /* ── Badges ───────────────────────────────────────────────────────────────
      Always icon + text + colour, so meaning survives without colour
      (WCAG 1.4.1 Use of Color). */
@@ -343,7 +359,102 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-/* ── Prose ────────────────────────────────────────────────────────────────*/
+background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--tp-surface) 70%, transparent),
+      transparent
+    );
+    animation: tp-shimmer 1.4s infinite;
+  }
+
+  @keyframes tp-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tp-skeleton::after {
+      animation: none;
+    }
+  }
+/* ── Pre-rendered no-JS content ─────────────────────────────────────────────
+     Written into #root by scripts/prerender.mjs. It is what a crawler indexes
+     and what a visitor with JavaScript disabled reads, so it needs to be legible
+     on its own rather than assuming the app's Tailwind classes are present. */
+  .tp-prerender {
+    max-width: var(--tp-container-prose, 42rem);
+    margin: 0 auto;
+    padding: var(--tp-space-6) var(--tp-space-4) var(--tp-space-9);
+  }
+
+  .tp-prerender h1 {
+    font-size: var(--tp-text-3xl);
+    margin-bottom: var(--tp-space-2);
+  }
+
+  .tp-prerender h2 {
+    font-size: var(--tp-text-xl);
+    margin-top: var(--tp-space-7);
+    margin-bottom: var(--tp-space-3);
+  }
+
+  .tp-prerender p {
+    color: var(--tp-text-muted);
+    margin-bottom: var(--tp-space-4);
+  }
+
+  .tp-prerender ul {
+    list-style: none;
+    margin-bottom: var(--tp-space-4);
+  }
+
+  .tp-prerender li {
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-border);
+  }
+
+  .tp-prerender table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .tp-prerender th,
+  .tp-prerender td {
+    text-align: left;
+    padding: var(--tp-space-2) 0;
+    border-bottom: 1px solid var(--tp-border);
+  }
+
+  .tp-prerender td {
+    text-align: right;
+  }
+
+  .tp-prerender em {
+    color: var(--tp-text-muted);
+  }
+
+  /* Skip link: visible only once focused, and it must clear the sticky header. */
+  .tp-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: var(--tp-z-toast);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    background-color: var(--tp-primary);
+    color: var(--tp-on-primary);
+    border-radius: var(--tp-radius-md);
+    font-weight: var(--tp-weight-semibold);
+    text-decoration: none;
+  }
+
+  .tp-skip-link:focus {
+    left: var(--tp-space-3);
+    top: var(--tp-space-3);
+  }
+
+  /* ── Prose ────────────────────────────────────────────────────────────────*/
   .tp-prose {
     max-width: var(--tp-container-prose);
     color: var(--tp-text-muted);
@@ -498,28 +609,6 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-}
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--tp-surface) 70%, transparent),
-      transparent
-    );
-    animation: tp-shimmer 1.4s infinite;
-  }
-
-  @keyframes tp-shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tp-skeleton::after {
-      animation: none;
-    }
-  }
   }
 
   .tp-btn-accent {

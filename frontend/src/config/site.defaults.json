@@ -1,0 +1,44 @@
+{
+  "town": {
+    "name": "Hampi",
+    "region": "Karnataka",
+    "district": "Vijayanagara",
+    "lat": 15.335,
+    "lng": 76.46,
+    "zoom": 14,
+    "radiusMeters": 6000,
+    "timezoneOffsetMinutes": 330,
+    "timezone": "Asia/Kolkata"
+  },
+  "site": {
+    "url": "https://hampi.townpulse.app",
+    "name": "TownPulse",
+    "tagline": "Find clinics, mechanics, shelter and food in your town",
+    "locale": "en_IN",
+    "themeColor": "#9a3412",
+    "themeColorDark": "#17120e",
+    "contactEmail": "hello@townpulse.app",
+    "githubUrl": "https://github.com/R0HITHRAO/Townpulse"
+  },
+  "emergencyContacts": [
+    { "id": "ambulance", "labelKey": "emergency.ambulance", "phone": "" },
+    { "id": "police", "labelKey": "emergency.police", "phone": "100" },
+    { "id": "fire", "labelKey": "emergency.fire", "phone": "101" },
+    { "id": "women", "labelKey": "emergency.women", "phone": "1091" },
+    { "id": "child", "labelKey": "emergency.child", "phone": "1098" },
+    { "id": "tollfree", "labelKey": "emergency.tollfree", "phone": "112" }
+  ],
+  "routes": {
+    "home": "/",
+    "emergency": "/emergency",
+    "categories": "/categories",
+    "map": "/map",
+    "about": "/about",
+    "suggest": "/suggest",
+    "report": "/report",
+    "privacy": "/privacy",
+    "accessibility": "/accessibility",
+    "submit": "/submit",
+    "contact": "/contact"
+  }
+}

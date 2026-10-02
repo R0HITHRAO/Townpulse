@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -13,8 +12,16 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "validate:contrast": "node scripts/validate-contrast.mjs",
+    "check:css": "node scripts/check-css-structure.mjs",
     "typecheck": "tsc --noEmit",
-    "sync:directory": "node scripts/sync-directory.mjs"
+    "sync:directory": "node scripts/sync-directory.mjs",
+    "generate:og": "node scripts/generate-og.mjs",
+    "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "generate:prerender": "node scripts/prerender.mjs",
+    "generate:seo": "npm run generate:og && npm run generate:sitemap && npm run generate:prerender",
+    "//build": "Order matters. OG images and the sitemap are written into public/, which vite copies into dist/ — so they must exist BEFORE `vite build` runs, or they silently ship missing and every share preview 404s. Only prerender runs afterwards, because it reads the built dist/index.html.",
+    "prebuild": "npm run generate:og && npm run generate:sitemap",
+    "build": "tsc && vite build && npm run generate:prerender"
   },
   "dependencies": {
     "clsx": "^2.0.0",
@@ -48,6 +55,7 @@
     "jsdom": "^23.0.0",
     "postcss": "^8.4.31",
     "prettier": "^3.1.0",
+    "sharp": "0.35.5",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
     "vite": "^5.0.0",

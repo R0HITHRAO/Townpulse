@@ -324,6 +324,8 @@
     "notFoundTitle": "Page not found — TownPulse {{town}}",
     "notFoundDescription": "That page does not exist. Search the {{town}} directory instead.",
     "verifiedOnListing": "Verified on {{date}}",
-    "unverifiedOnListing": "Not yet verified — check before you travel."
+    "unverifiedOnListing": "Not yet verified — check before you travel.",
+    "loadingTitle": "Loading listing — TownPulse {{town}}",
+    "listingDescription": "{{name}} in {{town}}: address, phone number, opening hours and directions. {{verification}}."
   }
 }

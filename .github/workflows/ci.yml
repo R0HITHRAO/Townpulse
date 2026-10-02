@@ -101,15 +101,46 @@ jobs:
           cd frontend
           npm run lint || true
 
+      - name: Validate Design System Contrast (WCAG 2.2 AA)
+        run: |
+          cd frontend
+          npm run validate:contrast
+
+      # Guards the silent defect described in AUDIT.md: base.css once shipped
+      # with unclosed braces, and CSS nesting silently re-parented every rule
+      # after them. The build and all unit tests passed regardless.
+      - name: Check Stylesheet Structure
+        run: |
+          cd frontend
+          npm run check:css
+
+      - name: Typecheck Frontend
+        run: |
+          cd frontend
+          npm run typecheck
+
       - name: Run Frontend Tests (Vitest)
         run: |
           cd frontend
           npm test
 
-      - name: Build Frontend Bundle
+      # `npm run build` also generates the OG images, sitemap/robots.txt and the
+      # pre-rendered pages, so a failure in any of those scripts fails here
+      # rather than in production.
+      - name: Build Frontend Bundle (incl. OG images, sitemap, prerender)
         run: |
           cd frontend
           npm run build
+
+      - name: Verify SEO artefacts landed in dist/
+        run: |
+          cd frontend
+          test -f dist/sitemap.xml
+          test -f dist/robots.txt
+          test -f dist/og/home.png
+          test -f dist/index.html
+          echo "OG images in dist: $(ls dist/og/*.png | wc -l)"
+          echo "Pre-rendered pages: $(find dist -name index.html | wc -l)"
 
   # ─── Docker Container Build Verification ───────────────────────────────────
   docker-build:

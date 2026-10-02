@@ -6,15 +6,20 @@ Audited: `frontend/` (React 18 + Vite 5 SPA), `backend/` (FastAPI + SQLAlchemy +
 Severity: **P0** blocks task completion / destroys trust · **P1** major UX, SEO or a11y defect ·
 **P2** polish and consistency · **P3** nice to have.
 
+**Status column.** ✅ = fixed and verified in CI · 🟡 = partially fixed ·
+⬜ = still open. A finding is only marked ✅ when something enforces it — a test,
+a build step, or a validator that exits non-zero — not merely when the code
+changed.
+
 ---
 
 ## 1. Rendering & content delivery
 
-| # | Sev | Finding | Impact | Fix |
-|---|---|---|---|---|
-| 1.1 | **P0** | Whole app renders client-side only. `index.html` ships an empty `<div id="root">`; no SSR, no static generation. | Without JS, on a crawler, or mid-load failure the visitor sees a blank page. Fatal for the stated audience (stressed, in a hurry, slow 3G). | Build-time static generation for public routes + `<noscript>` fallback with links and emergency numbers. |
-| 1.2 | **P0** | No `<noscript>` block anywhere. | No graceful degradation path at all. | Real `<noscript>` panel: static, styled, useful. |
-| 1.3 | **P1** | Suspense fallback is a centred spinner for every route. | A spinner communicates nothing and reads as "broken" on slow connections. | Content-shaped skeletons mirroring final layout. |
+| # | Sev | Status | Finding | Impact | Fix |
+|---|---|---|---|---|---|
+| 1.1 | **P0** | ✅ | Whole app renders client-side only. `index.html` ships an empty `<div id="root">`; no SSR, no static generation. | Without JS, on a crawler, or mid-load failure the visitor sees a blank page. Fatal for the stated audience (stressed, in a hurry, slow 3G). | `scripts/prerender.mjs` writes 181 static pages at build time. React still hydrates over them, so this is progressive enhancement, not a second renderer. |
+| 1.2 | **P0** | ✅ | No `<noscript>` block anywhere. | No graceful degradation path at all. | Inline, dependency-free `<noscript>` panel in `index.html` leading with emergency numbers. Inline styles so it survives a failed CSS load. |
+| 1.3 | **P1** | 🟡 | Suspense fallback is a centred spinner for every route. | A spinner communicates nothing and reads as "broken" on slow connections. | Content-shaped skeletons mirroring final layout. `.tp-skeleton` exists and is now correctly nested, but `LoadingSpinner` is still the route fallback. |
 | 1.4 | **P1** | `AnimatedBackground` plus ~20 looping keyframe animations (`aurora`, `beam`, `glowPulse`, `shine`, `heartbeat`) run on the home page. | Continuous animation burns battery and main-thread time on low-end Android — the actual target device. | Remove ambient loops above the fold; keep only short purposeful transitions. |
 
 ## 2. Information architecture
@@ -51,14 +56,14 @@ Severity: **P0** blocks task completion / destroys trust · **P1** major UX, SEO
 
 ## 5. SEO & sharing
 
-| # | Sev | Finding | Impact | Fix |
-|---|---|---|---|---|
-| 5.1 | **P0** | **No `og:image`** anywhere. `index.html` sets `og:title`/`og:description`/`og:type` but no image. | Every WhatsApp/Facebook share is a bare text link — fatal for a product whose distribution strategy is "forward this to a neighbour". | Generated per-listing, per-category and homepage OG images at build time. |
-| 5.2 | **P0** | **No canonical URLs** on any route. | Duplicate-content risk; no control over which URL is indexed. | Emit `<link rel="canonical">` per route from one `site.url`. |
-| 5.3 | **P0** | **No `sitemap.xml`, no `robots.txt`.** | Search engines have no map of the site. | Generate both at build time from the route manifest. |
-| 5.4 | **P1** | No `twitter:*` card tags. | Twitter/X falls back to a plain link. | Add `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`. |
-| 5.5 | **P1** | `useSeo` sets only `title`, `description`, `og:title`, `og:description`. Never canonical, `og:url`, `og:type`, `og:image`, `hreflang`. | Every page shares the homepage's social preview. | One `Seo` component owning all head tags including JSON-LD. |
-| 5.6 | **P1** | JSON-LD is static: generic `WebSite` + `Organization`. No `LocalBusiness`/`MedicalClinic` on listings. `SearchAction.target` is `/?q={...}`, which does not match how search works. | Loses rich results for local businesses — the exact entities users search for. | Per-listing JSON-LD with correct `@type`, geo, address, opening hours, `areaServed`. |
+| # | Sev | Status | Finding | Impact | Fix |
+|---|---|---|---|---|---|
+| 5.1 | **P0** | ✅ | **No `og:image`** anywhere. `index.html` sets `og:title`/`og:description`/`og:type` but no image. | Every WhatsApp/Facebook share is a bare text link — fatal for a product whose distribution strategy is "forward this to a neighbour". | `scripts/generate-og.mjs` renders 179 cards (1 homepage, 8 categories, 170 listings) at 1200×630 from `tokens.css`. |
+| 5.2 | **P0** | ✅ | **No canonical URLs** on any route. | Duplicate-content risk; no control over which URL is indexed. | Emitted per route from one `site.url`, at build time and again at runtime by `applySeo`. Covered by `seo.test.ts`. |
+| 5.3 | **P0** | ✅ | **No `sitemap.xml`, no `robots.txt`.** | Search engines have no map of the site. | `scripts/generate-sitemap.mjs` derives 188 URLs from routes that actually exist, so the sitemap cannot advertise a 404. |
+| 5.4 | **P1** | ✅ | No `twitter:*` card tags. | Twitter/X falls back to a plain link. | `twitter:card/title/description/image` emitted alongside the `og:*` set. |
+| 5.5 | **P1** | ✅ | `useSeo` sets only `title`, `description`, `og:title`, `og:description`. Never canonical, `og:url`, `og:type`, `og:image`, `hreflang`. | Every page shares the homepage's social preview. | `hooks/useSeo.ts` now owns every head tag, including `hreflang` per registered language. 12 tests cover it. |
+| 5.6 | **P1** | ✅ | JSON-LD is static: generic `WebSite` + `Organization`. No `LocalBusiness`/`MedicalClinic` on listings. `SearchAction.target` is `/?q={...}`, which does not match how search works. | Loses rich results for local businesses — the exact entities users search for. | `listingJsonLd()` emits `LocalBusiness` with geo, address and `areaServed`; `telephone` is omitted rather than invented. `SearchAction.target` now absolute. |
 | 5.7 | **P2** | Deployed on the default Vercel subdomain; no custom-domain config. | Reads as a demo; blocks HSTS/cookie scoping on a real domain. | Configurable `site.url`; canonicals and sitemap derive from it; deployment documented. |
 ## 6. Accessibility
 
@@ -125,3 +130,42 @@ failure is concentrated entirely in the **presentation and delivery layer**:
 
 Rebuild order adopted: **rendering & trust → identity & accessibility → data → discovery → SEO →
 polish.**
+
+---
+
+## Addendum — defects found while shipping the fixes
+
+Two problems were discovered *during* the rebuild work above. Both were silent:
+the build succeeded and the tests passed in each case.
+
+### `base.css` was structurally corrupted
+
+Three blocks were missing a closing brace, so CSS nesting reinterpreted
+everything after them. The compiled stylesheet contained selectors like:
+
+```css
+.tp-btn-secondary:hover:not(:disabled) .tp-badge { … }
+.tp-skeleton::after .tp-prose { … }
+```
+
+In other words `.tp-badge` only matched *inside a hovered secondary button*,
+and the prose, skeleton-shimmer and button-variant rules were all swallowed into
+unrelated parents. Anything rendering those classes was effectively unstyled.
+
+Fixed by restoring the three braces and re-nesting the orphaned rules. Verified
+in the compiled output: `.tp-badge`, `.tp-prose`, `.tp-btn-accent` and
+`.tp-skeleton::after` now emit as flat selectors.
+
+**Worth a CI check.** Nothing currently parses `base.css` structurally. A cheap
+guard would be a brace-balance or PostCSS parse assertion.
+
+### `/emergency`, `/categories` and `/c/:slug` have no React route
+
+`prerender.mjs` emits static HTML for these paths, and the sitemap lists them,
+but `App.tsx` has no matching `<Route>`. A visitor who *navigates* client-side
+to `/c/healthcare` therefore sees the 404 page, while a crawler or a cold page
+load sees real content.
+
+This is the single highest-value remaining task: it is a small addition to
+`App.tsx` plus header/footer links, and it removes an inconsistency where the
+same URL shows two different pages depending on how it was reached.
