@@ -147,6 +147,27 @@ jobs:
           echo "OG images in dist: $(ls dist/og/*.png 2>/dev/null | wc -l)"
           echo "Pre-rendered pages: $(find dist -name index.html | wc -l)"
 
+      # Catches a pre-rendered page pointing og:image at a PNG that was never
+      # written. This happened when generate-og skipped rendering but left the
+      # previous manifest in place: 178 of 181 pages advertised a dead card.
+      - name: Assert no page references a missing og:image
+        run: |
+          cd frontend
+          node scripts/verify-og-images.mjs
+
+      # Proves the build survives a host where the native `sharp` module cannot
+      # load, which is what broke the Vercel deployment. Runs with sharp hidden
+      # and asserts the fallback og:image still resolves.
+      - name: Build with `sharp` unavailable
+        run: |
+          cd frontend
+          mv node_modules/sharp node_modules/.sharp-hidden
+          npm run build
+          mv node_modules/.sharp-hidden node_modules/sharp
+          node scripts/verify-og-images.mjs
+          # Leave dist/ from the normal build, not the degraded one.
+          npm run build
+
   # ─── Docker Container Build Verification ───────────────────────────────────
   docker-build:
     name: Docker Build Check

@@ -54,6 +54,16 @@ const snapshot = existsSync(snapshotPath)
   ? JSON.parse(readFileSync(snapshotPath, 'utf8'))
   : { categories: [], listings: [] };
 
+/**
+ * OG image manifest, written by `generate-og.mjs`. Read here so a route only
+ * claims an image that actually exists. Defaults to `{ home: '/og/home.png' }`
+ * when the file is absent, which is the committed fallback card.
+ */
+const ogManifestPath = resolve(root, 'public/og/manifest.json');
+const ogManifest = existsSync(ogManifestPath)
+  ? JSON.parse(readFileSync(ogManifestPath, 'utf8'))
+  : { home: '/og/home.png' };
+
 /** Escape for HTML text and attribute values. */
 function esc(s) {
   return String(s ?? '')
@@ -73,9 +83,23 @@ const abs = (p) => `${siteUrl}${p === '/' ? '/' : p}`;
  * has exactly one canonical and one og:image instead of duplicates accumulating
  * across builds.
  */
+/**
+ * Resolve the OG image for a route.
+ *
+ * Must read `public/og/manifest.json` rather than constructing the filename:
+ * `generate:og` deliberately reduces the manifest to just `home` when `sharp`
+ * is unavailable, so only that one PNG exists. Building `/og/<key>.png`
+ * unconditionally left 178 of 181 pre-rendered pages pointing `og:image` at a
+ * file that was never written — a 404 on every listing and category share.
+ */
+function ogImageFor(key) {
+  const entry = ogManifest[key] ?? ogManifest.home;
+  return abs(entry ?? '/og/home.png');
+}
+
 function head({ title, description, path, ogKey = 'home', ogType = 'website', jsonLd }) {
   const url = abs(path);
-  const ogImage = abs(`/og/${ogKey}.png`);
+  const ogImage = ogImageFor(ogKey);
   return [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,

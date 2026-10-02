@@ -166,14 +166,48 @@ guarantee.
 
 ---
 
-## Useful commands
+## Share previews are blank or the image is broken
+
+Every WhatsApp/Facebook share needs `og:image`. A card is generated per
+listing and per category at build time by `scripts/generate-og.mjs`.
+
+### Check whether the references resolve
+
+```bash
+cd frontend
+npm run build
+npm run verify:og   # 181/181 og:image references resolve across 181 pages.
+```
+
+This walks the built pages rather than trusting the manifest, so it catches a
+page claiming a card that was never written. It runs in CI.
+
+### Why the build can skip rendering
+
+`generate:og` uses `sharp`, a native module needing Node >= 20.9 and a
+per-platform prebuilt binary. If it cannot load, the script **warns and exits
+0** instead of failing the deployment, and reduces `public/og/manifest.json` to
+just the committed `home.png`. Every page then falls back to that one card.
+
+> **A degraded build is only safe because the manifest is reduced with it.** An
+> earlier version left the previous manifest in place while skipping rendering,
+> so 178 of 181 pre-rendered pages advertised a per-listing PNG that did not
+> exist — a broken image on every listing and category share, while the build
+> still exited 0. If you change this script, keep the manifest and the rendered
+> files in agreement, and let `verify:og` prove it.
+
+If images are missing entirely, check the build log for the
+`[generate:og] sharp is unavailable` warning, and confirm Node is >= 20.9.
+
+---
 
 ```bash
 # frontend
 npm run typecheck          # 0 errors expected
 npm test                   # 55 tests across 17 files
 npm run build              # also generates OG images, sitemap and pre-rendered pages
-npm run check:css          # guards against the brace corruption described above
+npm run verify:og           # assert every og:image in dist/ actually exists
+npm run check:css           # guards against the brace corruption described above
 npm run validate:contrast  # 36/36 AA checks
 npm run sync:directory     # regenerate the offline snapshot
 

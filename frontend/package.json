@@ -22,6 +22,7 @@
     "generate:og": "node scripts/generate-og.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "generate:prerender": "node scripts/prerender.mjs",
+    "verify:og": "node scripts/verify-og-images.mjs",
     "generate:seo": "npm run generate:og && npm run generate:sitemap && npm run generate:prerender",
     "//build": "Order matters. OG images and the sitemap are written into public/, which vite copies into dist/ — so they must exist BEFORE `vite build` runs, or they silently ship missing and every share preview 404s. Only prerender runs afterwards, because it reads the built dist/index.html.",
     "prebuild": "npm run generate:og && npm run generate:sitemap",

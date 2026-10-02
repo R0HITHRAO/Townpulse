@@ -47,19 +47,43 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const outDir = resolve(root, 'public/og');
 
+/**
+ * Reduce the manifest to only the images that genuinely exist on disk.
+ *
+ * Called when rendering is skipped. Leaving a previously-generated manifest in
+ * place is the dangerous option: it still advertises one card per listing and
+ * category, so every share would resolve to a PNG that was never written. That
+ * is precisely the failure this whole fallback exists to prevent.
+ */
+function writeMinimalManifest() {
+  mkdirSync(outDir, { recursive: true });
+  const home = resolve(outDir, 'home.png');
+  writeFileSync(
+    resolve(outDir, 'manifest.json'),
+    `${JSON.stringify(existsSync(home) ? { home: '/og/home.png' } : {}, null, 2)}\n`
+  );
+}
+
 // ── Optional native dependency ───────────────────────────────────────────────
 
 let sharp = null;
 try {
   ({ default: sharp } = await import('sharp'));
 } catch (err) {
+  // Nothing was rendered, so the only image guaranteed to exist is the
+  // committed home card. The manifest MUST be reduced to match reality:
+  // `useSeo` reads it to pick an og:image, and `prerender.mjs` writes it into
+  // each page's <head>. Leaving a stale manifest claiming 179 cards while only
+  // home.png exists points every share at a 404 — the exact failure this
+  // fallback exists to prevent.
+  writeMinimalManifest();
   console.warn(
-    '\n  [generate:og] sharp is unavailable, so share images will not be ' +
+    '\n  [generate:og] sharp is unavailable, so share images were not ' +
       `regenerated (${err?.message ?? err}).`
   );
   console.warn(
-    '  [generate:og] Continuing without it. The committed public/og/home.png ' +
-      'still provides a valid og:image for every page.\n'
+    '  [generate:og] Continuing. The manifest has been reduced to the ' +
+      'committed public/og/home.png, which every page will fall back to.\n'
   );
   process.exit(0);
 }
@@ -377,6 +401,9 @@ const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
 
 const snapshotPath = resolve(root, 'public/data/listings.json');
 if (!existsSync(snapshotPath)) {
+  // Same reasoning as the missing-sharp branch: no cards will be written, so
+  // the manifest must not keep advertising them.
+  writeMinimalManifest();
   console.warn(
     '\n  [generate:og] public/data/listings.json is missing — run ' +
       '`npm run sync:directory` first. Skipping image generation.\n'
@@ -398,7 +425,9 @@ const manifest = {};
 
 /** Queue one card and record its path for the runtime Seo layer. */
 function add(name, svg) {
-  jobs.push({ file: `${name}.png`, svg });
+  // `name` is kept alongside `file` so a card that fails to render can be
+  // removed from the manifest by key.
+  jobs.push({ name, file: `${name}.png`, svg });
   manifest[name] = `/og/${name}.png`;
 }
 
@@ -450,8 +479,8 @@ for (const l of snapshot.listings ?? []) {
 }
 
 // A single unrenderable card must not sink the whole build; it is reported and
-// skipped. The manifest is still written, so the runtime falls back to the
-// homepage card for any image that is missing.
+// skipped. The manifest is filtered to the cards that actually exist, so a
+// partial run never points a share at a PNG that was not written.
 let done = 0;
 const failed = [];
 
@@ -463,15 +492,19 @@ for (const job of jobs) {
     done += 1;
   } catch (err) {
     failed.push(`${job.file}: ${err?.message ?? err}`);
+    delete manifest[job.name];
   }
 }
 
 writeFileSync(resolve(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
 console.log(`\n  ${done} Open Graph images written to public/og/`);
-console.log('  manifest: public/og/manifest.json');
+console.log(`  manifest: public/og/manifest.json (${Object.keys(manifest).length} entries)`);
 if (failed.length > 0) {
-  console.warn(`  ${failed.length} card(s) failed to render and will fall back to home.png:`);
+  console.warn(
+    `  ${failed.length} card(s) failed to render and were removed from the ` +
+      'manifest, so they fall back to home.png:'
+  );
   for (const f of failed.slice(0, 5)) console.warn(`    - ${f}`);
 }
 console.log('');
