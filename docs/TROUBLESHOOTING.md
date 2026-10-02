@@ -51,6 +51,13 @@ now branches on the real cause instead of showing one generic message:
 | **Wrong server response** | Something returned HTML for `/api` | See section above |
 | **Could not load services** | Backend unreachable | See below |
 
+> **These four messages only appear on `/map`.** `MapView.tsx` is the only
+> component that renders the `errorKind` branch. On the home page and listing
+> pages an unreachable API falls back to the bundled snapshot and shows the
+> "saved directory data" banner instead — see the section below. If you expected
+> these messages on the home page and did not get them, that is the fallback
+> working, not a regression.
+
 **Starting the backend:**
 
 ```bash
@@ -116,17 +123,46 @@ npm run sync:directory
 
 ## Design-system classes missing (buttons unstyled)
 
-Already fixed, but if you reintroduce `@layer components` in
-`src/styles/base.css` it will come back: Tailwind v3 tree-shakes its own
-layers and deletes any class it does not find in source. Our styles live in
-`tp-base` / `tp-components` precisely to avoid this. Verify after any CSS
-change:
+Two different causes, both silent.
+
+### 1. An unclosed brace in `base.css` (most likely)
+
+`base.css` once shipped with three unclosed braces. CSS nesting then
+reinterpreted everything after them, so the compiled bundle contained selectors
+like `.tp-btn-secondary:hover .tp-badge` — meaning `.tp-badge` only matched
+inside a hovered secondary button and the affected components rendered
+unstyled. **The build passed and every test passed**; only reading the compiled
+stylesheet revealed it.
+
+```bash
+npm run check:css   # 5/5 stylesheets structurally valid
+```
+
+This runs in CI. It reports how many rules it actually compared, so a file
+showing `0 rules compared` means the depth check had nothing to inspect in that
+file — for `globals.css` that is correct (it only holds `@import` and
+`@tailwind` statements), but it is worth noticing if a rule-heavy file drops to
+zero.
+
+`base.css` currently compares 13 top-level rules inside `@layer
+tp-components`; rules inside `@media` blocks are excluded, since they are
+legitimately deeper.
+
+### 2. Reintroducing `@layer components`
+
+Tailwind v3 tree-shakes its own layers and deletes any class it does not find
+in source. Our styles live in dedicated `tp-base` / `tp-components` layers
+precisely to avoid this. Verify after any CSS change:
 
 ```bash
 npm run build
 # then check a class actually survived, e.g.:
 node -e "const fs=require('fs');const f=fs.readdirSync('dist/assets').find(x=>/^index.*css$/.test(x));const c=fs.readFileSync('dist/assets/'+f,'utf8');console.log('.tp-btn present:',c.includes('.tp-btn'))"
 ```
+
+Note that `.tp-btn` matching is necessary but not sufficient: a misnested rule
+still *contains* the string `.tp-btn`. Use `npm run check:css` for the real
+guarantee.
 
 ---
 
@@ -135,8 +171,9 @@ node -e "const fs=require('fs');const f=fs.readdirSync('dist/assets').find(x=>/^
 ```bash
 # frontend
 npm run typecheck          # 0 errors expected
-npm test                   # 43 tests
-npm run build              # must be warning-free
+npm test                   # 55 tests across 17 files
+npm run build              # also generates OG images, sitemap and pre-rendered pages
+npm run check:css          # guards against the brace corruption described above
 npm run validate:contrast  # 36/36 AA checks
 npm run sync:directory     # regenerate the offline snapshot
 

@@ -57,6 +57,18 @@ const stylesDir = resolve(here, '../src/styles');
 const AT_RULE = /^\s*@/;
 
 /**
+ * Containers whose *direct* children are sibling rules that must share a depth.
+ * A rule inside `@layer tp-components` belongs to a flat list of siblings.
+ */
+const LAYOUT_AT_RULE = /^\s*@(layer|supports|container)\b/;
+
+/**
+ * Containers inside which deeper nesting is legitimate, so their children are
+ * excluded from the depth comparison.
+ */
+const CONTENT_AT_RULE = /^\s*@(media|keyframes|font-face|scope)\b/;
+
+/**
  * Blank out comments and string bodies while preserving line structure, so
  * brace counting is accurate *and* diagnostics keep true line numbers.
  */
@@ -95,9 +107,9 @@ function checkFile(file) {
   const problems = [];
   const rules = [];
   let depth = 0;
-  // Brace depths at which an at-rule was opened. A rule is "top level" when
-  // this stack is empty.
-  const containerStack = [];
+  // Brace depths at which a container at-rule was opened, mapped to the text of
+  // the at-rule that opened it.
+  const containerStack = new Map();
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
@@ -105,22 +117,41 @@ function checkFile(file) {
     const closes = (line.match(/\}/g) || []).length;
     const isContainer = AT_RULE.test(line);
 
-    // Record a selector rule only when no at-rule is currently open around it.
-    // The depth update must come *after* this test so a rule on the same line as
-    // its at-rule container is judged by the outer depth.
-    if (opens > 0 && closes === 0 && !isContainer && containerStack.length === 0) {
+    // A rule is a candidate for comparison when its *nearest* enclosing
+    // container is a layout wrapper (`@layer`, `@supports`) — or when there is
+    // no enclosing container at all and the file is flat.
+    //
+    // Recording rules only when NO container was open silently compared nothing
+    // in `base.css`, whose rules all live inside `@layer tp-components` — so the
+    // check passed vacuously on exactly the file that shipped with the missing
+    // braces. Conversely, requiring a `@layer` would ignore flat files like
+    // `leaflet.css`. Both shapes are covered by testing the nearest ancestor.
+    //
+    // Rules inside `@media`/`@keyframes` are excluded: they are legitimately
+    // deeper and are not siblings of the top-level rules.
+    const openAtRules = [...containerStack.values()];
+    const nearest = openAtRules[openAtRules.length - 1];
+    const nearestIsLayout =
+      nearest === undefined || LAYOUT_AT_RULE.test(nearest);
+    const inContentContainer = openAtRules.some((r) => CONTENT_AT_RULE.test(r));
+
+    if (
+      opens > 0 &&
+      closes === 0 &&
+      !isContainer &&
+      nearestIsLayout &&
+      !inContentContainer
+    ) {
       rules.push({ line: i + 1, depth, text: line.trim().slice(0, 44) });
     }
 
     depth += opens - closes;
 
-    // Track at-rule nesting with an explicit stack keyed on the depth at which
-    // each container was opened. A container stays open until the depth drops
-    // back below its own, which is what correctly closes an `@media {` whose
-    // `}` sits alone on a later line.
-    if (isContainer) containerStack.push(depth);
-    while (containerStack.length && depth < containerStack[containerStack.length - 1]) {
-      containerStack.pop();
+    if (isContainer) {
+      containerStack.set(depth, line.trim());
+      while ([...containerStack.keys()].some((d) => d < depth)) {
+        containerStack.delete([...containerStack.keys()].filter((d) => d < depth)[0]);
+      }
     }
 
     if (depth < 0) {
@@ -131,21 +162,25 @@ function checkFile(file) {
 
   if (depth !== 0) {
     problems.push(`depth ends at ${depth} (expected 0) — unclosed block`);
-    return { file, problems };
+    return { file, problems, compared: rules.length };
   }
 
-  // All recorded rules share one depth by construction, so the assertion is
-  // that they are in fact siblings rather than nested under an unclosed rule.
-  for (const r of rules) {
-    if (r.depth !== rules[0].depth) {
-      problems.push(
-        `line ${r.line}: "${r.text}" sits at depth ${r.depth}, expected ${rules[0].depth} ` +
-          `— a parent block is probably unclosed`
-      );
+  // All recorded rules are direct children of the same kind of container, so the
+  // assertion is that they really are siblings rather than nested under an
+  // unclosed rule.
+  if (rules.length > 1) {
+    const expected = rules[0].depth;
+    for (const r of rules) {
+      if (r.depth !== expected) {
+        problems.push(
+          `line ${r.line}: "${r.text}" sits at depth ${r.depth}, expected ${expected} ` +
+            `— a parent block is probably unclosed`
+        );
+      }
     }
   }
 
-  return { file, problems };
+  return { file, problems, compared: rules.length };
 }
 
 const files = readdirSync(stylesDir).filter((f) => f.endsWith('.css'));
@@ -153,9 +188,13 @@ let failed = 0;
 
 console.log('');
 for (const file of files) {
-  const { problems } = checkFile(file);
+  const { problems, compared } = checkFile(file);
+  // Report how many rules were actually compared. A file reporting 0 is not
+  // "fine" — it means the depth check had nothing to inspect, which is how the
+  // original bug slipped through `base.css` unnoticed.
   if (problems.length === 0) {
-    console.log(`  PASS  ${file}`);
+    const note = compared === 0 ? '  (no rules compared — depth check inactive)' : '';
+    console.log(`  PASS  ${file.padEnd(14)} ${compared} rules compared${note}`);
   } else {
     failed += 1;
     console.log(`  FAIL  ${file}`);
