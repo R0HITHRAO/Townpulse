@@ -111,6 +111,11 @@ Three things worth knowing before you change these:
 - **The `SEO:START` / `SEO:END` markers in `index.html` are load-bearing.** The
   prerenderer splices between them. Deleting them fails the build loudly rather
   than silently shipping duplicate `<title>` and `og:` tags.
+- **Share images are optional at build time.** `generate:og` needs `sharp`, a
+  native module requiring Node >= 20.9 and a per-platform prebuilt binary. If it
+  is unavailable on the build host the script warns and exits 0 rather than
+  failing the deployment — `public/og/home.png` is committed for exactly that
+  case, so every page still has a valid `og:image`.
 
 ### Retargeting to another town
 

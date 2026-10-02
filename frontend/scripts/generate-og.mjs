@@ -3,16 +3,30 @@
  *
  *   npm run generate:og
  *
- * Why this exists
- * ---------------
+ * ── This script must never fail the build ────────────────────────────────────
+ * `sharp` is a native module: it needs a per-platform prebuilt binary
+ * (`@img/sharp-linux-x64`, `-linuxmusl-x64`, …) and Node >= 20.9. A build host
+ * that lacks the right binary — an older Node on a CI runner, a production-mode
+ * install that skipped devDependencies, a platform with no prebuild — cannot
+ * render images. Failing the whole deployment over a share preview would be a
+ * bad trade, so this script degrades instead:
+ *
+ *   - `sharp` unavailable  -> warn, skip, exit 0
+ *   - no directory snapshot-> warn, skip, exit 0
+ *   - one card fails to render -> warn about that card, keep going
+ *
+ * The homepage card is committed to the repo (`public/og/home.png`) precisely so
+ * that a skipped run still leaves a valid `og:image` rather than a 404. See the
+ * note in `index.html`.
+ *
+ * ── What this is for ─────────────────────────────────────────────────────────
  * Every share of a TownPulse link was a bare text URL. The product's whole
  * distribution strategy is "forward this to a neighbour on WhatsApp", and
  * WhatsApp will not render a link card without `og:image`. This script renders
  * one PNG per listing, per category and for the homepage, so each share shows
  * the place name, its category and its verification state.
  *
- * Design constraints
- * ------------------
+ * ── Design constraints ───────────────────────────────────────────────────────
  *  - 1200x630 is the size every major consumer expects (1.91:1).
  *  - Colours are read from `src/styles/tokens.css` rather than hardcoded, so
  *    the cards cannot drift from the "Clay & Teak" identity.
@@ -28,11 +42,27 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import sharp from 'sharp';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const outDir = resolve(root, 'public/og');
+
+// ── Optional native dependency ───────────────────────────────────────────────
+
+let sharp = null;
+try {
+  ({ default: sharp } = await import('sharp'));
+} catch (err) {
+  console.warn(
+    '\n  [generate:og] sharp is unavailable, so share images will not be ' +
+      `regenerated (${err?.message ?? err}).`
+  );
+  console.warn(
+    '  [generate:og] Continuing without it. The committed public/og/home.png ' +
+      'still provides a valid og:image for every page.\n'
+  );
+  process.exit(0);
+}
 
 const W = 1200;
 const H = 630;
@@ -347,8 +377,11 @@ const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
 
 const snapshotPath = resolve(root, 'public/data/listings.json');
 if (!existsSync(snapshotPath)) {
-  console.error('public/data/listings.json is missing — run `npm run sync:directory` first.');
-  process.exit(1);
+  console.warn(
+    '\n  [generate:og] public/data/listings.json is missing — run ' +
+      '`npm run sync:directory` first. Skipping image generation.\n'
+  );
+  process.exit(0);
 }
 const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
 
@@ -416,11 +449,29 @@ for (const l of snapshot.listings ?? []) {
   );
 }
 
+// A single unrenderable card must not sink the whole build; it is reported and
+// skipped. The manifest is still written, so the runtime falls back to the
+// homepage card for any image that is missing.
+let done = 0;
+const failed = [];
+
 for (const job of jobs) {
-  await sharp(Buffer.from(job.svg)).png({ compressionLevel: 9 }).toFile(resolve(outDir, job.file));
+  try {
+    await sharp(Buffer.from(job.svg))
+      .png({ compressionLevel: 9 })
+      .toFile(resolve(outDir, job.file));
+    done += 1;
+  } catch (err) {
+    failed.push(`${job.file}: ${err?.message ?? err}`);
+  }
 }
 
 writeFileSync(resolve(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
-console.log(`\n  ${jobs.length} Open Graph images written to public/og/`);
-console.log('  manifest: public/og/manifest.json\n');
+console.log(`\n  ${done} Open Graph images written to public/og/`);
+console.log('  manifest: public/og/manifest.json');
+if (failed.length > 0) {
+  console.warn(`  ${failed.length} card(s) failed to render and will fall back to home.png:`);
+  for (const f of failed.slice(0, 5)) console.warn(`    - ${f}`);
+}
+console.log('');

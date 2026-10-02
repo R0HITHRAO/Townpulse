@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "//engines": "sharp (used by generate:og) requires Node >= 20.9.0 and needs a per-platform prebuilt binary. Declaring it here stops Vercel picking an older default and failing the build. node:20-alpine in the Dockerfile is >= 20.9, so it is fine as-is; if you pin it lower, sharp will not load.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "vite",
     "preview": "vite preview",

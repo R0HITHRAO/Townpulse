@@ -1,5 +1,9 @@
 {
   "version": 2,
+  "//engines": "sharp, used by the prebuild step that renders OG images, needs Node >= 20.9.0. Pinned explicitly so Vercel does not pick a default older than that — package.json engines is a hint, this is the authoritative setting for the build.",
+  "engines": {
+    "node": "20.x"
+  },
   "//rewrites": "SPA fallback for client-side routes. Vercel checks the filesystem before applying rewrites, so the static pages written by scripts/prerender.mjs (e.g. /listings/osm-n3c45x/index.html) are served as pre-rendered HTML; this rule only catches the routes that have no static file. The negative lookahead is essential: without it /(.*) also matches /api/*, so every API call returned index.html and the browser failed with \"Unexpected token '<' ... is not valid JSON\".",
   "rewrites": [
     {

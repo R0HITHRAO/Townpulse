@@ -132,14 +132,19 @@ jobs:
           cd frontend
           npm run build
 
+      # `dist/og/home.png` is asserted, not just counted, because it is the
+      # fallback og:image for every route and the only OG asset committed to the
+      # repo. generate:og skips rendering entirely when the native `sharp`
+      # module is unavailable, so this file must survive even a degraded run.
       - name: Verify SEO artefacts landed in dist/
         run: |
           cd frontend
           test -f dist/sitemap.xml
           test -f dist/robots.txt
-          test -f dist/og/home.png
           test -f dist/index.html
-          echo "OG images in dist: $(ls dist/og/*.png | wc -l)"
+          test -f dist/og/home.png
+          test -f dist/emergency/index.html
+          echo "OG images in dist: $(ls dist/og/*.png 2>/dev/null | wc -l)"
           echo "Pre-rendered pages: $(find dist -name index.html | wc -l)"
 
   # ─── Docker Container Build Verification ───────────────────────────────────
