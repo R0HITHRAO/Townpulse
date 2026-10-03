@@ -151,6 +151,71 @@ docker compose logs backend      # look for the seeding output
 
 ---
 
+## The error is still there after the fix was merged
+
+Production showing an error that `main` already fixes is almost never a code
+bug. It means the browser is running a **build older than the repository**, for
+one of two stacked reasons:
+
+- **The deploy never happened.** A build that fails leaves the previous
+  deployment serving production, so the site silently stays on an older commit.
+  Both `sharp` on the Vercel image and the `vercel.json` schema errors above
+  broke builds this way.
+- **The service worker keeps serving the old bundle.** `vite-plugin-pwa`
+  precaches `index.html` together with every hashed asset (`globPatterns`
+  includes `html`), so a returning visitor is handed the *precached*
+  `index.html` — which references the **old** hashed JS. The new assets are
+  never requested, and the swap waits on the browser re-fetching `/sw.js`.
+  That is exactly why `vercel.json` pins `Cache-Control: no-cache` on `/sw.js`.
+
+### Identifying the live build from the error text
+
+The `/map` error panel is a version fingerprint, because its wording has
+changed:
+
+| What you see | Build you are on |
+|---|---|
+| **Retry** button, monospace detail `An unexpected network error occurred` | pre-`9fe46fe` — **no offline fallback at all** |
+| **Try again** button, a specific reason ("The backend is not answering…") | current — falls back to the snapshot |
+
+`An unexpected network error occurred` was the API client's
+`response.json().catch(...)` placeholder, reachable only when `/api` answers
+with a body that is not JSON. Seeing it next to **0 results** is therefore
+proof that the deployment predates the snapshot fallback added in `9fe46fe`,
+where the panel wording was replaced (see the section above).
+
+### Recovering
+
+In the browser — evict the stale worker:
+
+1. DevTools → **Application** → **Service Workers** → **Unregister**
+2. **Storage** → **Clear site data**
+3. Hard reload (`Ctrl+Shift+R`)
+
+A private/incognito window avoids this entirely (no service worker at all), so
+it is the quickest way to confirm whether the deploy is actually current.
+
+On Vercel, verify rather than assume:
+
+- **Deployments** → the newest entry must be `Ready`, and its commit must equal
+  `git rev-parse HEAD`.
+- If it is not `Ready`, read the build log and reproduce it locally —
+  `cd frontend && npm run build` must exit `0`.
+- **Settings → Git → Production Branch** must be `main`.
+- **Settings → General** → **Root Directory** `frontend`, **Output Directory**
+  `dist`. With the repository root instead, Vercel never reads
+  `frontend/vercel.json`, so the SPA rewrite and the `/api` exclusion are both
+  absent.
+
+> **A frontend-only Vercel deployment has no backend.** Without `VITE_API_URL`
+> every `/api` call 404s, so the directory always renders from the bundled
+> snapshot and shows the "saved directory data" banner. That is the designed
+> behaviour, not a failure. For a live directory, deploy the backend from
+> [`render.yaml`](../render.yaml) and set `VITE_API_URL` — see
+> [`DEPLOYMENT.md`](../DEPLOYMENT.md).
+
+---
+
 ## The map is empty or shows the wrong place
 
 Fixed: `Map.tsx` defaulted to hardcoded Bengaluru coordinates. It now uses
