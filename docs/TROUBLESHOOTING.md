@@ -159,8 +159,23 @@ one of two stacked reasons:
 
 - **The deploy never happened.** A build that fails leaves the previous
   deployment serving production, so the site silently stays on an older commit.
-  Both `sharp` on the Vercel image and the `vercel.json` schema errors above
-  broke builds this way.
+  This is not hypothetical: `7175df6` added `"//"` comment keys inside the
+  `rewrites[]` and `headers[]` items. Because `vercel.json` is validated with
+  `additionalProperties: false`, that single commit failed the build — and so
+  did the nine commits after it. Production stayed frozen on `9e71760`, the last
+  build that succeeded, for two days. `b4b0915` removed the invalid keys and the
+  build went green again.
+
+  To see this without the dashboard:
+
+  ```bash
+  curl -s "https://api.github.com/repos/R0HITHRAO/Townpulse/deployments?per_page=20" \
+    | grep -E '"sha"|"environment"'   # Vercel creates one per production push
+  ```
+
+  Every entry carries a status: `success` means that commit is servable,
+  `failure` means the build was rejected and the previous deployment kept
+  serving production.
 - **The service worker keeps serving the old bundle.** `vite-plugin-pwa`
   precaches `index.html` together with every hashed asset (`globPatterns`
   includes `html`), so a returning visitor is handed the *precached*
