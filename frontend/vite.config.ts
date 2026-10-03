@@ -9,6 +9,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // The registration is owned by `src/sw.ts`, which adds the update check the
+      // injected snippet lacks. Leaving injection on registers /sw.js twice
+      // (`registerSW.js` in the built HTML *and* main.tsx).
+      injectRegister: null,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'TownPulse — Local Services Finder',
@@ -32,8 +36,40 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // ── The app shell is deliberately NOT precached ────────────────────────
+        // `globPatterns` omits `html`. index.html names the *content-hashed* JS
+        // and CSS of one specific build, so precaching it — and letting Workbox
+        // answer navigations from that precache — means a visitor keeps
+        // replaying the previous deployment's index.html, which then requests
+        // asset filenames the new deployment no longer serves. That is exactly
+        // how a fixed build stayed invisible in production. Only immutable,
+        // hash-named assets are precached; navigations go through the
+        // NetworkFirst route below.
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        // Disables Workbox's NavigationRoute. Otherwise the generated worker
+        // registers `createHandlerBoundToURL('index.html')` *before* every
+        // runtime route, so it answers all navigations from the precache and the
+        // rule below becomes dead code. `null` is a supported value meaning
+        // "no app-shell fallback" (workbox-build types: `string | null`).
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
+          {
+            // The app shell. Network-first, so the first navigation after a
+            // deploy returns the *new* index.html; the cached copy is only used
+            // when the network is unreachable. Matches document requests only
+            // (`request.mode === 'navigate'`), never the /api or /data fetches.
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'townpulse-shell',
+              networkTimeoutSeconds: 4,
+              expiration: {
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
+          },
           {
             // Cache categories and listings for offline exploration
             urlPattern: /^https:\/\/.*\/listings|^http:\/\/localhost:8000\/(listings|categories)|\/api\/(listings|categories)/,

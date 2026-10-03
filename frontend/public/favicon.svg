@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TownPulse">
+  <!--
+    Referenced by `index.html` (`<link rel="icon" type="image/svg+xml">`), which
+    is why it must exist: the tag was there but the file was not, so every page
+    load produced a 404. Inlined styles only — a favicon must not depend on the
+    stylesheet.
+  -->
+  <rect width="32" height="32" rx="7" fill="#9a3412" />
+  <path
+    d="M16 5.25c-3.87 0-7 3.13-7 7 0 5.03 7 14.5 7 14.5s7-9.47 7-14.5c0-3.87-3.13-7-7-7Zm0 9.75a2.75 2.75 0 1 1 0-5.5 2.75 2.75 0 0 1 0 5.5Z"
+    fill="#ffffff"
+  />
+</svg>

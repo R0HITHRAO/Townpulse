@@ -156,6 +156,16 @@ jobs:
           echo "OG images in dist: $(ls dist/og/*.png 2>/dev/null | wc -l)"
           echo "Pre-rendered pages: $(find dist -name index.html | wc -l)"
 
+      # Guards the defect that kept a fixed build invisible in production for
+      # two days: the generated worker precached index.html and registered a
+      # NavigationRoute ahead of every runtime route, so each reload replayed the
+      # previous deployment's shell and the deployed fix never reached anyone.
+      # This reads the EMITTED dist/sw.js — the config alone cannot show it.
+      - name: Assert the service worker cannot pin a stale build
+        run: |
+          cd frontend
+          npm run check:sw
+
       # Catches a pre-rendered page pointing og:image at a PNG that was never
       # written. This happened when generate-og skipped rendering but left the
       # previous manifest in place: 178 of 181 pages advertised a dead card.
