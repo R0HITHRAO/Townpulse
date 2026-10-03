@@ -1,6 +1,71 @@
 # Troubleshooting
 
-The two errors this file is about, and what each one actually meant.
+The errors this file is about, and what each one actually meant.
+
+---
+
+## `should NOT have additional property \`//engines\``
+
+A production deployment was rejected before the build ran:
+
+```
+The `vercel.json` schema validation failed with the following message:
+should NOT have additional property `//engines`
+```
+
+**Root cause:** `frontend/vercel.json` was documented with `"//"`-prefixed keys,
+the JSON-comment convention used elsewhere in this repo (`package.json`). That
+convention is **not** valid in `vercel.json`. The published schema
+(<https://openapi.vercel.sh/vercel.json>) declares:
+
+```json
+{ "type": "object", "additionalProperties": false }
+```
+
+so *any* unrecognised key is a hard error, not a warning.
+
+**There were four violations, and Vercel only named one of them:**
+
+| Key | Verdict |
+|---|---|
+| `"//engines"` (top level) | rejected — this is the one reported |
+| `"engines"` (top level) | rejected — **not a `vercel.json` key at all** |
+| `"//rewrites"` (top level) | rejected |
+| `"//"` inside two `headers[]` entries | rejected — `headers[]` items are `additionalProperties: false` too |
+
+Removing only the reported key would have failed the next deploy on `engines`.
+
+> **`engines` is not part of the `vercel.json` schema** (it is absent from all 44
+> top-level properties), so `{"engines": {"node": "20.x"}}` was invalid for the
+> same reason `"//engines"` was. The Node floor that `sharp` needs
+> (`>= 20.9.0`) belongs in **`package.json`**, which Vercel does honour and
+> where it is already declared — so dropping it from `vercel.json` loses
+> nothing.
+
+> **If you need comments in this config, migrate to `vercel.toml`.** It supports
+> the same properties *and* `#` comments. Only one project configuration file is
+> allowed, though — `vercel.toml`, `vercel.json` or `vercel.ts`, never two — so
+> this means replacing `vercel.json`, not adding a file beside it.
+
+### Checking it before deploying
+
+```bash
+cd frontend
+npm run check:vercel
+```
+
+`scripts/verify-vercel-config.mjs` validates the file against the schema's
+allowed keys, and runs in CI. It also asserts two things the schema cannot
+check: that the SPA rewrite keeps its `/((?!api/).*)` negative lookahead (see
+the section above — losing it breaks every API call), and that `package.json`
+still pins the Node version.
+
+The allowed-key tables are copied from the published schema, which Vercel
+extends over time. To refresh them:
+
+```bash
+npm run check:vercel -- --refresh
+```
 
 ---
 
@@ -208,6 +273,7 @@ npm test                   # 55 tests across 17 files
 npm run build              # also generates OG images, sitemap and pre-rendered pages
 npm run verify:og           # assert every og:image in dist/ actually exists
 npm run check:css           # guards against the brace corruption described above
+npm run check:vercel         # assert vercel.json matches Vercel's schema
 npm run validate:contrast  # 36/36 AA checks
 npm run sync:directory     # regenerate the offline snapshot
 

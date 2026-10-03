@@ -114,6 +114,15 @@ jobs:
           cd frontend
           npm run check:css
 
+      # Catches a pre-vercel.json-schema mistake in the build rather than in
+      # production. `vercel.json` is schema-validated with additionalProperties:
+      # false and Vercel reports only the first violation, so a single "//"
+      # comment key there would otherwise fail each deploy one error at a time.
+      - name: Validate vercel.json against Vercel's schema
+        run: |
+          cd frontend
+          npm run check:vercel
+
       - name: Typecheck Frontend
         run: |
           cd frontend

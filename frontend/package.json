@@ -23,6 +23,8 @@
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "generate:prerender": "node scripts/prerender.mjs",
     "verify:og": "node scripts/verify-og-images.mjs",
+    "check:vercel": "node scripts/verify-vercel-config.mjs",
+    "//check:vercel": "vercel.json is schema-validated by Vercel with additionalProperties:false, so an unrecognised key fails the deployment outright — and Vercel reports only the first violation. A \"//\" comment key there is invalid, unlike in package.json. This fails the build instead of production. Run with -- --refresh to reprint the allowed-key tables from the published schema.",
     "generate:seo": "npm run generate:og && npm run generate:sitemap && npm run generate:prerender",
     "//build": "Order matters. OG images and the sitemap are written into public/, which vite copies into dist/ — so they must exist BEFORE `vite build` runs, or they silently ship missing and every share preview 404s. Only prerender runs afterwards, because it reads the built dist/index.html.",
     "prebuild": "npm run generate:og && npm run generate:sitemap",
