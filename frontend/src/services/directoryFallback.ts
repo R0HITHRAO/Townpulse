@@ -68,6 +68,14 @@ export interface SnapshotSearchResult {
   total_pages: number;
   /** Distance from the search origin, filled in when lat/lng were supplied. */
   distances: Map<string, number>;
+  /**
+   * Whether the snapshot could be read at all. Deliberately separate from
+   * `total`: a radius or search term that legitimately matches nothing yields
+   * `available: true, total: 0`, whereas a snapshot that was never shipped (or
+   * 404s) yields `available: false`. Callers must not present the first case as
+   * a server failure — see MapView.
+   */
+  available: boolean;
 }
 
 /**
@@ -79,7 +87,17 @@ export async function searchSnapshot(
 ): Promise<SnapshotSearchResult> {
   const snapshot = await loadDirectorySnapshot();
   if (!snapshot) {
-    return { items: [], total: 0, page: 1, per_page: 20, total_pages: 1, distances: new Map() };
+    // `available: false` — the snapshot itself could not be read, so there is
+    // genuinely nothing to show and the API error is the whole story.
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 20,
+      total_pages: 1,
+      distances: new Map(),
+      available: false,
+    };
   }
 
   const { q, category_id, lat, lng, radius, verified_only, sort_by, page = 1, per_page = 20 } = params;
@@ -142,6 +160,7 @@ export async function searchSnapshot(
     page,
     per_page,
     total_pages,
+    available: true,
     distances,
   };
 }

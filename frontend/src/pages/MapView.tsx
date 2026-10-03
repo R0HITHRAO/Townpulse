@@ -110,7 +110,13 @@ export const MapView: React.FC = () => {
           radius,
           per_page: 100,
         });
-        if (snapshot.items.length > 0) {
+        // The bundled snapshot is what a static deployment (Vercel, no backend)
+        // actually serves. `available` distinguishes "the snapshot could not be
+        // read" from "the snapshot was read but the filter matched nothing": the
+        // latter is a normal empty result, and reporting it as a server failure
+        // used to tell visitors the backend was broken when they had simply
+        // chosen a radius or search term that matched nothing.
+        if (snapshot.available) {
           setListings(snapshot.items);
           setOfflineData(true);
           setSelectedListing((current) => current ?? snapshot.items[0] ?? null);
