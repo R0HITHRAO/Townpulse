@@ -38,6 +38,15 @@ const PrivacyPolicy = lazy(() =>
   import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy }))
 );
 const Contact = lazy(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
+const Emergency = lazy(() => import('./pages/Emergency').then((m) => ({ default: m.Emergency })));
+const Categories = lazy(() =>
+  import('./pages/Categories').then((m) => ({ default: m.Categories }))
+);
+const CategoryPage = lazy(() =>
+  import('./pages/CategoryPage').then((m) => ({ default: m.CategoryPage }))
+);
+const Suggest = lazy(() => import('./pages/Suggest').then((m) => ({ default: m.Suggest })));
+const Report = lazy(() => import('./pages/Report').then((m) => ({ default: m.Report })));
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 export const App: React.FC = () => {
@@ -59,9 +68,14 @@ export const App: React.FC = () => {
                   >
                     <Routes>
                       <Route path="/" element={<Home />} />
+                      <Route path="/emergency" element={<Emergency />} />
+                      <Route path="/categories" element={<Categories />} />
+                      <Route path="/c/:slug" element={<CategoryPage />} />
                       <Route path="/map" element={<MapView />} />
                       <Route path="/listings/:id" element={<ListingDetail />} />
                       <Route path="/submit" element={<SubmitListing />} />
+                      <Route path="/suggest" element={<Suggest />} />
+                      <Route path="/report" element={<Report />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/about" element={<About />} />

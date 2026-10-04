@@ -119,7 +119,12 @@ export interface Claim {
 
 export interface SearchParams {
   q?: string;
-  category_id?: number;
+  /**
+   * Numeric id from the API, or a slug from the offline snapshot (which
+   * filters by either — see `directoryFallback.searchSnapshot`), or a /c/<slug>
+   * category page filtering against whichever source answers.
+   */
+  category_id?: number | string;
   lat?: number;
   lng?: number;
   radius?: number;
