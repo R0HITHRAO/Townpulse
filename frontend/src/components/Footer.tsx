@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/about" className="link-underline inline-block hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
-                  {t('about')}
+                  {t('nav.about')}
                 </Link>
               </li>
               <li>

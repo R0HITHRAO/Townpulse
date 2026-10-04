@@ -17,6 +17,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "validate:contrast": "node scripts/validate-contrast.mjs",
     "check:css": "node scripts/check-css-structure.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "typecheck": "tsc --noEmit",
     "sync:directory": "node scripts/sync-directory.mjs",
     "generate:og": "node scripts/generate-og.mjs",
