@@ -69,76 +69,77 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl shadow-md dark:shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500/40">
+      <div className="flex flex-col gap-2 rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-2 shadow-[var(--tp-shadow-lg)] transition-all duration-200 focus-within:border-[var(--tp-border-focus)] focus-within:ring-2 focus-within:ring-[var(--tp-primary)]/15 sm:flex-row sm:items-center">
         {/* Search Keyword Input */}
-        <div className="group/field flex-1 flex items-center gap-3 px-3 py-2 w-full">
-          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-blue-600 dark:group-focus-within/field:text-blue-400 group-focus-within/field:scale-110" />
+        <div className="group/field flex min-h-12 w-full flex-1 items-center gap-3 px-3 sm:min-h-14">
+          <Search aria-hidden="true" className="h-5 w-5 flex-shrink-0 text-[var(--tp-text-subtle)] transition-colors group-focus-within/field:text-[var(--tp-primary)]" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('search_placeholder')}
-            className="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm sm:text-base focus:outline-none"
+            className="w-full border-none bg-transparent text-base text-[var(--tp-text)] placeholder:text-[var(--tp-text-subtle)] focus:outline-none"
             aria-label="Search local services"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-slate-800 pt-2 sm:pt-0 sm:pl-3">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2 border-t border-[var(--tp-border)] pt-2 sm:w-auto sm:flex-nowrap sm:justify-end sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
           {/* Open Now Toggle Button */}
           <button
             type="button"
             onClick={handleToggleOpenOnly}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
+            aria-pressed={openOnly}
+            className={`flex min-h-11 items-center gap-1 rounded-xl border px-3 text-xs font-semibold transition-all ${
               openOnly
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'border-[var(--tp-accent)] bg-[var(--tp-accent-soft)] text-[var(--tp-accent-soft-text)]'
+                : 'border-[var(--tp-border)] text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)]'
             }`}
             title="Filter services open right now"
             aria-label="Toggle Open Now filter"
           >
-            <Clock className="w-3.5 h-3.5" />
+            <Clock aria-hidden="true" className="h-3.5 w-3.5" />
             <span>Open Now</span>
           </button>
 
           {/* Radius Selector */}
-          <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+          <label className="flex min-h-11 items-center gap-1 rounded-xl px-2 text-xs text-[var(--tp-text-muted)]">
+            <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
             <select
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="bg-transparent border-none text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer py-1"
+              className="cursor-pointer border-none bg-transparent py-1 text-xs font-semibold text-[var(--tp-text)] focus:outline-none"
               aria-label="Filter search radius"
             >
-              <option value={5000} className="dark:bg-slate-900">5 km</option>
-              <option value={10000} className="dark:bg-slate-900">10 km</option>
-              <option value={25000} className="dark:bg-slate-900">25 km</option>
-              <option value={50000} className="dark:bg-slate-900">50 km</option>
+              <option value={5000}>5 km</option>
+              <option value={10000}>10 km</option>
+              <option value={25000}>25 km</option>
+              <option value={50000}>50 km</option>
             </select>
-          </div>
+          </label>
 
           {/* Current Location Geolocation Trigger */}
           <button
             type="button"
             onClick={handleGetCurrentLocation}
             disabled={locating}
-            className={`p-2 rounded-xl border transition flex items-center gap-1 text-xs font-medium hover:scale-105 active:scale-95 ${
+            className={`flex min-h-11 items-center gap-1 rounded-xl border px-3 text-xs font-medium transition ${
               userLocation
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700'
+                ? 'border-[var(--tp-accent)] bg-[var(--tp-accent-soft)] text-[var(--tp-accent-soft-text)]'
+                : 'border-[var(--tp-border)] text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)]'
             }`}
             title="Use My Current Location"
             aria-label="Use My Current Location"
           >
-            <Navigation className={`w-4 h-4 ${locating ? 'animate-spin text-blue-500' : ''}`} />
+            <Navigation aria-hidden="true" className={`h-4 w-4 ${locating ? 'animate-spin text-[var(--tp-primary)]' : ''}`} />
             <span className="hidden md:inline">{userLocation ? 'Near Me' : 'Locate'}</span>
           </button>
 
           {/* Search Button */}
           <button
             type="submit"
-            className="group/search bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ease-fluid shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md shine-sweep"
+            className="tp-btn tp-btn-primary min-h-11 flex-1 rounded-xl px-5 text-sm sm:flex-none"
           >
-            <Search className="w-4 h-4 transition-transform duration-300 ease-fluid group-hover/search:scale-110 group-hover/search:-rotate-6" />
+            <Search aria-hidden="true" className="h-4 w-4" />
             <span>Search</span>
           </button>
         </div>

@@ -26,20 +26,20 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs backdrop-blur-xs transition-all duration-400 ease-fluid hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-blue-600 shine-sweep">
+    <article className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-5 shadow-[var(--tp-shadow-xs)] transition-all duration-200 hover:-translate-y-1 hover:border-[var(--tp-border-strong)] hover:shadow-[var(--tp-shadow-md)]">
       {/* Gradient accent line that draws in from the left on hover */}
       <span
-        className="accent-line pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400"
+        className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[var(--tp-primary)] to-[var(--tp-accent)]"
         aria-hidden="true"
       />
       <div>
         {/* Optional Thumbnail Image */}
         {listing.image_url && (
-          <div className="w-full h-36 rounded-xl overflow-hidden mb-3.5 bg-slate-100 dark:bg-slate-800 relative">
+          <div className="relative mb-4 h-40 w-full overflow-hidden rounded-xl bg-[var(--tp-surface-2)]">
             <img
               src={listing.image_url}
               alt={listing.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}
@@ -47,7 +47,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {/* Bookmark button on top of thumbnail */}
             <button
               onClick={() => toggleBookmark(listing)}
-              className="absolute right-2 top-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
+              aria-pressed={bookmarked}
+              className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface)]/95 text-[var(--tp-text-subtle)] shadow-[var(--tp-shadow-sm)] transition-colors hover:text-[var(--tp-urgent)]"
               title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
               aria-label="Toggle favorite bookmark"
             >
@@ -62,21 +63,21 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link
             to={`/listings/${listing.id}`}
-            className="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1 flex-1"
+            className="flex-1 font-[var(--tp-font-display)] text-lg font-bold text-[var(--tp-text)] transition-colors group-hover:text-[var(--tp-primary)] line-clamp-1"
           >
             {listing.name}
           </Link>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {listing.verified ? (
               <span
-                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full"
+                className="tp-badge tp-badge-verified"
                 title="Verified by Local Administrator"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>{t('verified')}</span>
               </span>
             ) : (
-              <span className="text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-slate-700">
+              <span className="tp-badge tp-badge-neutral">
                 Community
               </span>
             )}
@@ -84,7 +85,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {!listing.image_url && (
               <button
                 onClick={() => toggleBookmark(listing)}
-                className="p-1 text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
+                aria-pressed={bookmarked}
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--tp-text-subtle)] transition-colors hover:text-[var(--tp-urgent)]"
                 title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
                 aria-label="Toggle favorite bookmark"
               >
@@ -100,49 +102,49 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
           <OpenStatusBadge hours={listing.hours} size="sm" />
           {listing.category && (
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 px-2.5 py-0.5 rounded-lg">
+            <span className="rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--tp-text-muted)]">
               {listing.category.icon} {listing.category.name}
             </span>
           )}
           {distanceText && (
-            <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-100 dark:border-purple-800/60">
-              📍 {distanceText}
+            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface-2)] px-2 py-1 text-xs font-medium text-[var(--tp-text-muted)]">
+              <MapPin aria-hidden="true" className="h-3 w-3" /> {distanceText}
             </span>
           )}
           {listing.average_rating ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800/60">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--tp-warn)]/30 bg-[var(--tp-warn-soft)] px-2 py-1 text-xs font-bold text-[var(--tp-warn-soft-text)]">
+              <Star aria-hidden="true" className="h-3 w-3 fill-current" />
               <span>{listing.average_rating.toFixed(1)}</span>
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">({listing.review_count})</span>
+              <span className="text-xs font-normal">({listing.review_count})</span>
             </span>
           ) : null}
         </div>
 
         {/* Description */}
         {listing.description && (
-          <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3 leading-relaxed">
+          <p className="mb-3 text-sm leading-relaxed text-[var(--tp-text-muted)] line-clamp-2">
             {listing.description}
           </p>
         )}
 
         {/* Address */}
-        <div className="flex items-start gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-          <MapPin className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
+        <div className="mb-4 flex items-start gap-1.5 text-sm text-[var(--tp-text-subtle)]">
+          <MapPin aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[var(--tp-text-subtle)]" />
           <span className="line-clamp-1">{listing.address}</span>
         </div>
       </div>
 
       {/* Action Footer: Contact, WhatsApp & Navigation */}
-      <div className="border-t border-slate-100 dark:border-slate-800 pt-3 mt-auto flex items-center justify-between gap-2">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--tp-border)] pt-3">
         <div className="flex items-center gap-1.5">
           {listing.phone && (
             <a
               href={`tel:${listing.phone}`}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="tp-btn-icon"
               title={`Call ${listing.phone}`}
               aria-label={`Call ${listing.name}`}
             >
-              <Phone className="w-3.5 h-3.5" />
+              <Phone aria-hidden="true" className="h-4 w-4" />
             </a>
           )}
 
@@ -151,21 +153,21 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             href={getWhatsAppShareUrl(listing)}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+            className="tp-btn-icon"
             title="Forward on WhatsApp"
             aria-label="Share listing on WhatsApp"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
+            <MessageCircle aria-hidden="true" className="h-4 w-4" />
           </a>
 
           {listing.email && (
             <a
               href={`mailto:${listing.email}`}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="tp-btn-icon"
               title={`Email ${listing.email}`}
               aria-label={`Email ${listing.name}`}
             >
-              <Mail className="w-3.5 h-3.5" />
+              <Mail aria-hidden="true" className="h-4 w-4" />
             </a>
           )}
 
@@ -174,22 +176,22 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               href={`https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="tp-btn-icon"
               title="Directions"
               aria-label={`Get directions to ${listing.name}`}
             >
-              <Navigation className="w-3.5 h-3.5" />
+              <Navigation aria-hidden="true" className="h-4 w-4" />
             </a>
           )}
         </div>
 
         <Link
           to={`/listings/${listing.id}`}
-          className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-white dark:hover:text-white bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 dark:hover:bg-blue-600 border border-blue-200/60 dark:border-blue-800/60 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs hover:shadow-sm hover:scale-[1.03] active:scale-[0.97]"
+          className="tp-btn tp-btn-secondary min-h-11 gap-1.5 rounded-xl px-3 text-xs"
         >
           View Details →
         </Link>
       </div>
-    </div>
+    </article>
   );
 };

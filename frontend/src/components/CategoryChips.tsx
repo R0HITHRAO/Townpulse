@@ -46,11 +46,12 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
       {/* Left scroll arrow button */}
       {showLeftArrow && (
         <button
+          type="button"
           onClick={() => handleScroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all duration-300 ease-fluid"
+          className="tp-btn-icon absolute left-0 top-1/2 z-10 h-11 w-11 -translate-y-1/2 rounded-full shadow-[var(--tp-shadow-md)]"
           aria-label="Scroll categories left"
         >
-          <ChevronLeft className="w-4 h-4 animate-fade-in" />
+          <ChevronLeft aria-hidden="true" className="h-4 w-4" />
         </button>
       )}
 
@@ -58,20 +59,20 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-1 scroll-smooth"
+        className="flex items-center gap-2 overflow-x-auto py-1 px-1 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {/* All Categories Chip */}
         <button
+          type="button"
+          aria-pressed={selectedCategoryId === null}
           onClick={() => onSelectCategory(null)}
-          className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
+          className={`group/chip flex min-h-11 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-all ${
             selectedCategoryId === null
-              ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-500/20'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'
+              ? 'border-[var(--tp-primary)] bg-[var(--tp-primary)] text-[var(--tp-on-primary)] shadow-[var(--tp-shadow-xs)]'
+              : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-2)]'
           }`}
         >
-          <span className="text-sm leading-none transition-transform duration-300 ease-fluid group-hover/chip:rotate-12 group-hover/chip:scale-125">
-            🌟
-          </span>
+          <span aria-hidden="true" className="text-base leading-none">✳</span>
           <span>{t('all_categories')}</span>
         </button>
 
@@ -81,16 +82,18 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
           return (
             <button
               key={cat.id}
+              type="button"
+              aria-pressed={isSelected}
               onClick={() => onSelectCategory(isSelected ? null : cat.id)}
-              style={{ animationDelay: `${Math.min(index + 1, 8) * 45}ms` }}
-              className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
-                isSelected
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-600 dark:ring-blue-400 ring-offset-1 dark:ring-offset-slate-900'
-                  : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-              }`}
+                style={{ animationDelay: `${Math.min(index + 1, 8) * 45}ms` }}
+                className={`group/chip flex min-h-11 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-all ${
+                  isSelected
+                    ? 'border-[var(--tp-accent)] bg-[var(--tp-accent)] text-[var(--tp-on-accent)] shadow-[var(--tp-shadow-xs)]'
+                    : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-2)]'
+                }`}
             >
-              <span className="text-sm leading-none transition-transform duration-300 ease-fluid group-hover/chip:rotate-12 group-hover/chip:scale-125">
-                {cat.icon || '📍'}
+                <span aria-hidden="true" className="text-base leading-none">
+                  {cat.icon || '📍'}
               </span>
               <span>{cat.name}</span>
             </button>
@@ -101,11 +104,12 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
       {/* Right scroll arrow button */}
       {showRightArrow && (
         <button
+          type="button"
           onClick={() => handleScroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-full shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all duration-300 ease-fluid"
+          className="tp-btn-icon absolute right-0 top-1/2 z-10 h-11 w-11 -translate-y-1/2 rounded-full shadow-[var(--tp-shadow-md)]"
           aria-label="Scroll categories right"
         >
-          <ChevronRight className="w-4 h-4 animate-fade-in" />
+          <ChevronRight aria-hidden="true" className="h-4 w-4" />
         </button>
       )}
     </div>
