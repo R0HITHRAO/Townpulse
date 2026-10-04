@@ -62,7 +62,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
                   <Link
                     to={`/listings/${listing.id}`}
                     onClick={onClose}
-                    className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition truncate block"
+                    className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition truncate block"
                   >
                     {listing.name}
                   </Link>
@@ -87,7 +87,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
                       href={`https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition hover:scale-105"
+                      className="p-2 rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 transition hover:scale-105"
                       title="Directions"
                     >
                       <Navigation className="w-3.5 h-3.5" />

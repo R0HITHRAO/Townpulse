@@ -8,11 +8,13 @@ import { PlusCircle, ArrowLeft, ShieldAlert } from 'lucide-react';
 export const SubmitListing: React.FC = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const auth = isAuthenticated();
 
   const handleSubmit = async (data: Partial<Listing>) => {
+    setStatusError(null);
     if (!auth) {
-      alert('Please log in or register before submitting a listing.');
+      setStatusError('Please log in or register before submitting a listing.');
       navigate('/login');
       return;
     }
@@ -20,10 +22,11 @@ export const SubmitListing: React.FC = () => {
     setSubmitting(true);
     try {
       const created = await api.createListing(data);
-      alert('Service submitted successfully! It is now live in the town directory.');
       navigate(`/listings/${created.id}`);
     } catch (e: any) {
-      alert(e.message || 'Failed to submit listing');
+      // Inline, not `alert()` (AUDIT.md 8.3): blocking dialogs are unstyled,
+      // untranslatable, and hidden from assistive tech in some browsers.
+      setStatusError(e.message || 'Failed to submit listing');
     } finally {
       setSubmitting(false);
     }
@@ -40,7 +43,7 @@ export const SubmitListing: React.FC = () => {
         </Link>
 
         <div className="text-center space-y-2 animate-fade-in-up anim-delay-1">
-          <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 rounded-2xl mb-1 shadow-xs animate-float">
+          <div className="inline-flex p-3 bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 rounded-2xl mb-1 shadow-xs animate-float">
             <PlusCircle className="w-6 h-6" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
@@ -61,6 +64,15 @@ export const SubmitListing: React.FC = () => {
               </Link>
             </div>
           </div>
+        )}
+
+        {statusError && (
+          <p
+            role="alert"
+            className="text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 rounded-xl px-3 py-2"
+          >
+            {statusError}
+          </p>
         )}
 
         <ListingForm onSubmit={handleSubmit} isSubmitting={submitting} />

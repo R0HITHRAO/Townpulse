@@ -75,7 +75,7 @@ export const Login: React.FC = () => {
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-8 sm:p-10 max-w-md w-full border border-gray-200 dark:border-slate-800 shadow-xl space-y-6 animate-rise transition-colors duration-200">
         <div className="text-center space-y-1">
-          <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-2xl mb-1 shadow-xs animate-float">
+          <div className="inline-flex p-3 bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 rounded-2xl mb-1 shadow-xs animate-float">
             <LogIn className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sign in to TownPulse</h1>
@@ -125,7 +125,7 @@ export const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
 
@@ -137,14 +137,14 @@ export const Login: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-xs transition shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 rounded-xl font-semibold text-xs transition shadow-sm hover:scale-[1.02] active:scale-[0.98]"
             >
               {loading ? 'Authenticating...' : 'Sign In'}
             </button>
@@ -162,7 +162,7 @@ export const Login: React.FC = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+919876543210"
-                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                   <p className="text-[11px] text-gray-400 dark:text-slate-400 mt-1">Include country code (e.g. +91)</p>
                 </div>
@@ -170,7 +170,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-xs transition shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 rounded-xl font-semibold text-xs transition shadow-sm hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {loading ? 'Sending OTP...' : 'Send Verification Code'}
                 </button>
@@ -186,7 +186,7 @@ export const Login: React.FC = () => {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     placeholder="123456"
-                    className="w-full px-3.5 py-2 text-center tracking-widest text-lg font-bold rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-3.5 py-2 text-center tracking-widest text-lg font-bold rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
                   />
                   <p className="text-[11px] text-gray-400 dark:text-slate-400 text-center mt-1">
                     Sent to {phone}
@@ -226,7 +226,7 @@ export const Login: React.FC = () => {
 
         <div className="text-center text-xs text-gray-500 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800 pt-4">
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+          <Link to="/register" className="text-orange-600 dark:text-orange-400 font-semibold hover:underline">
             Register here
           </Link>
         </div>

@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={this.handleReload}
-                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Reload Page

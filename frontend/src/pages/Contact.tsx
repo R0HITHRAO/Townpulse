@@ -45,7 +45,7 @@ export const Contact: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
         <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
             Get in touch
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{t('contact')}</h1>
@@ -62,14 +62,14 @@ export const Contact: React.FC = () => {
               href="https://github.com/R0HITHRAO/Townpulse/issues"
               target="_blank"
               rel="noopener noreferrer"
-              className="group h-full block p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-1.5 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700"
+              className="group h-full block p-4 bg-orange-50/60 dark:bg-orange-950/40 rounded-2xl border border-orange-100 dark:border-orange-800/60 space-y-1.5 transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-700"
             >
-              <div className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300 text-sm">
+              <div className="flex items-center gap-2 font-bold text-orange-900 dark:text-orange-300 text-sm">
                 <Github className="w-4 h-4" />
                 Open an issue
                 <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100 transition" />
               </div>
-              <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+              <p className="text-xs text-orange-800/80 dark:text-orange-300/80 leading-relaxed">
                 Report bugs or request features on GitHub. We respond to every issue.
               </p>
             </a>
@@ -115,7 +115,7 @@ export const Contact: React.FC = () => {
                   aria-pressed={topic === tp.id}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-300 ease-fluid hover:scale-105 active:scale-95 ${
                     topic === tp.id
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                      ? 'bg-orange-600 border-orange-600 text-white shadow-xs'
                       : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                   }`}
                 >
@@ -139,7 +139,7 @@ export const Contact: React.FC = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="How should we address you?"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
 
@@ -157,7 +157,7 @@ export const Contact: React.FC = () => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe the bug, idea, or question in detail..."
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none resize-y"
             />
           </div>
 
@@ -168,7 +168,7 @@ export const Contact: React.FC = () => {
             <button
               type="submit"
               disabled={!message.trim()}
-              className="group/send inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ease-fluid hover:scale-105 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0 shine-sweep"
+              className="group/send inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ease-fluid hover:scale-105 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0 shine-sweep"
             >
               <Send className="w-3.5 h-3.5 transition-transform duration-300 ease-fluid group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5" />
               Open GitHub Issue
@@ -179,7 +179,7 @@ export const Contact: React.FC = () => {
         <div className="pt-6 border-t border-gray-100 dark:border-slate-800">
           <Link
             to="/"
-            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
           >
             ← {t('back_home')}
           </Link>

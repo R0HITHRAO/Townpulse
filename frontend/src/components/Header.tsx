@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart, Printer } from 'lucide-react';
+import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart, Printer, Phone, FolderOpen } from 'lucide-react';
 import { isAuthenticated, isAdmin, isBusinessOwner, getCurrentUser } from '../services/auth';
 import { clearStoredTokens, api, Listing, Category } from '../services/api';
 import { ThemeToggle } from './ThemeToggle';
@@ -19,6 +19,17 @@ export const Header: React.FC = () => {
   const [printListings, setPrintListings] = useState<Listing[]>([]);
   const [printCategories, setPrintCategories] = useState<Category[]>([]);
   const { bookmarks } = useBookmarks();
+
+  // Escape closes the mobile menu — a keyboard user must not be trapped
+  // behind an overlay with no way back (AUDIT.md 6.4).
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileMenuOpen]);
 
   const handleOpenPrintable = () => {
     api.getCategories().then(setPrintCategories).catch(console.error);
@@ -46,12 +57,12 @@ export const Header: React.FC = () => {
           <div className="flex justify-between h-16 items-center">
             {/* Logo & Brand */}
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2 rounded-xl shadow-sm transition-all duration-400 ease-fluid group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-md">
+              <div className="bg-gradient-to-tr from-orange-600 to-amber-600 text-white p-2 rounded-xl shadow-sm transition-all duration-400 ease-fluid group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-md">
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">TownPulse</span>
-                <span className="hidden sm:inline-block ml-2 text-[10px] uppercase tracking-wider bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-700/50">
+                <span className="hidden sm:inline-block ml-2 text-[10px] uppercase tracking-wider bg-orange-50 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 font-bold px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-700/50">
                   Community Directory
                 </span>
               </div>
@@ -64,11 +75,23 @@ export const Header: React.FC = () => {
                 aria-current={isActive('/map') ? 'page' : undefined}
                 className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
                   isActive('/map')
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 {t('view_map')}
+              </Link>
+
+              <Link
+                to="/categories"
+                aria-current={isActive('/categories') ? 'page' : undefined}
+                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
+                  isActive('/categories')
+                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                {t('nav.categories')}
               </Link>
 
               <Link
@@ -76,11 +99,27 @@ export const Header: React.FC = () => {
                 aria-current={isActive('/about') ? 'page' : undefined}
                 className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
                   isActive('/about')
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 {t('nav.about')}
+              </Link>
+
+              {/* One tap to emergency numbers from the persistent header on
+                  every page (AUDIT.md 2.2) — the highest-stakes task gets the
+                  most visible treatment. */}
+              <Link
+                to="/emergency"
+                aria-current={isActive('/emergency') ? 'page' : undefined}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ease-fluid ${
+                  isActive('/emergency')
+                    ? 'text-white bg-rose-600 shadow-sm'
+                    : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                }`}
+              >
+                <Phone className="w-3.5 h-3.5" />
+                {t('nav.emergency')}
               </Link>
 
               {/* Saved Places Bookmark Trigger */}
@@ -119,9 +158,9 @@ export const Header: React.FC = () => {
 
               <Link
                 to="/submit"
-                className="group/submit flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200/60 dark:border-blue-800/60 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-fluid hover:scale-[1.03] active:scale-[0.97] shine-sweep"
+                className="group/submit flex items-center gap-1.5 bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/60 border border-orange-200/60 dark:border-orange-800/60 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-fluid hover:scale-[1.03] active:scale-[0.97] shine-sweep"
               >
-                <PlusCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform duration-300 ease-fluid group-hover/submit:rotate-90" />
+                <PlusCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 transition-transform duration-300 ease-fluid group-hover/submit:rotate-90" />
                 <span>{t('submit_listing')}</span>
               </Link>
 
@@ -170,13 +209,13 @@ export const Header: React.FC = () => {
                 <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
                   <Link
                     to="/login"
-                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-sm font-medium transition"
+                    className="text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 px-3 py-2 text-sm font-medium transition"
                   >
                     {t('login')}
                   </Link>
                   <Link
                     to="/register"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold shadow-sm transition hover:scale-105 active:scale-95"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold shadow-sm transition hover:scale-105 active:scale-95"
                   >
                     {t('register')}
                   </Link>
@@ -207,8 +246,10 @@ export const Header: React.FC = () => {
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform duration-300 ease-fluid active:scale-90"
+                className="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform duration-300 ease-fluid active:scale-90"
                 aria-label="Toggle Mobile Menu"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -218,14 +259,35 @@ export const Header: React.FC = () => {
 
         {/* Mobile Drawer Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-drawer-in stagger-children">
+          <div
+            id="mobile-menu"
+            className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-drawer-in stagger-children"
+          >
             <Link
               to="/map"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
             >
-              <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               <span>{t('view_map')}</span>
+            </Link>
+
+            <Link
+              to="/categories"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 py-3 text-sm font-semibold text-slate-800 dark:text-slate-200"
+            >
+              <FolderOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <span>{t('nav.categories')}</span>
+            </Link>
+
+            <Link
+              to="/emergency"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 py-3 text-sm font-bold text-rose-700 dark:text-rose-300"
+            >
+              <Phone className="w-4 h-4" />
+              <span>{t('nav.emergency')}</span>
             </Link>
 
             <button
@@ -253,9 +315,9 @@ export const Header: React.FC = () => {
             <Link
               to="/submit"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-blue-700 dark:text-blue-400"
+              className="flex items-center gap-2 py-2 text-sm font-semibold text-orange-700 dark:text-orange-400"
             >
-              <PlusCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <PlusCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               <span>{t('submit_listing')}</span>
             </Link>
 
@@ -311,7 +373,7 @@ export const Header: React.FC = () => {
                 <Link
                   to="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm"
+                  className="text-center py-2 text-sm font-semibold bg-orange-600 hover:bg-orange-700 text-white rounded-xl shadow-sm"
                 >
                   {t('register')}
                 </Link>

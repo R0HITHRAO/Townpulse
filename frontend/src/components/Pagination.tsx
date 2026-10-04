@@ -74,8 +74,8 @@ export const Pagination: React.FC<PaginationProps> = ({
             aria-current={item === page ? 'page' : undefined}
             className={`${btnBase} ${
               item === page
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xs ring-2 ring-blue-500/25 animate-pop-in'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-700'
+                ? 'bg-orange-600 border-orange-600 text-white shadow-xs ring-2 ring-orange-500/25 animate-pop-in'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:-translate-y-0.5 hover:border-orange-300 dark:hover:border-orange-700'
             }`}
           >
             {item}

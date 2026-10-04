@@ -29,3 +29,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Home: an editorial, place-led entrance that carries the Clay & Teak identity. */
+.tp-home-hero {
+  isolation: isolate;
+  color: #fff9ef;
+  background:
+    radial-gradient(ellipse at 82% 18%, rgb(209 130 64 / 0.22), transparent 32%),
+    radial-gradient(ellipse at 6% 100%, rgb(50 102 73 / 0.3), transparent 42%),
+    linear-gradient(118deg, #251b14 0%, #38271b 54%, #253a2c 100%);
+}
+.tp-home-hero::before,
+.tp-home-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(255 245 224 / 0.11);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.tp-home-hero::before { width: 34rem; height: 34rem; right: -7rem; top: -19rem; }
+.tp-home-hero::after { width: 25rem; height: 25rem; right: -2.5rem; top: -14.5rem; }
+.tp-hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(22rem, .9fr); align-items: center; gap: clamp(2rem, 6vw, 6rem); }
+.tp-hero-copy { padding: 1rem 0 2rem; }
+.tp-hero-eyebrow { color: #f7d7b6; background: rgb(255 244 229 / .08); border: 1px solid rgb(255 244 229 / .18); letter-spacing: .04em; }
+.tp-hero-eyebrow svg { color: #e6a66e; }
+.tp-hero-title { max-width: 13ch; color: #fff9ef !important; font-family: var(--tp-font-display); font-size: clamp(2.8rem, 5.2vw, 5rem); font-weight: 600; letter-spacing: -.045em; line-height: .99; }
+.tp-hero-title em { color: #e9b98a; font-weight: 500; }
+.tp-hero-description { max-width: 34rem; color: rgb(255 249 239 / .76); font-size: clamp(1rem, 1.35vw, 1.15rem); line-height: 1.7; }
+.tp-hero-search { padding: 1.35rem; border: 1px solid rgb(255 249 239 / .16); border-radius: 1.35rem; background: rgb(255 249 239 / .08); box-shadow: 0 24px 70px rgb(0 0 0 / .2); backdrop-filter: blur(18px); }
+.tp-search-caption, .tp-hero-footnote { display: flex; align-items: center; gap: .55rem; }
+.tp-search-caption { margin: 0 0 .8rem .25rem; color: #fff9ef; font-size: .9rem; font-weight: 650; }
+.tp-search-caption svg { color: #e9b98a; }
+.tp-hero-footnote { margin: .85rem .25rem 0; color: rgb(255 249 239 / .7); font-size: .78rem; }
+.tp-hero-footnote svg { color: #a8d1ae; }
+.tp-home-main > div:first-child { box-shadow: 0 14px 40px rgb(59 42 27 / .07); }
+@media (max-width: 767px) {
+  .tp-home-hero { padding-top: 2.7rem; padding-bottom: 4.5rem; }
+  .tp-hero-inner { grid-template-columns: 1fr; gap: 1rem; }
+  .tp-hero-copy { padding: 0; }
+  .tp-hero-title { max-width: 12ch; font-size: clamp(2.6rem, 12vw, 4rem); }
+  .tp-hero-search { padding: .85rem; }
+}

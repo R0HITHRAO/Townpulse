@@ -16,7 +16,7 @@ import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
-import { ShieldCheck, Map as MapIcon, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
+import { ShieldCheck, Map as MapIcon, MapPin, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -87,10 +87,12 @@ export const Home: React.FC = () => {
       .finally(() => setLoading(false));
   }, [searchParams, selectedCategory, verifiedOnly]);
 
-  // Client-side Open Now filtering
+  // Client-side "open now" filtering. Unknown hours (no data, or strings that
+  // cannot be read) are deliberately excluded — an unknown listing is not an
+  // open one, and this filter is how people decide where to walk (AUDIT.md 4.4).
   const displayedListings = useMemo(() => {
     if (!openOnly) return listings;
-    return listings.filter((l) => getOpenStatus(l.hours).isOpen);
+    return listings.filter((l) => getOpenStatus(l.hours).state === 'open');
   }, [listings, openOnly]);
 
   const handleHeroSearch = (filters: {
@@ -129,40 +131,39 @@ export const Home: React.FC = () => {
       <AnimatedBackground />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50/70 via-indigo-50/30 to-slate-50 dark:from-slate-900/90 dark:via-blue-950/80 dark:to-slate-950 text-slate-900 dark:text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-200 z-10">
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="relative inline-flex mb-5 animate-rise anim-delay-1">
+      <section className="tp-home-hero relative overflow-hidden px-4 pb-20 pt-14 transition-colors duration-200 sm:px-6 lg:px-8">
+        <div className="tp-hero-inner relative z-10 mx-auto max-w-7xl">
+          <div className="tp-hero-copy animate-rise anim-delay-1">
+          <div className="relative inline-flex mb-5">
             {/* Soft pulsing halo behind the badge */}
             <span
-              className="absolute inset-0 rounded-full bg-blue-400/30 dark:bg-blue-500/25 blur-xl animate-glow-pulse"
+              className="absolute inset-0 rounded-full bg-orange-400/30 dark:bg-orange-500/25 blur-xl animate-glow-pulse"
               aria-hidden="true"
             />
-            <div className="relative inline-flex items-center gap-2 bg-blue-100/80 dark:bg-white/5 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-white/10 shadow-xs animate-float">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-yellow-300 animate-pulse" />
-              <span>Community-First Local Directory</span>
+            <div className="tp-hero-eyebrow relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Local knowledge, close at hand</span>
             </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight text-slate-900 dark:text-white animate-rise anim-delay-2">
-            Find Essential Services in <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 dark:from-blue-300 dark:via-blue-100 dark:to-indigo-300 gradient-text-flow animate-gradient-x">
-              Your Local Community
-            </span>
+          <h1 className="tp-hero-title mb-4 animate-rise anim-delay-2">
+            Find what you need<br className="hidden sm:inline" /> <em>right around you.</em>
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-600 dark:text-blue-200/80 max-w-2xl mx-auto mb-8 leading-relaxed animate-rise anim-delay-3">
+          <p className="tp-hero-description mb-8 max-w-xl animate-rise anim-delay-3">
             {t('tagline')}
           </p>
-
-          {/* Hero Search Bar */}
-          <div className="animate-rise anim-delay-4">
+          </div>
+          <div className="tp-hero-search animate-rise anim-delay-4">
+            <div className="tp-search-caption"><MapPin className="h-4 w-4" /> Explore services in {town.name}</div>
             <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
+            <div className="tp-hero-footnote"><ShieldCheck className="h-4 w-4" /> Community sourced. Locally relevant.</div>
           </div>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 -mt-4 flex-1 w-full space-y-6 relative z-10">
+      <main className="tp-home-main max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 -mt-8 flex-1 w-full space-y-6 relative z-10">
         {/* Refined Filter & Category Bar */}
         <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors duration-200 animate-fade-in-up anim-delay-5">
           {/* Top Row: Full width Category Slider */}
@@ -187,7 +188,7 @@ export const Home: React.FC = () => {
               </span>
 
               {selectedCategoryObj && (
-                <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-lg font-medium border border-blue-200 dark:border-blue-800">
+                <span className="inline-flex items-center gap-1 bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 px-2.5 py-1 rounded-lg font-medium border border-orange-200 dark:border-orange-800">
                   <span>{selectedCategoryObj.icon}</span>
                   <span>{selectedCategoryObj.name}</span>
                 </span>
@@ -229,7 +230,7 @@ export const Home: React.FC = () => {
                 }`}
               >
                 <Clock className={`w-3.5 h-3.5 ${openOnly ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-400'}`} />
-                <span>Open Now</span>
+                <span>{t('home.openNow', { defaultValue: 'Open now' })}</span>
               </button>
 
               <button
@@ -258,7 +259,7 @@ export const Home: React.FC = () => {
                 to="/map"
                 className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
               >
-                <MapIcon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <MapIcon className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 <span>Map View</span>
               </Link>
             </div>
@@ -279,7 +280,7 @@ export const Home: React.FC = () => {
                 <span>Local Services</span>
                 <span
                   key={totalCount}
-                  className="text-xs bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
+                  className="text-xs bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
                 >
                   {totalCount} Found
                 </span>
@@ -295,7 +296,7 @@ export const Home: React.FC = () => {
                 </p>
                 <Link
                   to="/submit"
-                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
                 >
                   <PlusCircle className="w-4 h-4" />
                   Submit a Service in this Area
@@ -339,7 +340,7 @@ export const Home: React.FC = () => {
                 <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Location Overview
                 </h3>
-                <Link to="/map" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                <Link to="/map" className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline">
                   Full Screen Map →
                 </Link>
               </div>

@@ -69,7 +69,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <MessageSquare className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             <span>Community Reviews & Ratings</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -114,7 +114,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Write a helpful review for your neighbors (service quality, cleanliness, speed)..."
                 rows={3}
-                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
 
@@ -135,7 +135,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{submitting ? 'Submitting...' : 'Post Review'}</span>
@@ -145,7 +145,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
         ) : (
           <div className="text-center py-3 text-xs text-slate-600 dark:text-slate-400">
             <span>Please </span>
-            <Link to="/login" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+            <Link to="/login" className="text-orange-600 dark:text-orange-400 font-bold hover:underline">
               Log in
             </Link>
             <span> to leave a review and star rating.</span>
@@ -173,7 +173,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-700 dark:text-orange-300 font-bold text-xs flex items-center justify-center">
                       {(review.user?.name || 'User')[0].toUpperCase()}
                     </div>
                     <div>

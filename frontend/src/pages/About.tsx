@@ -1,71 +1,136 @@
 import React from 'react';
-import { ShieldCheck, Database, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Reveal } from '../components/Reveal';
+import { CheckCircle2, Database, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
+import { useSeo } from '../hooks/useSeo';
+import { site, town } from '../config/site';
 
+/**
+ * About & verification.
+ *
+ * AUDIT.md 4.1 (P0): "verified" was asserted with no visible process. This
+ * page is that process, in the order a sceptical reader asks the questions:
+ * what a badge means and who checked, where the data came from, and how to
+ * correct it. The footer's verification link points at #how-we-verify.
+ */
 export const About: React.FC = () => {
+  const { t } = useTranslation();
+
+  useSeo({
+    title: t('seo.aboutTitle', { town: town.name }),
+    description: t('seo.aboutDescription', { town: town.name }),
+    path: '/about',
+    ogKey: 'about',
+  });
+
+  const steps = ['verifyStep1', 'verifyStep2', 'verifyStep3', 'verifyStep4'] as const;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
-        <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Mission</span>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">About TownPulse</h1>
+        <header className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
+          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+            {t('nav.about')}
+          </span>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+            {t('about.title')}
+          </h1>
           <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-            TownPulse is open-source community infrastructure designed specifically for small towns, rural municipalities, and local volunteer networks.
+            {t('about.subtitle', { town: town.name, region: town.region })}
           </p>
-        </div>
+        </header>
 
-        <div className="space-y-6 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Why TownPulse Exists</h2>
-          <p>
-            Global search engines and map monopolies are built for mega-cities with commercial advertising budgets. In small towns, critical community infrastructure — primary health centres, emergency animal shelters, grain mills, and local plumbers — are either missing, out-of-date, or claimed by fake listings.
+        <section className="space-y-3 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            {t('about.missionHeading')}
+          </h2>
+          <p>{t('about.missionBody')}</p>
+        </section>
+
+        {/* The anchor the footer's verification link points at. */}
+        <section id="how-we-verify" className="space-y-4 scroll-mt-24">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            {t('about.howWeVerifyHeading')}
+          </h2>
+          <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+            {t('about.howWeVerifyIntro')}
           </p>
-          <p>
-            TownPulse provides a verified, community-governed directory that gives power back to local communities, ensuring that contact info, hours, and locations remain accurate and trustworthy.
-          </p>
-        </div>
+          <ol className="space-y-3">
+            {steps.map((key) => (
+              <li
+                key={key}
+                className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-slate-300"
+              >
+                <CheckCircle2
+                  className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0"
+                  aria-hidden="true"
+                />
+                <span>{t(`about.${key}`)}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-slate-800">
-          <Reveal
-            className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-800/60 space-y-2"
-            direction="up"
-          >
-            <div className="flex items-center gap-2 font-bold text-blue-900 dark:text-blue-300 text-sm">
-              <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              Verified Local Trust
-            </div>
-            <p className="text-xs text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
-              Businesses and civic services undergo admin verification with phone OTP and registration proof.
-            </p>
-          </Reveal>
+        <section className="space-y-3 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Database className="w-4 h-4 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+            {t('about.sourcesHeading')}
+          </h2>
+          <p>{t('about.sourcesBody')}</p>
+        </section>
 
-          <Reveal
-            className="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800/60 space-y-2"
-            direction="up"
-            delay={90}
-          >
-            <div className="flex items-center gap-2 font-bold text-emerald-900 dark:text-emerald-300 text-sm">
-              <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Open Data Ownership
-            </div>
-            <p className="text-xs text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
-              Town data belongs to the community. Exportable datasets in open CSV formats for disaster relief and civic planning.
-            </p>
-          </Reveal>
-        </div>
+        <section className="space-y-3 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <ShieldCheck
+              className="w-4 h-4 text-orange-600 dark:text-orange-400"
+              aria-hidden="true"
+            />
+            {t('about.correctionsHeading')}
+          </h2>
+          <p>{t('about.correctionsBody')}</p>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Link
+              to="/report"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold shadow-sm transition hover:scale-[1.03] active:scale-[0.97]"
+            >
+              {t('report.title')}
+            </Link>
+            <Link
+              to="/suggest"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              {t('nav.suggest')}
+            </Link>
+          </div>
+        </section>
 
-        <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
-          <Link to="/" className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-            ← Back to Directory
-          </Link>
-          <Link
-            to="/submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition hover:scale-105 active:scale-95"
+        <section className="space-y-3 text-sm text-gray-700 dark:text-slate-300 leading-relaxed">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            {t('about.privacyHeading')}
+          </h2>
+          <p>{t('about.privacyBody')}</p>
+        </section>
+
+        <footer className="pt-6 border-t border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <a
+            href={`mailto:${site.contactEmail}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
           >
-            Submit a Listing <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+            <Mail className="w-3.5 h-3.5" />
+            {t('about.contactUs')}
+          </a>
+          <a
+            href={site.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition"
+          >
+            {t('about.openSource')}
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </footer>
       </div>
     </div>
   );
 };
+

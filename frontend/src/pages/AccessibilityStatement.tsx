@@ -14,7 +14,7 @@ export const AccessibilityStatement: React.FC = () => {
         </Link>
 
         <div className="flex items-center gap-3 border-b border-gray-100 dark:border-slate-800 pb-4">
-          <div className="bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 p-3 rounded-2xl animate-float shadow-xs">
+          <div className="bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 p-3 rounded-2xl animate-float shadow-xs">
             <Accessibility className="w-6 h-6" />
           </div>
           <div>
@@ -54,7 +54,7 @@ export const AccessibilityStatement: React.FC = () => {
 
           <h2 className="text-base font-bold text-gray-900 dark:text-white pt-4">Feedback & Assistance</h2>
           <p className="text-xs text-gray-600 dark:text-slate-400">
-            If you encounter any accessibility barriers on TownPulse, please email our maintainers at <a href="mailto:accessibility@townpulse.dev" className="text-blue-600 dark:text-blue-400 underline">accessibility@townpulse.dev</a>.
+            If you encounter any accessibility barriers on TownPulse, please email our maintainers at <a href="mailto:accessibility@townpulse.dev" className="text-orange-600 dark:text-orange-400 underline">accessibility@townpulse.dev</a>.
           </p>
         </div>
       </div>

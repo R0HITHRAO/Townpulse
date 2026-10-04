@@ -133,9 +133,11 @@ export const MapView: React.FC = () => {
   }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
 
   // Filter listings by open status if enabled
+  // "Open now" excludes unknown hours — an unreadable listing is not an open
+  // one (AUDIT.md 4.4), and the map is exactly where a wrong guess costs a walk.
   const displayedListings = useMemo(() => {
     if (!openOnly) return listings;
-    return listings.filter((l) => getOpenStatus(l.hours).isOpen);
+    return listings.filter((l) => getOpenStatus(l.hours).state === 'open');
   }, [listings, openOnly]);
 
   return (
@@ -150,7 +152,7 @@ export const MapView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search verified services..."
-            className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
           />
           {searchQuery && (
             <button
@@ -208,7 +210,7 @@ export const MapView: React.FC = () => {
               onClick={() => setLayoutMode('split')}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                 layoutMode === 'split'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Split View (List + Compact Map)"
@@ -221,7 +223,7 @@ export const MapView: React.FC = () => {
               onClick={() => setLayoutMode('map')}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                 layoutMode === 'map'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Map View"
@@ -234,7 +236,7 @@ export const MapView: React.FC = () => {
               onClick={() => setLayoutMode('list')}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                 layoutMode === 'list'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
               title="Directory List View"
@@ -260,12 +262,12 @@ export const MapView: React.FC = () => {
             <div className={`flex-1 space-y-4 ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
               <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
                   <span>Town Directory Results</span>
                 </span>
                 <span
                   key={displayedListings.length}
-                  className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
+                  className="bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
                 >
                   {displayedListings.length} Found
                 </span>
@@ -307,7 +309,7 @@ export const MapView: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setRetryKey((key) => key + 1)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-orange-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Try again
@@ -363,7 +365,7 @@ export const MapView: React.FC = () => {
                         onClick={() => setSelectedListing(l)}
                         className={`h-full cursor-pointer transition-all duration-300 ease-fluid ${
                           selectedListing?.id === l.id && layoutMode === 'split'
-                            ? 'ring-2 ring-blue-500 rounded-2xl scale-[1.01]'
+                            ? 'ring-2 ring-orange-500 rounded-2xl scale-[1.01]'
                             : ''
                         }`}
                       >
@@ -394,7 +396,7 @@ export const MapView: React.FC = () => {
                     <span>Quick Map</span>
                     <button
                       onClick={() => setLayoutMode('map')}
-                      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                      className="text-orange-600 dark:text-orange-400 hover:underline font-semibold"
                     >
                       Expand Map ↗
                     </button>

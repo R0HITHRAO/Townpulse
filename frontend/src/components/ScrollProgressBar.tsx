@@ -43,7 +43,7 @@ export const ScrollProgressBar: React.FC = () => {
       aria-hidden="true"
     >
       <div
-        className="h-full w-full origin-left bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 shadow-[0_0_12px_rgba(59,130,246,0.65)] transition-transform duration-150 ease-out"
+        className="h-full w-full origin-left bg-gradient-to-r from-orange-500 via-indigo-500 to-emerald-400 shadow-[0_0_12px_rgba(59,130,246,0.65)] transition-transform duration-150 ease-out"
         style={{ transform: `scaleX(${progress})` }}
       />
     </div>

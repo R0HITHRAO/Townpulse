@@ -26,10 +26,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs backdrop-blur-xs transition-all duration-400 ease-fluid hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-blue-600 shine-sweep">
+    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs backdrop-blur-xs transition-all duration-400 ease-fluid hover:-translate-y-1.5 hover:border-orange-400 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-orange-600 shine-sweep">
       {/* Gradient accent line that draws in from the left on hover */}
       <span
-        className="accent-line pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400"
+        className="accent-line pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-400"
         aria-hidden="true"
       />
       <div>
@@ -47,9 +47,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {/* Bookmark button on top of thumbnail */}
             <button
               onClick={() => toggleBookmark(listing)}
-              className="absolute right-2 top-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
+              className="absolute right-2 top-2 z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-md text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
               title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
-              aria-label="Toggle favorite bookmark"
+              aria-label={
+                bookmarked
+                  ? `Remove ${listing.name} from saved places`
+                  : `Save ${listing.name} to saved places`
+              }
+              aria-pressed={bookmarked}
             >
               <Heart
                 className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500 animate-heartbeat' : ''}`}
@@ -62,7 +67,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         <div className="flex items-start justify-between gap-2 mb-2">
           <Link
             to={`/listings/${listing.id}`}
-            className="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition line-clamp-1 flex-1"
+            className="text-base font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition line-clamp-1 flex-1 after:absolute after:inset-0 after:content-['']"
           >
             {listing.name}
           </Link>
@@ -84,9 +89,14 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             {!listing.image_url && (
               <button
                 onClick={() => toggleBookmark(listing)}
-                className="p-1 text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
+                className="relative z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-rose-500 transition duration-300 ease-fluid hover:scale-110"
                 title={bookmarked ? 'Remove from saved' : 'Save to favorites'}
-                aria-label="Toggle favorite bookmark"
+                aria-label={
+                  bookmarked
+                    ? `Remove ${listing.name} from saved places`
+                    : `Save ${listing.name} to saved places`
+                }
+                aria-pressed={bookmarked}
               >
                 <Heart
                   className={`w-4 h-4 ${bookmarked ? 'fill-rose-500 text-rose-500 animate-heartbeat' : ''}`}
@@ -99,11 +109,20 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
         {/* Category, Open Status, Distance, and Rating Pills */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2.5">
           <OpenStatusBadge hours={listing.hours} size="sm" />
-          {listing.category && (
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-800/60 px-2.5 py-0.5 rounded-lg">
-              {listing.category.icon} {listing.category.name}
-            </span>
-          )}
+          {listing.category &&
+            (listing.category.slug ? (
+              <Link
+                to={`/c/${listing.category.slug}`}
+                className="relative z-10 text-xs font-semibold text-orange-700 dark:text-orange-300 bg-orange-50/90 dark:bg-orange-950/60 border border-orange-100 dark:border-orange-800/60 px-2.5 py-0.5 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/60 transition"
+                title={`Browse ${listing.category.name}`}
+              >
+                {listing.category.icon} {listing.category.name}
+              </Link>
+            ) : (
+              <span className="text-xs font-semibold text-orange-700 dark:text-orange-300 bg-orange-50/90 dark:bg-orange-950/60 border border-orange-100 dark:border-orange-800/60 px-2.5 py-0.5 rounded-lg">
+                {listing.category.icon} {listing.category.name}
+              </span>
+            ))}
           {distanceText && (
             <span className="text-[11px] font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-100 dark:border-purple-800/60">
               📍 {distanceText}
@@ -138,7 +157,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           {listing.phone && (
             <a
               href={`tel:${listing.phone}`}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="relative z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
               title={`Call ${listing.phone}`}
               aria-label={`Call ${listing.name}`}
             >
@@ -151,7 +170,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
             href={getWhatsAppShareUrl(listing)}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+            className="relative z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
             title="Forward on WhatsApp"
             aria-label="Share listing on WhatsApp"
           >
@@ -161,7 +180,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           {listing.email && (
             <a
               href={`mailto:${listing.email}`}
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="relative z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/60 text-slate-600 dark:text-slate-300 hover:text-orange-700 dark:hover:text-orange-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
               title={`Email ${listing.email}`}
               aria-label={`Email ${listing.name}`}
             >
@@ -174,7 +193,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
               href={`https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
+              className="relative z-10 inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/60 text-slate-600 dark:text-slate-300 hover:text-orange-700 dark:hover:text-orange-400 border border-slate-200/80 dark:border-slate-700/80 transition hover:scale-105 active:scale-95"
               title="Directions"
               aria-label={`Get directions to ${listing.name}`}
             >
@@ -183,12 +202,12 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
           )}
         </div>
 
-        <Link
-          to={`/listings/${listing.id}`}
-          className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-white dark:hover:text-white bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-600 dark:hover:bg-blue-600 border border-blue-200/60 dark:border-blue-800/60 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs hover:shadow-sm hover:scale-[1.03] active:scale-[0.97]"
+        <span
+          aria-hidden="true"
+          className="pointer-events-none text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/60 border border-orange-200/60 dark:border-orange-800/60 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs group-hover:bg-orange-600 group-hover:text-white group-hover:scale-[1.03]"
         >
-          View Details →
-        </Link>
+          {t('listing.viewDetails')} →
+        </span>
       </div>
     </div>
   );

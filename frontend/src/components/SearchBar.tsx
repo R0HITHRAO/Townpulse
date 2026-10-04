@@ -69,10 +69,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl shadow-md dark:shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500/40">
+      <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl shadow-md dark:shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-orange-500/40">
         {/* Search Keyword Input */}
         <div className="group/field flex-1 flex items-center gap-3 px-3 py-2 w-full">
-          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-blue-600 dark:group-focus-within/field:text-blue-400 group-focus-within/field:scale-110" />
+          <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-orange-600 dark:group-focus-within/field:text-orange-400 group-focus-within/field:scale-110" />
           <input
             type="text"
             value={query}
@@ -129,14 +129,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             title="Use My Current Location"
             aria-label="Use My Current Location"
           >
-            <Navigation className={`w-4 h-4 ${locating ? 'animate-spin text-blue-500' : ''}`} />
+            <Navigation className={`w-4 h-4 ${locating ? 'animate-spin text-orange-500' : ''}`} />
             <span className="hidden md:inline">{userLocation ? 'Near Me' : 'Locate'}</span>
           </button>
 
           {/* Search Button */}
           <button
             type="submit"
-            className="group/search bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ease-fluid shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md shine-sweep"
+            className="group/search bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ease-fluid shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md shine-sweep"
           >
             <Search className="w-4 h-4 transition-transform duration-300 ease-fluid group-hover/search:scale-110 group-hover/search:-rotate-6" />
             <span>Search</span>

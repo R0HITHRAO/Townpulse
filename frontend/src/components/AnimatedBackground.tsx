@@ -132,7 +132,7 @@ export const AnimatedBackground: React.FC = () => {
 
       {/* Diagonal light beam that sweeps slowly across the page */}
       <div
-        className="absolute -top-1/2 left-[-25%] h-[200%] w-[40%] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-blue-400/10 animate-beam will-change-transform"
+        className="absolute -top-1/2 left-[-25%] h-[200%] w-[40%] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-orange-400/10 animate-beam will-change-transform"
         style={{ animationDelay: '1.5s' }}
       />
 

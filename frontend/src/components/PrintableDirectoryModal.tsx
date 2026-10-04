@@ -161,7 +161,7 @@ export const PrintableDirectoryModal: React.FC<PrintableDirectoryModalProps> = (
                       <h3 className="font-bold text-sm text-slate-900 dark:text-white print:text-black">
                         {item.name}
                       </h3>
-                      <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 print:text-slate-700">
+                      <span className="text-[11px] font-semibold text-orange-600 dark:text-orange-400 print:text-slate-700">
                         {item.category?.name || 'Local Service'}
                       </span>
                     </div>

@@ -11,12 +11,12 @@ export const NotFound: React.FC = () => {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-16">
       <div className="max-w-lg w-full text-center space-y-6 animate-rise">
-        <div className="inline-flex bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 p-4 rounded-3xl border border-blue-100 dark:border-blue-900/60 animate-float">
+        <div className="inline-flex bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 p-4 rounded-3xl border border-orange-100 dark:border-orange-900/60 animate-float">
           <Compass className="w-10 h-10" />
         </div>
 
         <div className="space-y-2">
-          <p className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-300 dark:to-indigo-300 gradient-text-flow animate-gradient-x">
+          <p className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-indigo-600 dark:from-orange-300 dark:to-indigo-300 gradient-text-flow animate-gradient-x">
             404
           </p>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">
@@ -30,7 +30,7 @@ export const NotFound: React.FC = () => {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
           >
             <MapPin className="w-4 h-4" />
             {t('back_home')}
@@ -39,7 +39,7 @@ export const NotFound: React.FC = () => {
             to="/map"
             className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition"
           >
-            <MapIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <MapIcon className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             {t('view_map')}
           </Link>
           <Link

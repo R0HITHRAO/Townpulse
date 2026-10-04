@@ -10,7 +10,7 @@ const SECTIONS: {
   body: string[];
 }[] = [
   {
-    icon: <Database className="w-4 h-4 text-blue-600 dark:text-blue-400" />,
+    icon: <Database className="w-4 h-4 text-orange-600 dark:text-orange-400" />,
     title: 'Information we collect',
     body: [
       'Listings, reviews, questions, and reports you voluntarily submit. Contact details such as email or phone are only collected when you register, claim a business, or submit a listing.',
@@ -66,7 +66,7 @@ export const PrivacyPolicy: React.FC = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-3xl mx-auto space-y-8 bg-white dark:bg-slate-900/90 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-gray-200 dark:border-slate-800 shadow-sm animate-rise transition-colors duration-200">
         <div className="space-y-2 border-b border-gray-100 dark:border-slate-800 pb-6">
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
             Legal
           </span>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{t('privacy')}</h1>
@@ -98,13 +98,13 @@ export const PrivacyPolicy: React.FC = () => {
         <div className="pt-6 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
           <Link
             to="/"
-            className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
           >
             ← {t('back_home')}
           </Link>
           <Link
             to="/contact"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition hover:scale-105 active:scale-95"
           >
             {t('contact')}
           </Link>

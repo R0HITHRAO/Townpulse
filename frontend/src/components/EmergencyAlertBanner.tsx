@@ -39,7 +39,7 @@ export const EmergencyAlertBanner: React.FC = () => {
         const severityStyles = {
           critical: 'bg-rose-600 text-white border-rose-700',
           warning: 'bg-amber-500 text-slate-950 border-amber-600',
-          info: 'bg-blue-600 text-white border-blue-700',
+          info: 'bg-orange-600 text-white border-orange-700',
         };
 
         const Icon =

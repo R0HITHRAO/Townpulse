@@ -28,7 +28,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ className = '', showLa
         />
         {/* Moon Icon */}
         <Moon
-          className={`w-4 h-4 text-blue-400 transform transition-all duration-300 ${
+          className={`w-4 h-4 text-orange-400 transform transition-all duration-300 ${
             isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0 absolute'
           }`}
         />

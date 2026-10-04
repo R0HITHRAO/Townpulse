@@ -40,7 +40,7 @@ export const BusinessDashboard: React.FC = () => {
 
           <Link
             to="/submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 hover:scale-105 active:scale-95"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 hover:scale-105 active:scale-95"
           >
             <Plus className="w-4 h-4" /> Add Another Business
           </Link>
@@ -49,7 +49,7 @@ export const BusinessDashboard: React.FC = () => {
         {/* Owned Listings Section */}
         <div className="space-y-4">
           <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <Building className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             My Managed Services ({listings.length})
           </h2>
 
@@ -65,7 +65,7 @@ export const BusinessDashboard: React.FC = () => {
               </p>
               <Link
                 to="/"
-                className="inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline pt-2"
+                className="inline-block text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline pt-2"
               >
                 Browse directory to claim your listing →
               </Link>
@@ -93,7 +93,7 @@ export const BusinessDashboard: React.FC = () => {
                     </span>
                     <Link
                       to={`/listings/${l.id}`}
-                      className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                      className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline"
                     >
                       View Public Page →
                     </Link>

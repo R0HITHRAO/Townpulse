@@ -15,7 +15,7 @@ const mockListing: Listing = {
   status: 'approved',
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
-  category: { id: 1, name: 'Healthcare', icon: '🏥' },
+  category: { id: 1, name: 'Healthcare', icon: '🏥', slug: 'healthcare' },
 };
 
 describe('ListingCard Component', () => {
@@ -56,5 +56,30 @@ describe('ListingCard Component', () => {
 
     const callLink = screen.getByLabelText('Call Town Central Clinic');
     expect(callLink).toHaveAttribute('href', 'tel:+919845012345');
+  });
+
+  it('links the category chip to its shareable category page', () => {
+    render(
+      <BookmarkProvider>
+        <BrowserRouter>
+          <ListingCard listing={mockListing} />
+        </BrowserRouter>
+      </BookmarkProvider>
+    );
+
+    expect(screen.getByText(/Healthcare/).closest('a')).toHaveAttribute('href', '/c/healthcare');
+  });
+
+  it('exposes bookmark state through aria-pressed and a state-specific label', () => {
+    render(
+      <BookmarkProvider>
+        <BrowserRouter>
+          <ListingCard listing={mockListing} />
+        </BrowserRouter>
+      </BookmarkProvider>
+    );
+
+    const bookmark = screen.getByLabelText(/saved places/i);
+    expect(bookmark).toHaveAttribute('aria-pressed', 'false');
   });
 });

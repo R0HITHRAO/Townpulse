@@ -37,7 +37,7 @@ const categoryColors: Record<string, string> = {
 function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
   const iconChar = listing.category?.icon || '📍';
   const categoryName = listing.category?.name || '';
-  const borderColor = categoryColors[categoryName] || '#2563eb';
+  const borderColor = categoryColors[categoryName] || '#ea580c';
 
   const html = `
     <div class="townpulse-pin-badge ${isSelected ? 'selected' : ''}" style="border-color: ${borderColor};">
@@ -200,7 +200,7 @@ export const Map: React.FC<MapProps> = ({
                   <div className="flex items-start justify-between gap-1.5">
                     <Link
                       to={`/listings/${l.id}`}
-                      className="font-extrabold text-xs text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition leading-tight line-clamp-1"
+                      className="font-extrabold text-xs text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition leading-tight line-clamp-1"
                     >
                       {l.name}
                     </Link>
@@ -213,7 +213,7 @@ export const Map: React.FC<MapProps> = ({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <OpenStatusBadge hours={l.hours} size="sm" />
                     {l.category && (
-                      <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">
+                      <span className="text-[10px] font-semibold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 px-1.5 py-0.5 rounded border border-orange-100 dark:border-orange-800/60">
                         {l.category.name}
                       </span>
                     )}
@@ -248,7 +248,7 @@ export const Map: React.FC<MapProps> = ({
 
                     <Link
                       to={`/listings/${l.id}`}
-                      className="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                      className="text-[11px] text-orange-600 dark:text-orange-400 font-bold hover:underline"
                     >
                       View Details →
                     </Link>

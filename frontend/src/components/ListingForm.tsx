@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Category, Listing, api } from '../services/api';
 import { MapPin, Phone, Building, Check, Crosshair, Image as ImageIcon } from 'lucide-react';
+import { town } from '../config/site';
 
 interface ListingFormProps {
   initialData?: Partial<Listing>;
@@ -26,14 +27,20 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   const [description, setDescription] = useState(initialData.description || '');
   const [address, setAddress] = useState(initialData.address || '');
   const [imageUrl, setImageUrl] = useState(initialData.image_url || '');
-  const [lat, setLat] = useState<string>(initialData.lat?.toString() || '12.9716');
-  const [lng, setLng] = useState<string>(initialData.lng?.toString() || '77.5946');
+  // Default to the configured town centre, never to Bengaluru's coordinates:
+  // a listing dropped at a hardcoded city 2,000 km away silently pollutes the
+  // map, the distance sort and the radius filter (AUDIT.md 2.1, 4.6).
+  const [lat, setLat] = useState<string>(initialData.lat?.toString() || String(town.lat));
+  const [lng, setLng] = useState<string>(initialData.lng?.toString() || String(town.lng));
   const [phone, setPhone] = useState(initialData.phone || '');
   const [email, setEmail] = useState(initialData.email || '');
   const [website, setWebsite] = useState(initialData.website || '');
   const [hours, setHours] = useState(initialData.hours?.all_days || '9:00 AM - 6:00 PM');
   const [searchingAddress, setSearchingAddress] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
+  // Inline, non-blocking error surface — replaces `alert()` on every failure
+  // path (AUDIT.md 8.3): alerts are unstyled, untranslatable and modal.
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     api.getCategories().then(setCategories).catch(console.error);
@@ -52,7 +59,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
         setLat(Number(data[0].lat).toFixed(6));
         setLng(Number(data[0].lon).toFixed(6));
       } else {
-        alert('Could not auto-locate this address. You can type coordinates or use GPS below.');
+        setFormError('Could not auto-locate this address. You can type coordinates or use GPS below.');
       }
     } catch (e) {
       console.warn('Geocode error:', e);
@@ -63,7 +70,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      setFormError('Geolocation is not supported by your browser.');
       return;
     }
     setGettingLocation(true);
@@ -74,7 +81,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
         setGettingLocation(false);
       },
       (err) => {
-        alert(`Location access denied or unavailable: ${err.message}`);
+        setFormError(`Location access denied or unavailable: ${err.message}`);
         setGettingLocation(false);
       },
       { timeout: 10000 }
@@ -83,8 +90,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!name.trim() || !address.trim()) {
-      alert('Please provide at least the business name and address.');
+      setFormError('Please provide at least the business name and address.');
       return;
     }
 
@@ -108,7 +116,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       {/* Basic Info */}
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-          <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <Building className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           General Service Information
         </h3>
 
@@ -122,7 +130,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Town Primary Health Center"
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
           />
         </div>
 
@@ -133,7 +141,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
           >
             <option value="">Select a Category</option>
             {categories.map((c) => (
@@ -156,7 +164,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://example.com/photo.jpg or Unsplash link"
-                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
               />
             </div>
           </div>
@@ -171,7 +179,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the services offered, specialties, or assistance provided..."
-            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
           />
         </div>
       </div>
@@ -179,7 +187,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       {/* Location */}
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-          <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           Location & GPS Coordinates
         </h3>
 
@@ -194,7 +202,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="e.g. Opposite Town Bus Stand, Main Road"
-              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
             />
             <button
               type="button"
@@ -238,7 +246,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={gettingLocation}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 px-3 py-1.5 rounded-xl transition hover:scale-105 active:scale-95"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 bg-orange-50 dark:bg-orange-950/60 hover:bg-orange-100 dark:hover:bg-orange-900/60 border border-orange-200 dark:border-orange-800 px-3 py-1.5 rounded-xl transition hover:scale-105 active:scale-95"
         >
           <Crosshair className="w-3.5 h-3.5" />
           <span>{gettingLocation ? 'Detecting GPS...' : 'Use My Current GPS Position'}</span>
@@ -248,7 +256,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       {/* Contact Details */}
       <div className="space-y-4">
         <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
-          <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <Phone className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           Contact & Timings
         </h3>
 
@@ -262,7 +270,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 9845012345"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
           <div>
@@ -274,7 +282,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contact@service.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
         </div>
@@ -289,7 +297,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://myservice.com"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
           <div>
@@ -301,16 +309,25 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="e.g. 8:00 AM - 8:00 PM"
-              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
         </div>
       </div>
 
+      {formError && (
+        <p
+          role="alert"
+          className="text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 rounded-xl px-3 py-2"
+        >
+          {formError}
+        </p>
+      )}
+
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-2xl font-bold text-sm transition shadow-md flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
       >
         <Check className="w-4 h-4" />
         {isSubmitting ? 'Submitting...' : submitLabel}

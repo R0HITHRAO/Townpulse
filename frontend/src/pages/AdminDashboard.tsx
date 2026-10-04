@@ -167,7 +167,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-              <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Building className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               Total Listings
             </div>
             <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -354,7 +354,7 @@ export const AdminDashboard: React.FC = () => {
                         href={c.proof_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-blue-600 dark:text-blue-400 underline block"
+                        className="text-xs text-orange-600 dark:text-orange-400 underline block"
                       >
                         View Verification Proof Document ↗
                       </a>
@@ -384,7 +384,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Pending Listings Queue */}
         <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
           <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <Building className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             Unverified Listings ({pendingListings.length})
           </h2>
 
@@ -403,7 +403,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleVerifyListing(l.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 hover:scale-105 active:scale-95"
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 hover:scale-105 active:scale-95"
                     >
                       <CheckCircle className="w-3.5 h-3.5" /> Verify Listing
                     </button>

@@ -65,7 +65,7 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
           onClick={() => onSelectCategory(null)}
           className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
             selectedCategoryId === null
-              ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-500/20'
+              ? 'bg-orange-600 dark:bg-orange-500 text-white shadow-orange-500/25 ring-2 ring-orange-500/20'
               : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700'
           }`}
         >
@@ -85,7 +85,7 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
               style={{ animationDelay: `${Math.min(index + 1, 8) * 45}ms` }}
               className={`group/chip flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-fluid shadow-xs flex-shrink-0 hover:scale-[1.05] active:scale-[0.96] animate-fade-in-up ${
                 isSelected
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-blue-500/25 ring-2 ring-blue-600 dark:ring-blue-400 ring-offset-1 dark:ring-offset-slate-900'
+                  ? 'bg-orange-600 dark:bg-orange-500 text-white shadow-orange-500/25 ring-2 ring-orange-600 dark:ring-orange-400 ring-offset-1 dark:ring-offset-slate-900'
                   : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
               }`}
             >
