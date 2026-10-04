@@ -16,6 +16,8 @@ import { useSeo, listingJsonLd } from '../hooks/useSeo';
 import { site, town } from '../config/site';
 import { getWhatsAppShareUrl } from '../utils/whatsapp';
 import { Map } from '../components/Map';
+import { OfflineDataBanner } from '../components/OfflineDataBanner';
+import { loadDirectorySnapshot } from '../services/directoryFallback';
 import {
   Phone,
   Mail,
@@ -46,6 +48,13 @@ export const ListingDetail: React.FC = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [copied, setCopied] = useState(false);
+  // True when the bundled snapshot answered instead of the API.
+  const [offlineData, setOfflineData] = useState(false);
+  const [reportSending, setReportSending] = useState(false);
+  const [reportFeedback, setReportFeedback] = useState<{
+    tone: 'error' | 'success';
+    message: string;
+  } | null>(null);
 
   const bookmarked = listing ? isBookmarked(listing.id) : false;
 
@@ -87,7 +96,19 @@ export const ListingDetail: React.FC = () => {
     api
       .getListing(id)
       .then(setListing)
-      .catch(console.error)
+      // The API is UUID-addressed, but the bundled snapshot's ids are OSM
+      // slugs (`osm-n3c45x`) — and it is the only source with no backend or
+      // no connection. Falling back to it means a card tapped offline still
+      // opens a real page instead of "Listing not found".
+      .catch(async (err: unknown) => {
+        console.error(err);
+        const snapshot = await loadDirectorySnapshot();
+        const match = snapshot?.listings.find((l) => l.id === id);
+        if (match) {
+          setListing(match);
+          setOfflineData(true);
+        }
+      })
       .finally(() => setLoading(false));
   };
 
@@ -117,23 +138,33 @@ export const ListingDetail: React.FC = () => {
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !reportReason.trim()) return;
+    setReportSending(true);
+    setReportFeedback(null);
     try {
       await api.reportListing(id, reportReason);
-      alert('Thank you for your report. Moderators will review it.');
-      setReportOpen(false);
       setReportReason('');
-    } catch (e: any) {
-      alert(e.message || 'Report submission failed');
+      // Inline, not `alert()` (AUDIT.md 8.3): the modal stays open and shows
+      // the result in place, where assistive tech can announce it.
+      setReportFeedback({
+        tone: 'success',
+        message: `${t('report.successTitle')} — ${t('report.successBody')}`,
+      });
+    } catch (err) {
+      console.error(err);
+      setReportFeedback({ tone: 'error', message: t('report.error') });
+    } finally {
+      setReportSending(false);
     }
   };
 
-  if (loading) return <LoadingSpinner message="Loading listing details..." />;
+  if (loading) return <LoadingSpinner message={t('common.loading')} />;
   if (!listing) {
     return (
-      <div className="max-w-4xl mx-auto py-16 px-4 text-center">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Listing not found</h2>
-        <Link to="/" className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-semibold">
-          ← Return to Directory
+      <div className="max-w-4xl mx-auto py-16 px-4 text-center space-y-2">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('error.notFoundTitle')}</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t('error.notFoundBody')}</p>
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-orange-600 dark:text-orange-400 hover:underline font-semibold">
+          <ArrowLeft className="w-4 h-4" /> {t('common.backHome')}
         </Link>
       </div>
     );
@@ -142,11 +173,12 @@ export const ListingDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-4xl mx-auto space-y-6">
+        {offlineData && <OfflineDataBanner />}
         {/* Navigation & Action bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-in-up">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:scale-105 active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Listings
           </Link>
@@ -187,14 +219,14 @@ export const ListingDetail: React.FC = () => {
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 transition hover:scale-105 active:scale-95"
               title="Generate Storefront QR Code"
             >
-              <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <QrCode className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               <span>QR Code</span>
             </button>
 
             {/* Standard Share */}
             <button
               onClick={handleShare}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-105 active:scale-95"
             >
               {copied ? (
                 <>
@@ -236,7 +268,7 @@ export const ListingDetail: React.FC = () => {
                   <OpenStatusBadge hours={listing.hours} size="md" />
 
                   {listing.category && (
-                    <span className="text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60 px-3 py-1 rounded-full">
+                    <span className="text-xs font-semibold bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200/60 dark:border-orange-800/60 px-3 py-1 rounded-full">
                       {listing.category.icon} {listing.category.name}
                     </span>
                   )}
@@ -303,9 +335,9 @@ export const ListingDetail: React.FC = () => {
               {listing.email && (
                 <a
                   href={`mailto:${listing.email}`}
-                  className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
+                  className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-800/80 hover:bg-orange-50 dark:hover:bg-orange-950/60 text-slate-800 dark:text-slate-200 hover:text-orange-700 dark:hover:text-orange-300 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 transition text-center gap-1.5 group hover:scale-[1.03] active:scale-[0.97]"
                 >
-                  <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition" />
+                  <Mail className="w-5 h-5 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition" />
                   <span className="text-xs font-bold">Send Email</span>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">{listing.email}</span>
                 </a>
@@ -348,7 +380,7 @@ export const ListingDetail: React.FC = () => {
 
               {listing.hours && (
                 <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1.5 flex-1">
                     <span className="font-semibold block text-slate-900 dark:text-white">Opening Hours</span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
@@ -385,7 +417,7 @@ export const ListingDetail: React.FC = () => {
                 className="text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1 font-medium transition"
               >
                 <Flag className="w-3.5 h-3.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400" />
-                <span>Report Incorrect Information</span>
+                <span>{t('report.title')}</span>
               </button>
             </div>
           </div>
@@ -420,32 +452,50 @@ export const ListingDetail: React.FC = () => {
         {reportOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-100 dark:border-slate-800 animate-scale-in">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Report Inaccurate Listing</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('report.title')}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Please describe the issue (e.g. permanently closed, incorrect phone number, wrong address). Our moderators will investigate.
+                {t('report.subtitle')}
               </p>
               <textarea
                 rows={4}
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
-                placeholder="Describe the issue in detail..."
+                placeholder={t('report.reasonPlaceholder')}
                 className="w-full p-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 outline-none"
               />
+              {reportFeedback && (
+                <p
+                  role="alert"
+                  className={`text-xs font-semibold rounded-xl px-3 py-2 border ${
+                    reportFeedback.tone === 'error'
+                      ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60'
+                      : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/60'
+                  }`}
+                >
+                  {reportFeedback.message}
+                </p>
+              )}
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setReportOpen(false)}
+                  onClick={() => {
+                    setReportOpen(false);
+                    setReportFeedback(null);
+                  }}
                   className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
                 >
-                  Cancel
+                  {t('common.close')}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleReport}
-                  className="px-4 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm hover:scale-105 active:scale-95"
-                >
-                  Submit Report
-                </button>
+                {reportFeedback?.tone !== 'success' && (
+                  <button
+                    type="button"
+                    onClick={handleReport}
+                    disabled={reportSending}
+                    className="px-4 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl shadow-sm hover:scale-105 active:scale-95"
+                  >
+                    {reportSending ? t('report.sending') : t('report.submit')}
+                  </button>
+                )}
               </div>
             </div>
           </div>
