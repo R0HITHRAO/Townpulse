@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowDownRight, ArrowRight, MapPin, Sparkles } from 'lucide-react';
-import { WorldScene } from './WorldScene';
 
 interface WelcomeExperienceProps {
   onEnter: () => void;
@@ -9,6 +8,12 @@ interface WelcomeExperienceProps {
 
 export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter }) => {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const [motionAllowed, setMotionAllowed] = React.useState(
+    () =>
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function' ||
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -26,30 +31,35 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
     };
   }, []);
 
-  const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    if (event.pointerType === 'touch') return;
-    const scene = event.currentTarget.querySelector<HTMLElement>('.tp-welcome__artwork');
-    if (!scene) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-    scene.style.setProperty('--scene-rotate-x', `${y * -5}deg`);
-    scene.style.setProperty('--scene-rotate-y', `${x * 6}deg`);
-  };
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
 
-  const resetPointer = (event: React.PointerEvent<HTMLElement>) => {
-    const scene = event.currentTarget.querySelector<HTMLElement>('.tp-welcome__artwork');
-    scene?.style.setProperty('--scene-rotate-x', '0deg');
-    scene?.style.setProperty('--scene-rotate-y', '0deg');
-  };
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setMotionAllowed(!preference.matches);
+    updatePreference();
+    preference.addEventListener('change', updatePreference);
+
+    return () => preference.removeEventListener('change', updatePreference);
+  }, []);
 
   return createPortal(
-    <main
-      className="tp-welcome"
-      aria-labelledby="welcome-heading"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={resetPointer}
-    >
+    <main className="tp-welcome" aria-labelledby="welcome-heading">
+      {motionAllowed && (
+        <video
+          className="tp-welcome__video"
+          aria-hidden="true"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          tabIndex={-1}
+          data-testid="welcome-video"
+        >
+          <source src="/media/townpulse-welcome.mp4" type="video/mp4" />
+        </video>
+      )}
+      <div className="tp-welcome__video-shade" aria-hidden="true" />
       <div className="tp-welcome__grain" aria-hidden="true" />
       <div className="tp-welcome__glow tp-welcome__glow--one" aria-hidden="true" />
       <div className="tp-welcome__glow tp-welcome__glow--two" aria-hidden="true" />
@@ -86,8 +96,7 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
             Find your
             <br />
             <span>people.</span>
-            <br />
-            Anywhere.
+            <span className="tp-welcome__anywhere">Anywhere.</span>
           </h1>
           <p className="tp-welcome__description">
             Find the places that make a neighborhood feel alive—wherever the next chapter takes you.
@@ -95,31 +104,6 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
           <div className="tp-welcome__credits">
             <span className="tp-welcome__credit-line" />
             <span>A local guide for a world in motion</span>
-          </div>
-        </div>
-
-        <div className="tp-welcome__visual">
-          <div className="tp-welcome__artwork" aria-hidden="true">
-            <div className="tp-welcome__artwork-frame">
-              <WorldScene />
-            </div>
-            <div className="tp-welcome__float-card tp-welcome__float-card--place">
-              <span className="tp-welcome__float-icon">
-                <MapPin />
-              </span>
-              <span>
-                <small>YOUR NEXT STOP</small>
-                <strong>Discover what’s nearby</strong>
-              </span>
-            </div>
-            <div className="tp-welcome__float-card tp-welcome__float-card--signal">
-              <span className="tp-welcome__signal-wave" />
-              <span>
-                <small>LOCAL KNOW-HOW</small>
-                <strong>Right around you</strong>
-              </span>
-            </div>
-            <span className="tp-welcome__artwork-index">YOUR WORLD&nbsp; · &nbsp;YOUR WAY</span>
           </div>
         </div>
       </div>
@@ -130,7 +114,7 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
           <span>Stay curious. Get closer.</span>
         </div>
         <button type="button" className="tp-welcome__enter" onClick={onEnter}>
-          <span>Enter TownPulse</span>
+          <span>Get Started</span>
           <span className="tp-welcome__enter-icon">
             <ArrowRight aria-hidden="true" />
           </span>
