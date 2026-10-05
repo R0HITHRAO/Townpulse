@@ -4,7 +4,6 @@ import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { Listing } from '../services/api';
 import { Phone, CheckCircle2, Star } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
 import { OpenStatusBadge } from './OpenStatusBadge';
 import { town } from '../config/site';
 // Leaflet's stylesheet is bundled from node_modules instead of being fetched
@@ -39,8 +38,10 @@ function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
   const categoryName = listing.category?.name || '';
   const borderColor = categoryColors[categoryName] || '#ea580c';
 
+  // The accent is passed as a custom property, not `border-color`, so the
+  // stylesheet owns the border width and style and this only supplies a colour.
   const html = `
-    <div class="townpulse-pin-badge ${isSelected ? 'selected' : ''}" style="border-color: ${borderColor};">
+    <div class="townpulse-pin-badge ${isSelected ? 'selected' : ''}" style="--tp-pin-accent: ${borderColor};">
       <span>${iconChar}</span>
     </div>
   `;
@@ -90,9 +91,8 @@ const AutoFitBounds: React.FC<{
       const bounds = L.latLngBounds(validCoords);
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16, animate: true });
     }
-    // `map` is stable across renders; including it caused the map to re-fit
-    // and fight with user panning.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `map` is stable across renders; including it caused the map to re-fit and
+    // fight with user panning.
   }, [listings, enabled, singleZoom]);
 
   return null;
@@ -126,9 +126,6 @@ export const Map: React.FC<MapProps> = ({
   autoFitBounds = true,
   singleMarkerZoom = 15,
 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
-
   // Default to the configured town. The previous hardcoded default was
   // Bengaluru (12.9716, 77.5946), so every map opened on the wrong city and
   // showed no pins at all.
@@ -149,10 +146,13 @@ export const Map: React.FC<MapProps> = ({
         className="w-full h-full"
       >
         <TileLayer
-          key={isDark ? 'dark-osm' : 'light-osm'}
+          // No `key` on theme change: dark mode is a CSS filter on the tile
+          // pane (see leaflet.css), so remounting the layer only threw away
+          // every cached tile and re-downloaded the whole viewport. The
+          // attribution is a licence condition of the OSM tile service and must
+          // stay regardless of theme.
           attribution={attribution}
           url={tileUrl}
-          className={isDark ? 'dark-map-tiles' : ''}
           maxZoom={19}
         />
 

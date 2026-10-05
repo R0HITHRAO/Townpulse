@@ -252,9 +252,9 @@ export const DirectionsModal: React.FC<DirectionsModalProps> = ({ listing, onClo
                 className="w-full h-full"
               >
                 <TileLayer
-                  key={isDark ? 'dark-tiles' : 'light-tiles'}
+                  // Dark mode is a CSS filter on the tile pane (leaflet.css),
+                  // so there is no need to remount the layer per theme.
                   url={tileUrl}
-                  className={isDark ? 'dark-map-tiles' : ''}
                 />
                 <Marker position={[userLocation.lat, userLocation.lng]} icon={startIcon}>
                   <Popup>Your Location</Popup>

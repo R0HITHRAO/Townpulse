@@ -38,35 +38,63 @@
     saturate(0.28);
 }
 
-/* Marker pins: an SVG-free CSS pin keeps the map dependency-free. */
-.tp-pin {
+/*
+ * Marker pins.
+ *
+ * `Map.tsx` builds each pin as:
+ *   <div class="townpulse-pin-badge [selected]" style="border-color: …">
+ *     <span>{emoji}</span>
+ *   </div>
+ * inside a `.custom-leaflet-div-icon` anchor of 34x40, anchored bottom-centre.
+ *
+ * These rules used to be written against `.tp-pin`, a class nothing ever
+ * rendered. Every pin therefore shipped with no shape, no size and no colour —
+ * just a bare emoji floating on the map. The selectors below match the markup
+ * that is actually emitted.
+ *
+ * Geometry note: the pin is a circle rotated -45deg so its lower-left corner
+ * points down, which puts the tip at the coordinate. The label is counter-rotated
+ * so the glyph stays upright. `iconAnchor: [17, 40]` matches the 34x40 box.
+ */
+.custom-leaflet-div-icon {
+  /* Leaflet gives div icons a default white background and border. Our pins draw
+     their own, so strip them or a white square sits behind every marker. */
+  background: transparent;
+  border: none;
+}
+
+.townpulse-pin-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   background-color: var(--tp-map-pin);
-  border: 2px solid var(--tp-surface);
+  /* The per-category colour arrives as an inline custom property so it stays in
+     one place (the component) rather than being duplicated in this stylesheet. */
+  border: 3px solid var(--tp-pin-accent, var(--tp-surface));
   box-shadow: var(--tp-shadow-md);
-  color: var(--tp-on-primary);
+  font-size: 15px;
+  line-height: 1;
   transition:
     transform var(--tp-duration-fast) var(--tp-ease-out),
     background-color var(--tp-duration-fast) var(--tp-ease-out);
 }
 
-.tp-pin > * {
+.townpulse-pin-badge > span {
+  /* Counter-rotate so the emoji reads upright inside the tilted pin. */
   transform: rotate(45deg);
 }
 
-.tp-pin:hover,
-.tp-pin:focus-visible {
+.townpulse-pin-badge:hover,
+.townpulse-pin-badge.selected {
   transform: rotate(-45deg) scale(1.12);
   z-index: 500;
 }
 
-.tp-pin.is-selected {
+.townpulse-pin-badge.selected {
   background-color: var(--tp-map-pin-selected);
   transform: rotate(-45deg) scale(1.2);
   z-index: 600;
@@ -100,6 +128,49 @@
 .leaflet-bar a:hover {
   background-color: var(--tp-surface-2);
   color: var(--tp-text);
+}
+
+/*
+ * Popups.
+ *
+ * Leaflet ships `.leaflet-popup-content-wrapper` with a hard-coded white
+ * background and `color: #333`. Our popup bodies are themed with Tailwind's
+ * `dark:` variants, which resolve against the `.dark` class on <html> — so in
+ * dark mode the text switched to a near-white while the panel behind it stayed
+ * white. The listing name and phone number were effectively invisible.
+ *
+ * These rules point the wrapper at the token palette so the panel and the text
+ * inside it always agree, in both themes.
+ */
+.leaflet-popup-content-wrapper {
+  background-color: var(--tp-surface);
+  color: var(--tp-text);
+  border-radius: var(--tp-radius-lg);
+  box-shadow: var(--tp-shadow-lg);
+  border: 1px solid var(--tp-border);
+}
+
+.leaflet-popup-content {
+  margin: var(--tp-space-3) var(--tp-space-4);
+  color: var(--tp-text);
+  /* Leaflet sets an inline width from the `minWidth` prop; without a floor the
+     card collapses around its content. */
+  min-width: 200px;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--tp-surface);
+  border: 1px solid var(--tp-border);
+  /* A border on all four sides leaves a seam on the rotated square tip. */
+  box-shadow: none;
+}
+
+.leaflet-popup-close-button {
+  color: var(--tp-text-muted) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--tp-text) !important;
 }
 
 /* Leaflet sets its own focus ring; ours is more visible. */
