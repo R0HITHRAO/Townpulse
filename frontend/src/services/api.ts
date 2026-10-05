@@ -192,6 +192,104 @@ const REQUEST_TIMEOUT_MS = 15000;
 
 // ─── Core Request Wrapper ─────────────────────────────────────────────────────
 
+/** Human labels for the request fields the API validates. */
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Name',
+  email: 'Email address',
+  phone: 'Phone number',
+  password: 'Password',
+  otp: 'Verification code',
+};
+
+function ctxNumber(ctx: unknown, key: string): number | undefined {
+  if (ctx && typeof ctx === 'object' && key in (ctx as Record<string, unknown>)) {
+    const v = (ctx as Record<string, unknown>)[key];
+    if (typeof v === 'number') return v;
+  }
+  return undefined;
+}
+
+function lowerFirst(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
+/** Friendlier wording for the Pydantic error types we can actually explain. */
+function explainValidationItem(item: Record<string, unknown>): string {
+  const loc = Array.isArray(item.loc) ? item.loc.filter((p) => p !== 'body') : [];
+  const field = typeof loc[loc.length - 1] === 'string' ? (loc[loc.length - 1] as string) : '';
+  const label = FIELD_LABELS[field] ?? field;
+  const type = typeof item.type === 'string' ? item.type : '';
+  const msg = typeof item.msg === 'string' ? item.msg : '';
+
+  // Strip the "Value error, " prefix Pydantic prepends for custom validators.
+  const bare = msg.replace(/^Value error,\s*/, '');
+
+  let explanation: string;
+  switch (type) {
+    case 'value_error':
+      explanation = /email address/i.test(bare)
+        ? 'is not a valid email address.'
+        : lowerFirst(bare) || 'is invalid.';
+      break;
+    case 'string_pattern_mismatch':
+      explanation =
+        field === 'phone'
+          ? 'must be digits only, with an optional leading + and country code (e.g. +919876543210).'
+          : 'is not in the expected format.';
+      break;
+    case 'too_short':
+    case 'string_too_short': {
+      const min = ctxNumber(item.ctx, 'min_length');
+      explanation = min
+        ? `must be at least ${min} character${min === 1 ? '' : 's'}.`
+        : 'is too short.';
+      break;
+    }
+    case 'too_long':
+    case 'string_too_long':
+      explanation = 'is too long.';
+      break;
+    case 'missing':
+      explanation = 'is required.';
+      break;
+    default:
+      explanation = bare || 'is invalid.';
+  }
+
+  return label ? `${label} ${explanation}` : explanation;
+}
+
+/**
+ * Turns a FastAPI `detail` into something a person can act on.
+ *
+ * A schema violation comes back as 422 with `detail` being an *array* of
+ * `{loc, msg, type}`. The old code fell through to `JSON.stringify(detail)`, so
+ * the error banner showed a raw Pydantic dump:
+ *
+ *   [{"loc":["body","phone"],"msg":"String should match pattern ...","type":"..."}]
+ *
+ * That is the most common registration failure there is — any mistyped phone
+ * number or short password — rendered in a form nobody can read. Returns null
+ * when `detail` carries nothing usable, so the caller can fall back.
+ */
+function describeDetail(detail: unknown): string | null {
+  if (typeof detail === 'string' && detail.trim()) return detail;
+
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map((item) => explainValidationItem((item ?? {}) as Record<string, unknown>))
+      .filter(Boolean);
+    if (parts.length) return parts.join(' ');
+  }
+
+  if (detail && typeof detail === 'object') {
+    const message = (detail as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+
+  return null;
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getStoredToken();
   const headers: Record<string, string> = {
@@ -270,11 +368,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     const detail = (data as { detail?: unknown })?.detail;
     throw new ApiError(
       'server',
-      typeof detail === 'string'
-        ? detail
-        : detail
-          ? JSON.stringify(detail)
-          : `Request failed with status ${response.status}`,
+      describeDetail(detail) ?? `Request failed with status ${response.status}`,
       response.status
     );
   }

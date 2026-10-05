@@ -15,6 +15,16 @@ export const Register: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // The API requires at least one of email or phone (UserCreate / AuthService.register).
+    // Checking it here turns a round-trip 400 into an inline message, and stops
+    // the case where someone fills in only a name and password and has no way to
+    // sign in again afterwards.
+    if (!email.trim() && !phone.trim()) {
+      setError('Enter an email address or a phone number so you can sign in later.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
