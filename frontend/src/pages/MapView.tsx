@@ -72,7 +72,6 @@ export const MapView: React.FC = () => {
           recordError(err);
         }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -126,10 +125,8 @@ export const MapView: React.FC = () => {
         }
       })
       .finally(() => setLoading(false));
-    // `selectedListing` is intentionally read through a functional update and
-    // left out of the deps: listing it previously re-ran the fetch on every
-    // pin selection.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `selectedListing` is read through a functional update and is deliberately
+    // left out of the deps: listing it re-ran the fetch on every pin selection.
   }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
 
   // Filter listings by open status if enabled
