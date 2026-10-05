@@ -164,7 +164,7 @@ export const Home: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--tp-bg)] text-[var(--tp-text)] transition-colors duration-200">
+    <div className="flex min-h-screen flex-col text-[var(--tp-text)] transition-colors duration-200">
       <section className="tp-home-hero relative isolate overflow-hidden">
         <div className="tp-home-hero__grain" aria-hidden="true" />
         <div className="tp-container relative py-12 sm:py-16 lg:py-20">

@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="relative z-10 mt-auto border-t border-[var(--tp-border)] bg-[var(--tp-surface)] transition-colors duration-200">
+    <footer className="relative z-10 mt-auto border-t border-[var(--tp-border)] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Col */}
@@ -17,7 +17,9 @@ export const Footer: React.FC = () => {
               <div className="rounded-xl bg-[var(--tp-primary)] p-2 text-[var(--tp-on-primary)] shadow-[var(--tp-shadow-xs)]">
                 <MapPin className="w-4 h-4" />
               </div>
-              <span className="text-lg font-extrabold tracking-tight text-[var(--tp-text)]">TownPulse</span>
+              <span className="text-lg font-extrabold tracking-tight text-[var(--tp-text)]">
+                TownPulse
+              </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-400 max-w-sm leading-relaxed">
               {t('tagline')}
@@ -46,27 +48,42 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-sm font-medium text-[var(--tp-text-muted)]">
               <li>
-                <Link to="/" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   Directory Home
                 </Link>
               </li>
               <li>
-                <Link to="/map" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/map"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('view_map')}
                 </Link>
               </li>
               <li>
-                <Link to="/submit" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/submit"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('submit_listing')}
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/about"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('footer.about')}
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/contact"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('contact')}
                 </Link>
               </li>
@@ -80,12 +97,18 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-sm font-medium text-[var(--tp-text-muted)]">
               <li>
-                <Link to="/accessibility" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/accessibility"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('accessibility')}
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="inline-block transition-colors hover:text-[var(--tp-primary)]">
+                <Link
+                  to="/privacy"
+                  className="inline-block transition-colors hover:text-[var(--tp-primary)]"
+                >
                   {t('privacy')}
                 </Link>
               </li>

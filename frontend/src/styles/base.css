@@ -802,6 +802,66 @@
 }
 
 @layer tp-components {
+  .tp-app-shell {
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+  }
+
+  .tp-app-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    color: var(--tp-text);
+  }
+
+  body.tp-welcome-active .tp-app-content {
+    visibility: hidden;
+  }
+
+  .tp-site-backdrop {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 72% 36%, rgb(139 76 55 / 0.2), transparent 42%), #17120f;
+  }
+
+  .tp-site-backdrop__video {
+    position: absolute;
+    inset: -8%;
+    width: 116%;
+    height: 116%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(0.82) brightness(0.76);
+    transform: translate3d(0, var(--tp-site-scroll-offset, 0px), 0);
+    will-change: transform;
+  }
+
+  .tp-site-backdrop__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(18 14 13 / 0.56), rgb(18 14 13 / 0.4) 58%, rgb(18 14 13 / 0.24)),
+      linear-gradient(0deg, rgb(23 18 15 / 0.64), transparent 46%, rgb(23 18 15 / 0.18));
+  }
+
+  .tp-route-content > * {
+    background-color: color-mix(in srgb, var(--tp-bg) 80%, transparent) !important;
+  }
+
+  .dark .tp-route-content > * {
+    background-color: color-mix(in srgb, var(--tp-bg) 82%, transparent) !important;
+  }
+
+  .tp-app-content > footer {
+    background-color: color-mix(in srgb, var(--tp-surface) 86%, transparent) !important;
+  }
+
   .tp-welcome {
     position: fixed;
     z-index: 100;
@@ -813,33 +873,9 @@
     overflow-x: hidden;
     overflow-y: auto;
     background:
-      radial-gradient(ellipse at 74% 38%, rgb(139 76 55 / 0.34), transparent 42%),
-      radial-gradient(ellipse at 12% 88%, rgb(111 57 38 / 0.24), transparent 40%), #17120f;
+      radial-gradient(ellipse at 74% 38%, rgb(139 76 55 / 0.22), transparent 42%),
+      radial-gradient(ellipse at 12% 88%, rgb(111 57 38 / 0.18), transparent 40%);
     color: #fff4e8;
-  }
-
-  .tp-welcome__video,
-  .tp-welcome__video-shade {
-    position: fixed;
-    z-index: -2;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  .tp-welcome__video {
-    object-fit: cover;
-    object-position: center;
-    filter: saturate(0.82) brightness(0.72);
-    transform: scale(1.02);
-  }
-
-  .tp-welcome__video-shade {
-    z-index: -1;
-    background:
-      linear-gradient(90deg, rgb(18 14 13 / 0.78), rgb(18 14 13 / 0.46) 56%, rgb(18 14 13 / 0.18)),
-      linear-gradient(0deg, #17120f 0%, transparent 38%, rgb(23 18 15 / 0.14));
   }
 
   .tp-welcome__grain {
@@ -1218,7 +1254,8 @@
     overflow: hidden;
     background:
       radial-gradient(ellipse at 72% 42%, rgb(178 104 69 / 0.25), transparent 40%),
-      radial-gradient(ellipse at 5% 95%, rgb(118 74 52 / 0.2), transparent 37%), #211814;
+      radial-gradient(ellipse at 5% 95%, rgb(118 74 52 / 0.2), transparent 37%),
+      rgb(33 24 20 / 0.56);
     color: #fff3e5;
   }
 
@@ -1385,7 +1422,8 @@
 
   .tp-home-main {
     background:
-      radial-gradient(ellipse at 6% 4%, rgb(215 157 106 / 0.1), transparent 28%), var(--tp-bg);
+      radial-gradient(ellipse at 6% 4%, rgb(215 157 106 / 0.1), transparent 28%),
+      color-mix(in srgb, var(--tp-bg) 80%, transparent);
   }
 
   .tp-home-browse {
@@ -1533,15 +1571,14 @@
   }
 
   @media (max-width: 680px) {
-    .tp-welcome__video {
+    .tp-site-backdrop__video {
       object-position: 58% center;
-      filter: saturate(0.76) brightness(0.64);
     }
 
-    .tp-welcome__video-shade {
+    .tp-site-backdrop__shade {
       background:
-        linear-gradient(90deg, rgb(18 14 13 / 0.62), rgb(18 14 13 / 0.3)),
-        linear-gradient(0deg, #17120f 0%, rgb(23 18 15 / 0.58) 22%, rgb(23 18 15 / 0.12) 75%);
+        linear-gradient(90deg, rgb(18 14 13 / 0.58), rgb(18 14 13 / 0.4)),
+        linear-gradient(0deg, rgb(23 18 15 / 0.7), rgb(23 18 15 / 0.12) 72%);
     }
 
     .tp-welcome__header {

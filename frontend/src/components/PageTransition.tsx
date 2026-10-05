@@ -14,7 +14,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   const { pathname } = useLocation();
 
   return (
-    <div key={pathname} className="flex-1 flex flex-col animate-page-in">
+    <div key={pathname} className="tp-route-content flex flex-1 flex-col animate-page-in">
       {children}
     </div>
   );

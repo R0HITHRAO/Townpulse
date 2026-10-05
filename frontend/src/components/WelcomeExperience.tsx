@@ -8,12 +8,6 @@ interface WelcomeExperienceProps {
 
 export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter }) => {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [motionAllowed, setMotionAllowed] = React.useState(
-    () =>
-      typeof window === 'undefined' ||
-      typeof window.matchMedia !== 'function' ||
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -22,44 +16,19 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
     const frame = window.requestAnimationFrame(() => headingRef.current?.focus());
 
     if (root) root.inert = true;
+    document.body.classList.add('tp-welcome-active');
     document.body.style.overflow = 'hidden';
 
     return () => {
       window.cancelAnimationFrame(frame);
       if (root) root.inert = wasInert;
+      document.body.classList.remove('tp-welcome-active');
       document.body.style.overflow = previousOverflow;
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updatePreference = () => setMotionAllowed(!preference.matches);
-    updatePreference();
-    preference.addEventListener('change', updatePreference);
-
-    return () => preference.removeEventListener('change', updatePreference);
-  }, []);
-
   return createPortal(
     <main className="tp-welcome" aria-labelledby="welcome-heading">
-      {motionAllowed && (
-        <video
-          className="tp-welcome__video"
-          aria-hidden="true"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          tabIndex={-1}
-          data-testid="welcome-video"
-        >
-          <source src="/media/townpulse-welcome.mp4" type="video/mp4" />
-        </video>
-      )}
-      <div className="tp-welcome__video-shade" aria-hidden="true" />
       <div className="tp-welcome__grain" aria-hidden="true" />
       <div className="tp-welcome__glow tp-welcome__glow--one" aria-hidden="true" />
       <div className="tp-welcome__glow tp-welcome__glow--two" aria-hidden="true" />
