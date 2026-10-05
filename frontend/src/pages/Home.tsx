@@ -32,13 +32,17 @@ import {
 export const Home: React.FC = () => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesUnavailable, setCategoriesUnavailable] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [openOnly, setOpenOnly] = useState(false);
   const [printableOpen, setPrintableOpen] = useState(false);
-  const [searchParams, setSearchParams] = useState<SearchParams>({ page: 1, per_page: 20 });
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    page: 1,
+    per_page: 20,
+  });
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   // True when we fell back to the bundled offline snapshot.
@@ -46,7 +50,10 @@ export const Home: React.FC = () => {
 
   useSeo({
     title: t('seo.homeTitle', { town: town.name, region: town.region }),
-    description: t('seo.homeDescription', { town: town.name, region: town.region }),
+    description: t('seo.homeDescription', {
+      town: town.name,
+      region: town.region,
+    }),
     path: '/',
     ogKey: 'home',
   });
@@ -56,13 +63,14 @@ export const Home: React.FC = () => {
   useEffect(() => {
     api
       .getCategories()
-      .then(setCategories)
-      .catch(async (err: unknown) => {
-        console.error(err);
+      .then((items) => {
+        setCategories(items);
+        setCategoriesUnavailable(false);
+      })
+      .catch(async () => {
         const snapshotCategories = await loadSnapshotCategories();
-        if (snapshotCategories.length > 0) {
-          setCategories(snapshotCategories);
-        }
+        setCategories(snapshotCategories);
+        setCategoriesUnavailable(snapshotCategories.length === 0);
       });
   }, []);
 
@@ -87,8 +95,7 @@ export const Home: React.FC = () => {
       // "No local services found matching your criteria." — telling the user
       // this town has no services when the truth was that the server was
       // unreachable. Fall back to the bundled real-data snapshot instead.
-      .catch(async (err: unknown) => {
-        console.error(err);
+      .catch(async () => {
         const snapshot = await searchSnapshot(params);
         setListings(snapshot.items);
         setTotalCount(snapshot.total);
@@ -139,7 +146,7 @@ export const Home: React.FC = () => {
       <section className="relative overflow-hidden border-b border-[var(--tp-border)] bg-[radial-gradient(ellipse_at_80%_0%,var(--tp-primary-soft),transparent_48%),linear-gradient(145deg,var(--tp-surface),var(--tp-bg-subtle))]">
         <div className="tp-container relative py-12 sm:py-16 lg:py-20">
           <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
-            <div className="max-w-2xl">
+            <Reveal direction="left" className="max-w-2xl">
               <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface)] px-3.5 py-2 text-xs font-semibold tracking-wide text-[var(--tp-accent)] shadow-[var(--tp-shadow-xs)]">
                 <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
                 MADE FOR {town.name.toUpperCase()} · {town.region.toUpperCase()}
@@ -150,7 +157,8 @@ export const Home: React.FC = () => {
                 <span className="text-[var(--tp-primary)]">right around</span> you.
               </h1>
               <p className="mb-8 max-w-xl text-base leading-relaxed text-[var(--tp-text-muted)] sm:text-lg">
-                Find the people and essential services that keep {town.name} moving. Clear details, useful directions, all in one local guide.
+                Find the people and essential services that keep {town.name} moving. Clear details,
+                useful directions, all in one local guide.
               </p>
               <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
               <a
@@ -160,12 +168,19 @@ export const Home: React.FC = () => {
                 Explore the local directory
                 <ArrowDown aria-hidden="true" className="h-4 w-4" />
               </a>
-            </div>
+            </Reveal>
 
-            <div className="relative mx-auto w-full max-w-md lg:ml-auto">
-              <div aria-hidden="true" className="absolute -inset-4 rounded-[2.5rem] border border-[var(--tp-border)] opacity-60" />
-              <div className="relative overflow-hidden rounded-[2rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-6 shadow-[var(--tp-shadow-lg)] sm:p-8">
-                <div className="mb-8 flex items-center justify-between">
+            <Reveal
+              direction="scale"
+              threshold={0.05}
+              className="tp-scene-frame relative mx-auto w-full max-w-md lg:ml-auto"
+            >
+              <div
+                aria-hidden="true"
+                className="absolute -inset-4 rounded-[2.5rem] border border-[var(--tp-border)] opacity-60"
+              />
+              <div className="tp-scene-card relative overflow-hidden rounded-[2rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-6 shadow-[var(--tp-shadow-lg)] sm:p-8">
+                <div className="tp-scene-card__detail mb-8 flex items-center justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--tp-accent-soft)] text-[var(--tp-accent)]">
                     <Compass aria-hidden="true" className="h-6 w-6" />
                   </div>
@@ -173,44 +188,71 @@ export const Home: React.FC = () => {
                     Your town, at a glance
                   </span>
                 </div>
-                <p className="mb-1 text-sm font-medium text-[var(--tp-text-muted)]">A community guide to</p>
+                <p className="mb-1 text-sm font-medium text-[var(--tp-text-muted)]">
+                  A community guide to
+                </p>
                 <p className="mb-7 font-[var(--tp-font-display)] text-3xl font-bold tracking-tight text-[var(--tp-text)]">
                   {townLabel}
                 </p>
-                <div className="grid grid-cols-2 divide-x divide-[var(--tp-border)] border-y border-[var(--tp-border)] py-5">
+                <div className="tp-scene-card__detail grid grid-cols-2 divide-x divide-[var(--tp-border)] border-y border-[var(--tp-border)] py-5">
                   <div className="pr-4">
-                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-primary)]">{totalCount}</p>
-                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">local places listed</p>
+                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-primary)]">
+                      {totalCount}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">
+                      places in this view
+                    </p>
                   </div>
                   <div className="pl-5">
-                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-accent)]">{categories.length}</p>
-                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">ways to find help</p>
+                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-accent)]">
+                      {categories.length}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">
+                      ways to find help
+                    </p>
                   </div>
                 </div>
-                <p className="mt-5 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
-                  Listings are community-submitted and locally verified where marked. Check details before you travel.
+                <p className="tp-scene-card__detail mt-5 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
+                  Listings are community-submitted and locally verified where marked. Check details
+                  before you travel.
                 </p>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       <main className="tp-container w-full flex-1 py-10 sm:py-12">
-        <section aria-labelledby="browse-heading" className="mb-10">
+        <Reveal as="section" aria-labelledby="browse-heading" direction="left" className="mb-10">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-primary)]">Find what you need</p>
-              <h2 id="browse-heading" className="font-[var(--tp-font-display)] text-2xl font-bold text-[var(--tp-text)] sm:text-3xl">
+              <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-primary)]">
+                Find what you need
+              </p>
+              <h2
+                id="browse-heading"
+                className="font-[var(--tp-font-display)] text-2xl font-bold text-[var(--tp-text)] sm:text-3xl"
+              >
                 Browse by category
               </h2>
             </div>
-            <Link to="/map" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--tp-border-strong)] bg-[var(--tp-surface)] px-4 text-sm font-semibold text-[var(--tp-text)] transition hover:border-[var(--tp-primary)] hover:text-[var(--tp-primary)]">
+            <Link
+              to="/map"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--tp-border-strong)] bg-[var(--tp-surface)] px-4 text-sm font-semibold text-[var(--tp-text)] transition hover:border-[var(--tp-primary)] hover:text-[var(--tp-primary)]"
+            >
               <MapIcon aria-hidden="true" className="h-4 w-4" />
               View map
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
           </div>
+          {categoriesUnavailable && (
+            <p
+              role="status"
+              className="mb-3 rounded-xl border border-[var(--tp-warn)]/30 bg-[var(--tp-warn-soft)] px-4 py-3 text-sm text-[var(--tp-warn-soft-text)]"
+            >
+              Categories are temporarily unavailable. You can still search all listed places below.
+            </p>
+          )}
           <div className="rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-3 shadow-[var(--tp-shadow-xs)] sm:p-4">
             <CategoryChips
               categories={categories}
@@ -218,15 +260,30 @@ export const Home: React.FC = () => {
               onSelectCategory={setSelectedCategory}
             />
           </div>
-        </section>
+        </Reveal>
 
-        <section id="directory-results" aria-labelledby="results-heading" className="scroll-mt-24">
+        <Reveal
+          as="section"
+          id="directory-results"
+          aria-labelledby="results-heading"
+          direction="up"
+          threshold={0.01}
+          className="scroll-mt-24"
+        >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--tp-border)] pb-4">
             <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">The local directory</p>
-              <h2 id="results-heading" className="flex items-center gap-3 font-[var(--tp-font-display)] text-2xl font-bold text-[var(--tp-text)]">
+              <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">
+                The local directory
+              </p>
+              <h2
+                id="results-heading"
+                className="flex items-center gap-3 font-[var(--tp-font-display)] text-2xl font-bold text-[var(--tp-text)]"
+              >
                 {selectedCategoryObj?.name ?? 'Places to know'}
-                <span aria-live="polite" className="rounded-full bg-[var(--tp-surface-2)] px-2.5 py-1 font-[var(--tp-font-body)] text-xs font-semibold text-[var(--tp-text-muted)]">
+                <span
+                  aria-live="polite"
+                  className="rounded-full bg-[var(--tp-surface-2)] px-2.5 py-1 font-[var(--tp-font-body)] text-xs font-semibold text-[var(--tp-text-muted)]"
+                >
                   {totalCount}
                 </span>
               </h2>
@@ -277,7 +334,11 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {offlineData && <div className="mb-5"><OfflineDataBanner onRetry={() => setSearchParams((prev) => ({ ...prev }))} /></div>}
+          {offlineData && (
+            <div className="mb-5">
+              <OfflineDataBanner onRetry={() => setSearchParams((prev) => ({ ...prev }))} />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div className="min-w-0">
@@ -285,9 +346,16 @@ export const Home: React.FC = () => {
                 <LoadingSpinner message="Searching local services..." />
               ) : displayedListings.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[var(--tp-border-strong)] bg-[var(--tp-surface)] px-6 py-14 text-center">
-                  <MapPin aria-hidden="true" className="mx-auto mb-4 h-8 w-8 text-[var(--tp-text-subtle)]" />
-                  <h3 className="mb-2 font-[var(--tp-font-display)] text-xl font-bold text-[var(--tp-text)]">No places found just yet</h3>
-                  <p className="mb-5 text-sm text-[var(--tp-text-muted)]">Try another category or add a local service you know.</p>
+                  <MapPin
+                    aria-hidden="true"
+                    className="mx-auto mb-4 h-8 w-8 text-[var(--tp-text-subtle)]"
+                  />
+                  <h3 className="mb-2 font-[var(--tp-font-display)] text-xl font-bold text-[var(--tp-text)]">
+                    No places found just yet
+                  </h3>
+                  <p className="mb-5 text-sm text-[var(--tp-text-muted)]">
+                    Try another category or add a local service you know.
+                  </p>
                   <Link to="/submit" className="tp-btn tp-btn-primary">
                     <Plus aria-hidden="true" className="h-4 w-4" />
                     Add a local place
@@ -296,7 +364,12 @@ export const Home: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {displayedListings.map((listing, index) => (
-                    <Reveal key={listing.id} direction="up" delay={Math.min(index, 7) * 40} className="h-full">
+                    <Reveal
+                      key={listing.id}
+                      direction="up"
+                      delay={Math.min(index, 7) * 40}
+                      className="h-full"
+                    >
                       <ListingCard listing={listing} />
                     </Reveal>
                   ))}
@@ -309,31 +382,46 @@ export const Home: React.FC = () => {
                   totalPages={totalPages}
                   onPageChange={(page) => {
                     setSearchParams((prev) => ({ ...prev, page }));
-                    document.getElementById('directory-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document
+                      .getElementById('directory-results')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
                   className="pt-6"
                 />
               )}
             </div>
 
-            <aside className="lg:sticky lg:top-24">
+            <Reveal
+              as="section"
+              aria-label={`Map around ${town.name}`}
+              direction="right"
+              threshold={0.08}
+              className="lg:sticky lg:top-24"
+            >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">Get your bearings</p>
-                  <h3 className="mt-1 font-[var(--tp-font-display)] text-lg font-bold text-[var(--tp-text)]">Around {town.name}</h3>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">
+                    Get your bearings
+                  </p>
+                  <h3 className="mt-1 font-[var(--tp-font-display)] text-lg font-bold text-[var(--tp-text)]">
+                    Around {town.name}
+                  </h3>
                 </div>
                 <Link to="/map" aria-label="Open full map" className="tp-btn-icon">
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </div>
-              <Map listings={displayedListings} className="h-[260px] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-sm)]" />
+              <Map
+                listings={displayedListings}
+                className="h-[260px] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-sm)]"
+              />
               <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
                 <MapPin aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 Map pins reflect the places in your current results.
               </p>
-            </aside>
+            </Reveal>
           </div>
-        </section>
+        </Reveal>
       </main>
 
       {/* Printable Emergency Directory Modal */}

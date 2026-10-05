@@ -198,6 +198,94 @@
     box-shadow: var(--tp-shadow-md);
   }
 
+  /* Scroll scenes use depth instead of a large, motion-heavy entrance. */
+  .reveal {
+    opacity: 0;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition:
+      opacity 680ms var(--tp-ease-out),
+      transform 760ms var(--tp-ease-out),
+      filter 680ms var(--tp-ease-out);
+  }
+
+  .reveal-up {
+    transform: perspective(1100px) translate3d(0, 42px, -28px) rotateX(4deg);
+  }
+
+  .reveal-down {
+    transform: perspective(1100px) translate3d(0, -36px, -24px) rotateX(-3deg);
+  }
+
+  .reveal-left {
+    transform: perspective(1100px) translate3d(-48px, 0, -24px) rotateY(-5deg);
+  }
+
+  .reveal-right {
+    transform: perspective(1100px) translate3d(48px, 0, -24px) rotateY(5deg);
+  }
+
+  .reveal-scale {
+    transform: perspective(1100px) translate3d(0, 18px, -80px) rotateX(5deg) scale(0.95);
+  }
+
+  .reveal-blur {
+    transform: translate3d(0, 22px, 0);
+    filter: blur(7px);
+  }
+
+  .reveal-fade {
+    transform: translate3d(0, 12px, 0);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: perspective(1100px) translate3d(0, 0, 0) rotateX(0) rotateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  .tp-scene-frame {
+    perspective: 1200px;
+  }
+
+  .tp-scene-card {
+    transform-style: preserve-3d;
+    transition:
+      transform 520ms var(--tp-ease-out),
+      box-shadow 520ms var(--tp-ease-out);
+  }
+
+  .tp-scene-card:hover {
+    transform: rotateY(-2deg) rotateX(1deg) translateY(-5px);
+    box-shadow: var(--tp-shadow-xl);
+  }
+
+  .tp-scene-card__detail {
+    transform: translateZ(20px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal-up,
+    .reveal-down,
+    .reveal-left,
+    .reveal-right,
+    .reveal-scale,
+    .reveal-blur,
+    .reveal-fade {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition: none;
+    }
+
+    .tp-scene-card,
+    .tp-scene-card:hover {
+      transform: none;
+      transition: none;
+    }
+  }
+
   /* ── Buttons ─────────────────────────────────────────────────────────────
      Every variant keeps a >=44px hit area. Icon-only buttons use an explicit
      44x44 box rather than padding, so the glyph can stay small and legible. */
@@ -256,7 +344,7 @@
     border-color: var(--tp-border-strong);
   }
 
-/* ── Badges ───────────────────────────────────────────────────────────────
+  /* ── Badges ───────────────────────────────────────────────────────────────
      Always icon + text + colour, so meaning survives without colour
      (WCAG 1.4.1 Use of Color). */
   .tp-badge {
@@ -359,7 +447,7 @@
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-background: linear-gradient(
+    background: linear-gradient(
       90deg,
       transparent,
       color-mix(in srgb, var(--tp-surface) 70%, transparent),
@@ -379,7 +467,7 @@ background: linear-gradient(
       animation: none;
     }
   }
-/* ── Pre-rendered no-JS content ─────────────────────────────────────────────
+  /* ── Pre-rendered no-JS content ─────────────────────────────────────────────
      Written into #root by scripts/prerender.mjs. It is what a crawler indexes
      and what a visitor with JavaScript disabled reads, so it needs to be legible
      on its own rather than assuming the app's Tailwind classes are present. */

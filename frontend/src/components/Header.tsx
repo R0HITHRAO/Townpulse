@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart, Printer } from 'lucide-react';
+import {
+  MapPin,
+  PlusCircle,
+  Shield,
+  Briefcase,
+  LogOut,
+  Menu,
+  X,
+  Info,
+  Heart,
+  Printer,
+} from 'lucide-react';
 import { isAuthenticated, isAdmin, isBusinessOwner, getCurrentUser } from '../services/auth';
 import { clearStoredTokens, api, Listing, Category } from '../services/api';
 import { ThemeToggle } from './ThemeToggle';
 import { BookmarksModal } from './BookmarksModal';
 import { PrintableDirectoryModal } from './PrintableDirectoryModal';
 import { useBookmarks } from '../context/BookmarkContext';
+import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
@@ -21,9 +33,18 @@ export const Header: React.FC = () => {
   const { bookmarks } = useBookmarks();
 
   const handleOpenPrintable = () => {
-    api.getCategories().then(setPrintCategories).catch(console.error);
-    api.searchListings({ per_page: 100 }).then(res => setPrintListings(res.items)).catch(console.error);
     setPrintableOpen(true);
+    api
+      .getCategories()
+      .then(setPrintCategories)
+      .catch(async () => setPrintCategories(await loadSnapshotCategories()));
+    api
+      .searchListings({ per_page: 100 })
+      .then((res) => setPrintListings(res.items))
+      .catch(async () => {
+        const snapshot = await searchSnapshot({ per_page: 100 });
+        setPrintListings(snapshot.items);
+      });
   };
 
   const auth = isAuthenticated();
@@ -50,7 +71,9 @@ export const Header: React.FC = () => {
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-xl font-extrabold tracking-tight text-[var(--tp-text)]">TownPulse</span>
+                <span className="text-xl font-extrabold tracking-tight text-[var(--tp-text)]">
+                  TownPulse
+                </span>
                 <span className="ml-2 hidden rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface-2)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--tp-text-muted)] sm:inline-block">
                   Community Directory
                 </span>
@@ -117,10 +140,7 @@ export const Header: React.FC = () => {
                 <span>Print Guide</span>
               </button>
 
-              <Link
-                to="/submit"
-                className="tp-btn tp-btn-primary rounded-xl"
-              >
+              <Link to="/submit" className="tp-btn tp-btn-primary rounded-xl">
                 <PlusCircle className="h-4 w-4" />
                 <span>{t('submit_listing')}</span>
               </Link>
@@ -174,10 +194,7 @@ export const Header: React.FC = () => {
                   >
                     {t('login')}
                   </Link>
-                  <Link
-                    to="/register"
-                    className="tp-btn tp-btn-primary rounded-xl"
-                  >
+                  <Link to="/register" className="tp-btn tp-btn-primary rounded-xl">
                     {t('register')}
                   </Link>
                 </div>
@@ -270,7 +287,9 @@ export const Header: React.FC = () => {
 
             {auth ? (
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Logged in as {user?.name}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  Logged in as {user?.name}
+                </div>
                 {admin && (
                   <Link
                     to="/admin"
@@ -322,10 +341,7 @@ export const Header: React.FC = () => {
       </header>
 
       {/* Bookmarks Saved Places Modal */}
-      <BookmarksModal
-        isOpen={bookmarksOpen}
-        onClose={() => setBookmarksOpen(false)}
-      />
+      <BookmarksModal isOpen={bookmarksOpen} onClose={() => setBookmarksOpen(false)} />
 
       {/* Printable Emergency Directory Modal */}
       {printableOpen && (

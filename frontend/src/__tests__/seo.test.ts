@@ -1,4 +1,3 @@
-import { render } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { applySeo, absoluteUrl, listingJsonLd } from '../hooks/useSeo';
 import { site, town } from '../config/site';

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { Listing } from '../services/api';
@@ -15,44 +16,53 @@ import '../styles/leaflet.css';
 // the bundle instead of being fetched from a CDN at runtime.
 import 'leaflet/dist/leaflet.css';
 
-// Fix default leaflet marker icon issue in bundlers
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-// Category colors for vibrant badges
-const categoryColors: Record<string, string> = {
-  'Healthcare & Clinics': '#ef4444',
-  'Food & Groceries': '#10b981',
-  'Auto & Mechanics': '#3b82f6',
-  'Cafes & Dining': '#f59e0b',
-  'Shelters & Emergency': '#dc2626',
-  'Community & Volunteers': '#8b5cf6',
-  'Education & Libraries': '#06b6d4',
-  'Home Services & Plumbers': '#6366f1',
-  'Public Services & Civic': '#0ea5e9',
-};
-
-/**
- * Creates custom circular badge pin for each listing (Zero API needed)
- */
 function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
-  const iconChar = listing.category?.icon || '📍';
-  const categoryName = listing.category?.name || '';
-  const borderColor = categoryColors[categoryName] || '#2563eb';
+  const glyph = document.createElement('span');
+  glyph.textContent = listing.category?.icon || '•';
 
-  const html = `
-    <div class="townpulse-pin-badge ${isSelected ? 'selected' : ''}" style="border-color: ${borderColor};">
-      <span>${iconChar}</span>
-    </div>
-  `;
+  const badge = document.createElement('span');
+  badge.className = `townpulse-pin-badge${isSelected ? ' is-selected' : ''}`;
+  badge.setAttribute('aria-hidden', 'true');
+  badge.append(glyph);
 
   return L.divIcon({
     className: 'custom-leaflet-div-icon',
-    html: html,
-    iconSize: [34, 40],
-    iconAnchor: [17, 40],
-    popupAnchor: [0, -38],
+    html: badge,
+    iconSize: [42, 48],
+    iconAnchor: [21, 43],
+    popupAnchor: [0, -42],
   });
 }
+
+function getListingCoordinates(listing: Listing): [number, number] | null {
+  if (listing.lat == null || listing.lng == null) return null;
+
+  const latitude = Number(listing.lat);
+  const longitude = Number(listing.lng);
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return [latitude, longitude];
+}
+
+const WheelZoomBehavior: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (enabled) map.scrollWheelZoom.enable();
+    else map.scrollWheelZoom.disable();
+  }, [enabled, map]);
+
+  return null;
+};
 
 interface MapProps {
   listings: Listing[];
@@ -65,6 +75,8 @@ interface MapProps {
   autoFitBounds?: boolean;
   /** Zoom used when there is exactly one pin to frame. */
   singleMarkerZoom?: number;
+  /** Disable wheel zoom on embedded maps so page scrolling remains natural. */
+  scrollWheelZoom?: boolean;
 }
 
 // Auto Fit Bounds to all markers with comfortable margin
@@ -79,8 +91,8 @@ const AutoFitBounds: React.FC<{
     if (!enabled || listings.length === 0) return;
 
     const validCoords = listings
-      .filter((l) => l.lat != null && l.lng != null)
-      .map((l) => [Number(l.lat), Number(l.lng)] as [number, number]);
+      .map(getListingCoordinates)
+      .filter((coords): coords is [number, number] => coords !== null);
 
     if (validCoords.length === 0) return;
 
@@ -92,24 +104,24 @@ const AutoFitBounds: React.FC<{
     }
     // `map` is stable across renders; including it caused the map to re-fit
     // and fight with user panning.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listings, enabled, singleZoom]);
 
   return null;
 };
 
 // Recenter Map when selectedListingId changes
-const FocusSelectedListing: React.FC<{ listings: Listing[]; selectedListingId?: string | null }> = ({
-  listings,
-  selectedListingId,
-}) => {
+const FocusSelectedListing: React.FC<{
+  listings: Listing[];
+  selectedListingId?: string | null;
+}> = ({ listings, selectedListingId }) => {
   const map = useMap();
 
   useEffect(() => {
     if (!selectedListingId) return;
     const target = listings.find((l) => l.id === selectedListingId);
-    if (target && target.lat != null && target.lng != null) {
-      map.flyTo([Number(target.lat), Number(target.lng)], 15, { duration: 1.0 });
+    const coordinates = target ? getListingCoordinates(target) : null;
+    if (coordinates) {
+      map.flyTo(coordinates, 15, { duration: 1.0 });
     }
   }, [selectedListingId, listings, map]);
 
@@ -125,9 +137,12 @@ export const Map: React.FC<MapProps> = ({
   className = 'h-[280px] w-full',
   autoFitBounds = true,
   singleMarkerZoom = 15,
+  scrollWheelZoom = false,
 }) => {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  const [tileProvider, setTileProvider] = useState<'carto' | 'osm'>('carto');
+  const [tilesUnavailable, setTilesUnavailable] = useState(false);
 
   // Default to the configured town. The previous hardcoded default was
   // Bengaluru (12.9716, 77.5946), so every map opened on the wrong city and
@@ -135,130 +150,153 @@ export const Map: React.FC<MapProps> = ({
   const mapCenter: [number, number] = center ?? [town.lat, town.lng];
   const mapZoom = zoom ?? town.zoom;
 
-  // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
-  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  useEffect(() => {
+    setTileProvider('carto');
+    setTilesUnavailable(false);
+  }, [isDark]);
+
+  const tileUrl =
+    tileProvider === 'carto'
+      ? isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   const attribution =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    tileProvider === 'carto'
+      ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  const listingsWithCoordinates = listings
+    .map((listing) => ({
+      listing,
+      coordinates: getListingCoordinates(listing),
+    }))
+    .filter(
+      (entry): entry is { listing: Listing; coordinates: [number, number] } =>
+        entry.coordinates !== null
+    );
 
   return (
-    <div className={`rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative z-10 ${className}`}>
+    <div
+      className={`relative z-10 overflow-hidden rounded-[1.5rem] border border-[var(--tp-border)] bg-[var(--tp-surface-2)] shadow-[var(--tp-shadow-sm)] ${className}`}
+    >
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
-        scrollWheelZoom={true}
-        className="w-full h-full"
+        scrollWheelZoom={scrollWheelZoom}
+        className="h-full w-full bg-[var(--tp-surface-2)]"
       >
         <TileLayer
-          key={isDark ? 'dark-osm' : 'light-osm'}
+          key={`${tileProvider}-${isDark ? 'dark' : 'light'}`}
           attribution={attribution}
           url={tileUrl}
-          className={isDark ? 'dark-map-tiles' : ''}
-          maxZoom={19}
+          maxZoom={20}
+          maxNativeZoom={20}
+          eventHandlers={{
+            tileerror: () => {
+              if (tileProvider === 'carto') setTileProvider('osm');
+              else setTilesUnavailable(true);
+            },
+          }}
         />
 
-        <AutoFitBounds
-          listings={listings}
-          enabled={autoFitBounds}
-          singleZoom={singleMarkerZoom}
-        />
+        <AutoFitBounds listings={listings} enabled={autoFitBounds} singleZoom={singleMarkerZoom} />
         <FocusSelectedListing listings={listings} selectedListingId={selectedListingId} />
+        <WheelZoomBehavior enabled={scrollWheelZoom} />
 
-        {listings.map((l) => {
-          if (l.lat === undefined || l.lat === null || l.lng === undefined || l.lng === null) {
-            return null;
-          }
+        <MarkerClusterGroup
+          chunkedLoading
+          showCoverageOnHover={false}
+          spiderfyOnMaxZoom
+          maxClusterRadius={48}
+          iconCreateFunction={(cluster) => {
+            const count = document.createElement('span');
+            count.textContent = String(cluster.getChildCount());
+            return L.divIcon({
+              className: 'tp-map-cluster',
+              html: count,
+              iconSize: [44, 44],
+            });
+          }}
+        >
+          {listingsWithCoordinates.map(({ listing: l, coordinates }) => {
+            const isSelected = selectedListingId === l.id;
+            const pinIcon = createCustomPin(l, isSelected);
 
-          const isSelected = selectedListingId === l.id;
-          const pinIcon = createCustomPin(l, isSelected);
-
-          return (
-            <Marker
-              key={l.id}
-              position={[Number(l.lat), Number(l.lng)]}
-              icon={pinIcon}
-              eventHandlers={{
-                click: () => onSelectListing?.(l),
-              }}
-            >
-              <Popup>
-                <div className="p-3 max-w-[240px] text-slate-900 dark:text-slate-100 space-y-1.5">
-                  {/* Thumbnail Image if available */}
-                  {l.image_url && (
-                    <div className="w-full h-20 rounded-lg overflow-hidden mb-1.5 bg-slate-100 dark:bg-slate-800">
-                      <img
-                        src={l.image_url}
-                        alt={l.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
+            return (
+              <Marker
+                key={l.id}
+                position={coordinates}
+                icon={pinIcon}
+                eventHandlers={{
+                  click: () => onSelectListing?.(l),
+                }}
+              >
+                <Popup>
+                  <div className="tp-map-popup">
+                    {l.image_url && (
+                      <div className="tp-map-popup__image">
+                        <img
+                          src={l.image_url}
+                          alt={l.name}
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="tp-map-popup__heading">
+                      <Link to={`/listings/${l.id}`} className="tp-map-popup__title">
+                        {l.name}
+                      </Link>
+                      {l.verified && (
+                        <CheckCircle2
+                          aria-label="Verified listing"
+                          className="h-4 w-4 shrink-0 text-[var(--tp-accent)]"
+                        />
+                      )}
                     </div>
-                  )}
-
-                  {/* Header: Title & Verified */}
-                  <div className="flex items-start justify-between gap-1.5">
-                    <Link
-                      to={`/listings/${l.id}`}
-                      className="font-extrabold text-xs text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition leading-tight line-clamp-1"
-                    >
-                      {l.name}
-                    </Link>
-                    {l.verified && (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-100 dark:fill-emerald-950 flex-shrink-0 mt-0.5" />
-                    )}
-                  </div>
-
-                  {/* Category & Open Badge */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <OpenStatusBadge hours={l.hours} size="sm" />
-                    {l.category && (
-                      <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-800/60">
-                        {l.category.name}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Rating if available */}
-                  {l.average_rating ? (
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      <span>{l.average_rating.toFixed(1)}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">({l.review_count})</span>
+                    <div className="tp-map-popup__metadata">
+                      <OpenStatusBadge hours={l.hours} size="sm" />
+                      {l.category && (
+                        <span className="tp-map-popup__category">{l.category.name}</span>
+                      )}
                     </div>
-                  ) : null}
-
-                  {/* Address */}
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-tight">
-                    {l.address}
-                  </p>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 pt-1.5">
-                    {l.phone ? (
-                      <a
-                        href={`tel:${l.phone}`}
-                        className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1 hover:underline"
-                      >
-                        <Phone className="w-3 h-3" /> Call
-                      </a>
-                    ) : (
-                      <span />
-                    )}
-
-                    <Link
-                      to={`/listings/${l.id}`}
-                      className="text-[11px] text-blue-600 dark:text-blue-400 font-bold hover:underline"
-                    >
-                      View Details →
-                    </Link>
+                    {l.average_rating ? (
+                      <div className="tp-map-popup__rating">
+                        <Star aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                        <span>{l.average_rating.toFixed(1)}</span>
+                        <span className="tp-map-popup__reviews">({l.review_count})</span>
+                      </div>
+                    ) : null}
+                    <p className="tp-map-popup__address">{l.address}</p>
+                    <div className="tp-map-popup__actions">
+                      {l.phone ? (
+                        <a href={`tel:${l.phone}`} className="tp-map-popup__call">
+                          <Phone aria-hidden="true" className="h-3.5 w-3.5" />
+                          Call
+                        </a>
+                      ) : (
+                        <span />
+                      )}
+                      <Link to={`/listings/${l.id}`} className="tp-map-popup__details">
+                        View details <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MarkerClusterGroup>
       </MapContainer>
+      {tilesUnavailable && (
+        <div
+          role="status"
+          className="absolute bottom-8 left-3 z-[1000] max-w-[min(22rem,calc(100%-1.5rem))] rounded-xl border border-[var(--tp-border)] bg-[var(--tp-surface)]/95 px-3 py-2 text-xs text-[var(--tp-text-muted)] shadow-[var(--tp-shadow-md)]"
+        >
+          Map tiles are unavailable right now. Place markers remain available.
+        </div>
+      )}
     </div>
   );
 };

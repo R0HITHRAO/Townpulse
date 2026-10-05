@@ -64,7 +64,6 @@ export const MapView: React.FC = () => {
       .getCategories()
       .then(setCategories)
       .catch(async (err: unknown) => {
-        console.error(err);
         const snapshotCategories = await loadSnapshotCategories();
         if (snapshotCategories.length > 0) {
           setCategories(snapshotCategories);
@@ -72,64 +71,57 @@ export const MapView: React.FC = () => {
           recordError(err);
         }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
     setErrorKind(null);
-    api
-      .searchListings({
-        q: searchQuery || undefined,
-        category_id: selectedCategory || undefined,
-        // Send the town centre. Without lat/lng the backend has no origin to
-        // apply `radius` to, so the radius selector silently did nothing.
-        lat: townCenter[0],
-        lng: townCenter[1],
-        radius: radius,
-        per_page: 100,
-      })
-      .then((res) => {
-        setListings(res.items);
-        setOfflineData(false);
-        setSelectedListing((current) => current ?? res.items[0] ?? null);
-      })
-      // A dead backend used to be swallowed into console.error, leaving
-      // `listings` empty and rendering "No services found in this search
-      // area." — so a broken server was reported to the user as "this town has
-      // no services". Now we fall back to the bundled real-data snapshot and
-      // tell the visitor what they are looking at.
-      .catch(async (err: unknown) => {
-        console.error(err);
-        const snapshot = await searchSnapshot({
+    let currentRequest = true;
+    const requestTimer = window.setTimeout(
+      () => {
+        const params = {
           q: searchQuery || undefined,
           category_id: selectedCategory || undefined,
           lat: townCenter[0],
           lng: townCenter[1],
           radius,
           per_page: 100,
-        });
-        // The bundled snapshot is what a static deployment (Vercel, no backend)
-        // actually serves. `available` distinguishes "the snapshot could not be
-        // read" from "the snapshot was read but the filter matched nothing": the
-        // latter is a normal empty result, and reporting it as a server failure
-        // used to tell visitors the backend was broken when they had simply
-        // chosen a radius or search term that matched nothing.
-        if (snapshot.available) {
-          setListings(snapshot.items);
-          setOfflineData(true);
-          setSelectedListing((current) => current ?? snapshot.items[0] ?? null);
-        } else {
-          setListings([]);
-          recordError(err);
-        }
-      })
-      .finally(() => setLoading(false));
-    // `selectedListing` is intentionally read through a functional update and
-    // left out of the deps: listing it previously re-ran the fetch on every
-    // pin selection.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        };
+
+        api
+          .searchListings(params)
+          .then((res) => {
+            if (!currentRequest) return;
+            setListings(res.items);
+            setOfflineData(false);
+            setSelectedListing(res.items[0] ?? null);
+          })
+          .catch(async (err: unknown) => {
+            if (!currentRequest) return;
+            const snapshot = await searchSnapshot(params);
+            if (!currentRequest) return;
+            if (snapshot.available) {
+              setListings(snapshot.items);
+              setOfflineData(true);
+              setSelectedListing(snapshot.items[0] ?? null);
+            } else {
+              setListings([]);
+              setSelectedListing(null);
+              recordError(err);
+            }
+          })
+          .finally(() => {
+            if (currentRequest) setLoading(false);
+          });
+      },
+      searchQuery ? 280 : 0
+    );
+
+    return () => {
+      currentRequest = false;
+      window.clearTimeout(requestTimer);
+    };
   }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
 
   // Filter listings by open status if enabled
@@ -139,31 +131,37 @@ export const MapView: React.FC = () => {
   }, [listings, openOnly]);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-[var(--tp-bg)] text-[var(--tp-text)] transition-colors duration-200">
       {/* Top Filter & Toolbar */}
-      <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs animate-slide-down">
+      <div className="sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--tp-border)] bg-[var(--tp-surface)]/95 px-4 py-3 shadow-[var(--tp-shadow-xs)] backdrop-blur-md sm:px-6">
         {/* Search input */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search
+            aria-hidden="true"
+            className="absolute left-3 top-3 h-4 w-4 text-[var(--tp-text-subtle)]"
+          />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search verified services..."
-            className="w-full pl-9 pr-8 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
+            aria-label="Search services on the map"
+            className="min-h-11 w-full rounded-xl border border-[var(--tp-border-strong)] bg-[var(--tp-surface)] py-2 pl-9 pr-10 text-sm text-[var(--tp-text)] placeholder:text-[var(--tp-text-subtle)] focus:border-[var(--tp-border-focus)] focus:outline-none focus:ring-2 focus:ring-[var(--tp-primary)]/20"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              aria-label="Clear map search"
+              className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-lg text-[var(--tp-text-subtle)] hover:bg-[var(--tp-surface-2)] hover:text-[var(--tp-text)]"
             >
-              <X className="w-3.5 h-3.5" />
+              <X aria-hidden="true" className="h-4 w-4" />
             </button>
           )}
         </div>
 
         {/* Categories Bar */}
-        <div className="hidden xl:flex items-center flex-1 max-w-lg overflow-hidden">
+        <div className="flex w-full min-w-0 items-center overflow-hidden xl:max-w-lg xl:flex-1">
           <CategoryChips
             categories={categories}
             selectedCategoryId={selectedCategory}
@@ -175,71 +173,80 @@ export const MapView: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {/* Open Now Toggle */}
           <button
-            onClick={() => setOpenOnly(!openOnly)}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition ${
+            type="button"
+            aria-pressed={openOnly}
+            onClick={() => setOpenOnly((value) => !value)}
+            className={`tp-btn min-h-11 rounded-xl border px-3 text-xs ${
               openOnly
-                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'border-[var(--tp-accent)] bg-[var(--tp-accent-soft)] text-[var(--tp-accent-soft-text)]'
+                : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)]'
             }`}
           >
-            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+            <Clock aria-hidden="true" className="h-3.5 w-3.5" />
             <span>Open Now</span>
           </button>
 
           {/* Radius Selector */}
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+          <label className="flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--tp-border)] bg-[var(--tp-surface-2)] px-3 text-xs font-semibold text-[var(--tp-text-muted)]">
+            <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
             <span>Radius:</span>
             <select
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
+              aria-label="Search radius"
+              className="cursor-pointer border-0 bg-transparent text-xs font-bold text-[var(--tp-text)] focus:outline-none"
             >
-              <option value={5000} className="dark:bg-slate-900">5 km</option>
-              <option value={10000} className="dark:bg-slate-900">10 km</option>
-              <option value={15000} className="dark:bg-slate-900">15 km</option>
-              <option value={25000} className="dark:bg-slate-900">25 km</option>
+              <option value={5000}>5 km</option>
+              <option value={10000}>10 km</option>
+              <option value={15000}>15 km</option>
+              <option value={25000}>25 km</option>
             </select>
-          </div>
+          </label>
 
           {/* Layout Mode Switcher (Split, Map, List) */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex rounded-xl border border-[var(--tp-border)] bg-[var(--tp-surface-2)] p-1">
             <button
+              type="button"
+              aria-pressed={layoutMode === 'split'}
               onClick={() => setLayoutMode('split')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              className={`flex min-h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold transition ${
                 layoutMode === 'split'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--tp-surface)] text-[var(--tp-primary)] shadow-[var(--tp-shadow-xs)]'
+                  : 'text-[var(--tp-text-muted)] hover:text-[var(--tp-text)]'
               }`}
               title="Split View (List + Compact Map)"
             >
-              <Columns className="w-3.5 h-3.5" />
+              <Columns aria-hidden="true" className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Split</span>
             </button>
 
             <button
+              type="button"
+              aria-pressed={layoutMode === 'map'}
               onClick={() => setLayoutMode('map')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              className={`flex min-h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold transition ${
                 layoutMode === 'map'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--tp-surface)] text-[var(--tp-primary)] shadow-[var(--tp-shadow-xs)]'
+                  : 'text-[var(--tp-text-muted)] hover:text-[var(--tp-text)]'
               }`}
               title="Map View"
             >
-              <MapIcon className="w-3.5 h-3.5" />
+              <MapIcon aria-hidden="true" className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Map</span>
             </button>
 
             <button
+              type="button"
+              aria-pressed={layoutMode === 'list'}
               onClick={() => setLayoutMode('list')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              className={`flex min-h-9 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold transition ${
                 layoutMode === 'list'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[var(--tp-surface)] text-[var(--tp-primary)] shadow-[var(--tp-shadow-xs)]'
+                  : 'text-[var(--tp-text-muted)] hover:text-[var(--tp-text)]'
               }`}
               title="Directory List View"
             >
-              <List className="w-3.5 h-3.5" />
+              <List aria-hidden="true" className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">List ({displayedListings.length})</span>
             </button>
           </div>
@@ -247,7 +254,23 @@ export const MapView: React.FC = () => {
       </div>
 
       {/* Main Content Body - Clean Website-First Proportion */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
+      <div className="tp-container w-full flex-1 py-6 sm:py-8">
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-primary)]">
+              Explore the neighborhood
+            </p>
+            <h1 className="font-[var(--tp-font-display)] text-3xl font-bold tracking-tight text-[var(--tp-text)] sm:text-4xl">
+              Around {town.name}
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--tp-text-muted)]">
+              Find a place in the directory, then see where it is and plan your visit.
+            </p>
+          </div>
+          <span className="rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--tp-text-muted)]">
+            {displayedListings.length} places in view
+          </span>
+        </header>
         <div className="flex flex-col lg:flex-row gap-6">
           {offlineData && (
             <OfflineDataBanner
@@ -277,9 +300,9 @@ export const MapView: React.FC = () => {
                 <div
                   role="alert"
                   aria-live="assertive"
-                  className="p-10 sm:p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-red-200 dark:border-red-900 text-slate-600 dark:text-slate-300 space-y-3 shadow-xs"
+                  className="space-y-3 rounded-2xl border border-[var(--tp-urgent)]/35 bg-[var(--tp-surface)] p-10 text-center text-[var(--tp-text-muted)] shadow-[var(--tp-shadow-xs)] sm:p-12"
                 >
-                  <p className="font-semibold text-base text-red-700 dark:text-red-400">
+                  <p className="text-base font-semibold text-[var(--tp-urgent)]">
                     {errorKind === 'offline'
                       ? 'You are offline'
                       : errorKind === 'timeout'
@@ -291,7 +314,7 @@ export const MapView: React.FC = () => {
                   {/* Name the broken link in the chain instead of one generic
                       sentence, so the user knows whether to check their phone,
                       their connection, or the backend. */}
-                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                  <p className="mx-auto max-w-lg text-sm leading-relaxed text-[var(--tp-text-muted)]">
                     {errorKind === 'offline'
                       ? 'This is not an empty result — your device has no connection. Reconnect and try again.'
                       : errorKind === 'timeout'
@@ -300,16 +323,16 @@ export const MapView: React.FC = () => {
                           ? 'The request was answered with a web page instead of data. This usually means the SPA fallback is handling /api, or a proxy is pointing at the wrong place.'
                           : 'The backend is not answering, so this is not an empty result. Start it with `docker compose up -d`, or `uvicorn app.main:app --reload` in backend/.'}
                   </p>
-                  <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 break-words max-w-lg mx-auto">
+                  <p className="mx-auto max-w-lg break-words font-mono text-[11px] text-[var(--tp-text-subtle)]">
                     {error}
                   </p>
                   <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setRetryKey((key) => key + 1)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition"
+                      className="tp-btn tp-btn-primary rounded-xl"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
+                      <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
                       Try again
                     </button>
                     <button
@@ -320,7 +343,7 @@ export const MapView: React.FC = () => {
                         setRadius(15000);
                         setRetryKey((key) => key + 1);
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                      className="tp-btn tp-btn-secondary rounded-xl"
                     >
                       Reset filters and reload
                     </button>
@@ -329,7 +352,9 @@ export const MapView: React.FC = () => {
               ) : displayedListings.length === 0 ? (
                 <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
                   <p className="font-semibold text-sm">No services found in this search area.</p>
-                  <p className="text-xs text-slate-400">Try expanding the search radius or resetting category filters.</p>
+                  <p className="text-xs text-slate-400">
+                    Try expanding the search radius or resetting category filters.
+                  </p>
                   {searchQuery || selectedCategory ? (
                     <button
                       type="button"
@@ -337,20 +362,22 @@ export const MapView: React.FC = () => {
                         setSearchQuery('');
                         setSelectedCategory(null);
                       }}
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                      className="tp-btn tp-btn-secondary mt-2 rounded-xl"
                     >
                       Reset filters
                     </button>
                   ) : (
                     <p className="text-xs text-slate-400 pt-1">
-                      The directory loaded successfully but has no listings for this area yet.
-                      Seed it with <code className="font-mono">python scripts/import_osm.py</code>{' '}
-                      to pull real services from OpenStreetMap.
+                      The directory loaded successfully but has no listings for this area yet. Seed
+                      it with <code className="font-mono">python scripts/import_osm.py</code> to
+                      pull real services from OpenStreetMap.
                     </p>
                   )}
                 </div>
               ) : (
-                <div className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
+                <div
+                  className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}
+                >
                   {displayedListings.map((l, index) => (
                     <Reveal
                       key={l.id}
@@ -390,11 +417,12 @@ export const MapView: React.FC = () => {
             >
               <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
                 {layoutMode === 'split' && (
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    <span>Quick Map</span>
+                  <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[var(--tp-text-subtle)]">
+                    <span>Map preview</span>
                     <button
+                      type="button"
                       onClick={() => setLayoutMode('map')}
-                      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                      className="min-h-11 font-semibold text-[var(--tp-primary)] hover:underline"
                     >
                       Expand Map ↗
                     </button>
@@ -404,8 +432,8 @@ export const MapView: React.FC = () => {
                 <div
                   className={
                     layoutMode === 'split'
-                      ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
-                      : 'h-full min-h-[calc(100vh-9rem)] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
+                      ? 'h-[260px] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-xs)]'
+                      : 'h-full min-h-[calc(100vh-9rem)] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-sm)]'
                   }
                 >
                   <Map
@@ -417,14 +445,19 @@ export const MapView: React.FC = () => {
                     className="h-full w-full border-none"
                     autoFitBounds={layoutMode === 'split'}
                     singleMarkerZoom={town.zoom + 1}
+                    scrollWheelZoom={layoutMode === 'map'}
                   />
                 </div>
 
                 {layoutMode === 'split' && selectedListing && (
-                  <div className="p-3 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-3 shadow-[var(--tp-shadow-xs)]">
                     <div className="truncate flex-1">
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Selected Pin:</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">{selectedListing.name}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                        Selected Pin:
+                      </span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
+                        {selectedListing.name}
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -445,10 +478,7 @@ export const MapView: React.FC = () => {
 
       {/* Interactive Directions Modal */}
       {directionsListing && (
-        <DirectionsModal
-          listing={directionsListing}
-          onClose={() => setDirectionsListing(null)}
-        />
+        <DirectionsModal listing={directionsListing} onClose={() => setDirectionsListing(null)} />
       )}
     </div>
   );

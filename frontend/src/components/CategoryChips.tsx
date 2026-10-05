@@ -72,12 +72,14 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
               : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-2)]'
           }`}
         >
-          <span aria-hidden="true" className="text-base leading-none">✳</span>
+          <span aria-hidden="true" className="text-base leading-none">
+            ✳
+          </span>
           <span>{t('all_categories')}</span>
         </button>
 
         {/* Individual Categories */}
-        {categories.map((cat, index) => {
+        {categories.map((cat) => {
           const isSelected = selectedCategoryId === cat.id;
           return (
             <button
@@ -85,15 +87,14 @@ export const CategoryChips: React.FC<CategoryChipsProps> = ({
               type="button"
               aria-pressed={isSelected}
               onClick={() => onSelectCategory(isSelected ? null : cat.id)}
-                style={{ animationDelay: `${Math.min(index + 1, 8) * 45}ms` }}
-                className={`group/chip flex min-h-11 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-all ${
-                  isSelected
-                    ? 'border-[var(--tp-accent)] bg-[var(--tp-accent)] text-[var(--tp-on-accent)] shadow-[var(--tp-shadow-xs)]'
-                    : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-2)]'
-                }`}
+              className={`group/chip flex min-h-11 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition-all ${
+                isSelected
+                  ? 'border-[var(--tp-accent)] bg-[var(--tp-accent)] text-[var(--tp-on-accent)] shadow-[var(--tp-shadow-xs)]'
+                  : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:border-[var(--tp-border-strong)] hover:bg-[var(--tp-surface-2)]'
+              }`}
             >
-                <span aria-hidden="true" className="text-base leading-none">
-                  {cat.icon || '📍'}
+              <span aria-hidden="true" className="text-base leading-none">
+                {cat.icon || '📍'}
               </span>
               <span>{cat.name}</span>
             </button>

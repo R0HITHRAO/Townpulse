@@ -21,55 +21,200 @@
   background-color: var(--tp-surface-2);
   font-family: var(--tp-font-body);
   z-index: var(--tp-z-base);
-  /* OSM raster tiles are photographs of a map; sharpen them slightly. */
   image-rendering: auto;
 }
 
-.dark .leaflet-container {
-  background-color: var(--tp-surface-2);
+.custom-leaflet-div-icon {
+  border: 0;
+  background: transparent;
 }
 
-/*
- * Zero-API-key dark map: invert and re-tint the standard OSM tiles so they
- * read correctly on a dark background without a paid tile provider.
- */
-.dark .leaflet-tile-pane {
-  filter: brightness(0.72) invert(1) contrast(0.92) hue-rotate(185deg)
-    saturate(0.28);
-}
-
-/* Marker pins: an SVG-free CSS pin keeps the map dependency-free. */
-.tp-pin {
+.townpulse-pin-badge {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50% 50% 50% 0;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 12px;
   transform: rotate(-45deg);
-  background-color: var(--tp-map-pin);
-  border: 2px solid var(--tp-surface);
-  box-shadow: var(--tp-shadow-md);
+  background-color: var(--tp-primary);
+  box-shadow: 0 5px 14px rgb(43 33 26 / 0.28);
   color: var(--tp-on-primary);
   transition:
-    transform var(--tp-duration-fast) var(--tp-ease-out),
-    background-color var(--tp-duration-fast) var(--tp-ease-out);
+    transform var(--tp-duration-base) var(--tp-ease-spring),
+    background-color var(--tp-duration-fast) var(--tp-ease-out),
+    box-shadow var(--tp-duration-fast) var(--tp-ease-out);
 }
 
-.tp-pin > * {
+.townpulse-pin-badge > span {
+  font-size: 16px;
+  line-height: 1;
   transform: rotate(45deg);
 }
 
-.tp-pin:hover,
-.tp-pin:focus-visible {
-  transform: rotate(-45deg) scale(1.12);
-  z-index: 500;
+.townpulse-pin-badge.is-selected {
+  z-index: 600;
+  transform: rotate(-45deg) scale(1.18);
+  background-color: var(--tp-accent);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--tp-accent) 22%, transparent),
+    0 8px 20px rgb(43 33 26 / 0.28);
 }
 
-.tp-pin.is-selected {
-  background-color: var(--tp-map-pin-selected);
-  transform: rotate(-45deg) scale(1.2);
-  z-index: 600;
+.leaflet-marker-icon:hover .townpulse-pin-badge {
+  transform: rotate(-45deg) scale(1.12);
+}
+
+.leaflet-marker-icon:hover .townpulse-pin-badge.is-selected {
+  transform: rotate(-45deg) scale(1.22);
+}
+
+.tp-map-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+}
+
+.tp-map-cluster > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 2px solid var(--tp-surface);
+  border-radius: 50%;
+  background: var(--tp-accent);
+  box-shadow: 0 4px 14px rgb(20 84 60 / 0.32);
+  color: var(--tp-on-accent);
+  font-family: var(--tp-font-body);
+  font-size: 12px;
+  font-weight: 800;
+  transition: transform var(--tp-duration-fast) var(--tp-ease-out);
+}
+
+.tp-map-cluster:hover > span {
+  transform: scale(1.12);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--tp-surface);
+  color: var(--tp-text);
+}
+
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-lg);
+  box-shadow: var(--tp-shadow-lg);
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}
+
+.leaflet-popup-close-button {
+  color: var(--tp-text-muted) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--tp-primary) !important;
+}
+
+.tp-map-popup {
+  display: grid;
+  min-width: 205px;
+  max-width: 260px;
+  gap: 9px;
+  color: var(--tp-text);
+  font-family: var(--tp-font-body);
+}
+
+.tp-map-popup__image {
+  height: 100px;
+  overflow: hidden;
+  border-radius: var(--tp-radius-md);
+  background: var(--tp-surface-2);
+}
+
+.tp-map-popup__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tp-map-popup__heading,
+.tp-map-popup__metadata,
+.tp-map-popup__rating,
+.tp-map-popup__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tp-map-popup__title {
+  overflow: hidden;
+  color: var(--tp-text);
+  font-family: var(--tp-font-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tp-map-popup__category {
+  overflow: hidden;
+  padding: 3px 8px;
+  border: 1px solid var(--tp-border);
+  border-radius: var(--tp-radius-full);
+  background: var(--tp-surface-2);
+  color: var(--tp-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tp-map-popup__rating {
+  justify-content: flex-start;
+  color: var(--tp-warn);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tp-map-popup__reviews,
+.tp-map-popup__address {
+  color: var(--tp-text-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.tp-map-popup__address {
+  line-height: 1.45;
+}
+
+.tp-map-popup__actions {
+  min-height: 36px;
+  border-top: 1px solid var(--tp-border);
+}
+
+.tp-map-popup__call,
+.tp-map-popup__details {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--tp-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.tp-map-popup__call {
+  color: var(--tp-accent);
 }
 
 /* Leaflet's default focus outline on the icon anchor is hard to see. */
@@ -107,4 +252,11 @@
 .leaflet-control-attribution a:focus-visible {
   outline: 3px solid var(--tp-focus-ring);
   outline-offset: -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .townpulse-pin-badge,
+  .tp-map-cluster > span {
+    transition: none;
+  }
 }
