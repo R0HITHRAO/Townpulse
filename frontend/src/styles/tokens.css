@@ -122,6 +122,7 @@
   --tp-tracking-caps: 0.08em;
 
   /* ── Spacing: 8px base scale ─────────────────────────────────────────────*/
+  --tp-space-05: 0.125rem; /* 2px — hairline offsets, icon nudges */
   --tp-space-1: 0.25rem; /*  4px — hairline nudges only */
   --tp-space-2: 0.5rem; /*  8px */
   --tp-space-3: 0.75rem; /* 12px */
@@ -145,6 +146,7 @@
   --tp-radius-full: 9999px;
 
   /* ── Elevation ───────────────────────────────────────────────────────────*/
+  --tp-shadow-2xs: 0 1px 1px rgb(43 33 26 / 0.04);
   --tp-shadow-xs: 0 1px 2px rgb(43 33 26 / 0.06);
   --tp-shadow-sm: 0 1px 3px rgb(43 33 26 / 0.08), 0 1px 2px rgb(43 33 26 / 0.04);
   --tp-shadow-md: 0 4px 12px rgb(43 33 26 / 0.09), 0 2px 4px rgb(43 33 26 / 0.05);
@@ -233,6 +235,7 @@
   --tp-map-pin: #fb923c;
   --tp-map-pin-selected: #6ee7b7;
 
+  --tp-shadow-2xs: 0 1px 1px rgb(0 0 0 / 0.3);
   --tp-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
   --tp-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
   --tp-shadow-md: 0 4px 12px rgb(0 0 0 / 0.5), 0 2px 4px rgb(0 0 0 / 0.35);

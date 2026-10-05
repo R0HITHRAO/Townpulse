@@ -109,6 +109,7 @@ export default {
       },
 
       boxShadow: {
+        '2xs': 'var(--tp-shadow-2xs)',
         xs: 'var(--tp-shadow-xs)',
         sm: 'var(--tp-shadow-sm)',
         DEFAULT: 'var(--tp-shadow-sm)',
@@ -119,6 +120,7 @@ export default {
       },
 
       spacing: {
+        0.2: 'var(--tp-space-05)',
         1: 'var(--tp-space-1)',
         2: 'var(--tp-space-2)',
         3: 'var(--tp-space-3)',
@@ -154,6 +156,11 @@ export default {
       },
 
       transitionTimingFunction: {
+        // `ease-fluid` was used ~23 times across the UI before the token layer
+        // landed, but only `out`/`standard`/`spring` were ever declared — so the
+        // class resolved to nothing and every "fluid" transition silently fell
+        // back to the browser default `ease`. Declared here so it resolves.
+        fluid: 'var(--tp-ease-out)',
         out: 'var(--tp-ease-out)',
         standard: 'var(--tp-ease-in-out)',
         spring: 'var(--tp-ease-spring)',
@@ -165,6 +172,14 @@ export default {
         DEFAULT: 'var(--tp-duration-base)',
         base: 'var(--tp-duration-base)',
         slow: 'var(--tp-duration-slow)',
+        // `duration-400` is used for the larger card/brand hover lifts.
+        400: '400ms',
+      },
+
+      // `backdrop-blur-xs` — the frosted-glass panels (modal headers, card
+      // overlays) ask for a subtler blur than Tailwind's `sm` default.
+      backdropBlur: {
+        xs: '2px',
       },
 
       zIndex: {
@@ -185,13 +200,156 @@ export default {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
+
+        // ── Entrances ──────────────────────────────────────────────────────────
+        // One-shot reveals. The `both` fill mode keeps the element hidden during
+        // its delay, so a staggered list does not flash before it animates.
+        'tp-fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'tp-fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'tp-fade-in-right': {
+          from: { opacity: '0', transform: 'translateX(12px)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
+        },
+        'tp-pop-in': {
+          '0%': { opacity: '0', transform: 'scale(.88)' },
+          '70%': { opacity: '1', transform: 'scale(1.04)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'tp-scale-in': {
+          from: { opacity: '0', transform: 'scale(.96)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+        'tp-slide-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'tp-slide-down': {
+          from: { opacity: '0', transform: 'translateY(-8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        // The sticky header and the emergency banner animate in from above.
+        'tp-drawer-in': {
+          from: { opacity: '0', transform: 'translateY(-10px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'tp-page-in': {
+          from: { opacity: '0', transform: 'translateY(6px)', filter: 'blur(3px)' },
+          to: { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
+        },
+
+        // ── Ambient ────────────────────────────────────────────────────────────
+        // These loop. Each is switched off for `prefers-reduced-motion` users by
+        // the blanket rule in base.css, so none can trap a motion-sensitive user
+        // in continuous movement.
+        'tp-float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        'tp-heartbeat': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '14%': { transform: 'scale(1.16)' },
+          '28%': { transform: 'scale(1)' },
+          '42%': { transform: 'scale(1.1)' },
+          '70%': { transform: 'scale(1)' },
+        },
+        // Softer than Tailwind's `ping`, which expands to 2x. This is a halo.
+        'tp-ping-soft': {
+          '0%': { transform: 'scale(1)', opacity: '0.55' },
+          '80%, 100%': { transform: 'scale(1.75)', opacity: '0' },
+        },
+        'tp-dot-bounce': {
+          '0%, 60%, 100%': { transform: 'translateY(0)', opacity: '0.45' },
+          '30%': { transform: 'translateY(-5px)', opacity: '1' },
+        },
+        'tp-glow-pulse': {
+          '0%, 100%': { opacity: '0.45', transform: 'scale(1)' },
+          '50%': { opacity: '0.9', transform: 'scale(1.06)' },
+        },
+        // A light bar sweeping left-to-right across an element.
+        'tp-beam': {
+          '0%': { transform: 'translateX(-130%)' },
+          '100%': { transform: 'translateX(430%)' },
+        },
+        'tp-aurora': {
+          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)' },
+          '33%': { transform: 'translate3d(4%, -3%, 0) scale(1.08) rotate(3deg)' },
+          '66%': { transform: 'translate3d(-3%, 4%, 0) scale(0.95) rotate(-3deg)' },
+        },
+        'tp-orb-1': {
+          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1)' },
+          '50%': { transform: 'translate3d(6%, 8%, 0) scale(1.12)' },
+        },
+        'tp-orb-2': {
+          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1.05)' },
+          '50%': { transform: 'translate3d(-7%, 5%, 0) scale(0.95)' },
+        },
+        'tp-orb-3': {
+          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1)' },
+          '50%': { transform: 'translate3d(5%, -6%, 0) scale(1.1)' },
+        },
+        // Slides a gradient across gradient-clipped text (the 404 numerals).
+        'tp-gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
 
       animation: {
         rise: 'tp-rise var(--tp-duration-slow) var(--tp-ease-out) both',
         fade: 'tp-fade var(--tp-duration-base) var(--tp-ease-out) both',
+
+        'fade-in': 'tp-fade-in var(--tp-duration-base) var(--tp-ease-out) both',
+        'fade-in-up': 'tp-fade-in-up var(--tp-duration-base) var(--tp-ease-out) both',
+        'fade-in-right':
+          'tp-fade-in-right var(--tp-duration-base) var(--tp-ease-out) both',
+        'pop-in': 'tp-pop-in var(--tp-duration-base) var(--tp-ease-spring) both',
+        'scale-in': 'tp-scale-in var(--tp-duration-base) var(--tp-ease-out) both',
+        'slide-up': 'tp-slide-up var(--tp-duration-base) var(--tp-ease-out) both',
+        'slide-down': 'tp-slide-down var(--tp-duration-base) var(--tp-ease-out) both',
+        'drawer-in': 'tp-drawer-in var(--tp-duration-base) var(--tp-ease-out) both',
+        'page-in': 'tp-page-in var(--tp-duration-slow) var(--tp-ease-out) both',
+
+        float: 'tp-float 5s var(--tp-ease-in-out) infinite',
+        heartbeat: 'tp-heartbeat 1.8s var(--tp-ease-in-out) infinite',
+        'ping-soft': 'tp-ping-soft 1.6s var(--tp-ease-out) infinite',
+        'dot-bounce': 'tp-dot-bounce 1.2s var(--tp-ease-in-out) infinite',
+        'glow-pulse': 'tp-glow-pulse 3.4s var(--tp-ease-in-out) infinite',
+        beam: 'tp-beam 7s var(--tp-ease-in-out) infinite',
+        aurora: 'tp-aurora 26s var(--tp-ease-in-out) infinite',
+        'orb-1': 'tp-orb-1 22s var(--tp-ease-in-out) infinite',
+        'orb-2': 'tp-orb-2 28s var(--tp-ease-in-out) infinite',
+        'orb-3': 'tp-orb-3 34s var(--tp-ease-in-out) infinite',
+        'gradient-x': 'tp-gradient-x 6s linear infinite',
+      },
+
+      // Stagger scale for `.anim-delay-1` … `.anim-delay-6`, emitted by the
+      // plugin below. The hero and its children use it so the page assembles
+      // itself instead of appearing all at once.
+      animationDelay: {
+        1: '80ms',
+        2: '160ms',
+        3: '240ms',
+        4: '320ms',
+        5: '400ms',
+        6: '480ms',
       },
     },
   },
-  plugins: [],
+
+  plugins: [
+    function ({ addUtilities, theme }) {
+      const delays = theme('animationDelay') ?? {};
+      const utils = {};
+      for (const [step, value] of Object.entries(delays)) {
+        utils[`.anim-delay-${step}`] = { 'animation-delay': value };
+      }
+      addUtilities(utils);
+    },
+  ],
 };

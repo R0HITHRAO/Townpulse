@@ -435,25 +435,6 @@ background: linear-gradient(
     color: var(--tp-text-muted);
   }
 
-  /* Skip link: visible only once focused, and it must clear the sticky header. */
-  .tp-skip-link {
-    position: absolute;
-    left: -9999px;
-    top: 0;
-    z-index: var(--tp-z-toast);
-    padding: var(--tp-space-3) var(--tp-space-4);
-    background-color: var(--tp-primary);
-    color: var(--tp-on-primary);
-    border-radius: var(--tp-radius-md);
-    font-weight: var(--tp-weight-semibold);
-    text-decoration: none;
-  }
-
-  .tp-skip-link:focus {
-    left: var(--tp-space-3);
-    top: var(--tp-space-3);
-  }
-
   /* ── Prose ────────────────────────────────────────────────────────────────*/
   .tp-prose {
     max-width: var(--tp-container-prose);
@@ -589,6 +570,25 @@ background: linear-gradient(
     display: none;
   }
 
+  /* CategoryChips' horizontal track uses the unprefixed name. Alias it rather
+     than editing the component, so both spellings resolve. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Faint graph-paper grid behind the animated background on the home page. */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(to right, var(--tp-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--tp-border) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
   /* Clamp helpers used by listing cards. */
   .tp-line-clamp-1 {
     display: -webkit-box;
@@ -671,6 +671,158 @@ background: linear-gradient(
   /* Reserve space so async images do not shift the layout (CLS). */
   img {
     height: auto;
+  }
+
+  /* ── Scroll reveal ────────────────────────────────────────────────────────
+     `Reveal.tsx` renders `reveal reveal-<direction> is-visible` and flips
+     `is-visible` from an IntersectionObserver. None of these classes existed, so
+     every scroll animation was a no-op and content appeared instantly.
+
+     The hidden state lives in a `@media (prefers-reduced-motion: no-preference)`
+     block on purpose: if the observer never fires — JS error, old browser, a
+     crawler that does not run scripts — content must still be readable. Only
+     when the visitor has not asked for reduced motion do we risk hiding it. */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      opacity: 0;
+      transition:
+        opacity var(--tp-duration-slow) var(--tp-ease-out),
+        transform var(--tp-duration-slow) var(--tp-ease-out),
+        filter var(--tp-duration-slow) var(--tp-ease-out);
+      will-change: opacity, transform;
+    }
+
+    .reveal-up {
+      transform: translateY(16px);
+    }
+    .reveal-down {
+      transform: translateY(-16px);
+    }
+    .reveal-left {
+      transform: translateX(24px);
+    }
+    .reveal-right {
+      transform: translateX(-24px);
+    }
+    .reveal-scale {
+      transform: scale(0.96);
+    }
+    .reveal-blur {
+      filter: blur(6px);
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* ── Interactive flourishes ───────────────────────────────────────────────
+     Referenced across the UI but never defined; each silently resolved to
+     nothing. */
+  .shine-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* A light bar that crosses the element once, on hover/focus. */
+  .shine-sweep::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 45%;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgb(255 255 255 / 0.35),
+      transparent
+    );
+    transform: translateX(-140%) skewX(-18deg);
+  }
+
+  .shine-sweep:hover::after,
+  .shine-sweep:focus-visible::after {
+    animation: tp-sheen 900ms var(--tp-ease-out);
+  }
+
+  @keyframes tp-sheen {
+    from {
+      transform: translateX(-140%) skewX(-18deg);
+    }
+    to {
+      transform: translateX(320%) skewX(-18deg);
+    }
+  }
+
+  /* Listing-card accent bar: hidden until the card is hovered or focused. */
+  .accent-line {
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--tp-duration-base) var(--tp-ease-out);
+  }
+
+  .group:hover .accent-line,
+  .group:focus-within .accent-line {
+    transform: scaleX(1);
+  }
+
+  /* Footer links: the underline draws in from the left on hover/focus. */
+  .link-underline {
+    position: relative;
+    text-decoration: none;
+  }
+
+  .link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform var(--tp-duration-base) var(--tp-ease-out);
+  }
+
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+
+  /* Staggers the mobile-menu links so the drawer cascades open. */
+  .stagger-children > * {
+    animation: tp-rise var(--tp-duration-base) var(--tp-ease-out) both;
+  }
+
+  .stagger-children > *:nth-child(1) {
+    animation-delay: 40ms;
+  }
+  .stagger-children > *:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  .stagger-children > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .stagger-children > *:nth-child(4) {
+    animation-delay: 160ms;
+  }
+  .stagger-children > *:nth-child(5) {
+    animation-delay: 200ms;
+  }
+  .stagger-children > *:nth-child(n + 6) {
+    animation-delay: 240ms;
+  }
+
+  /* The 404 numerals. `animate-gradient-x` moves `background-position`, which
+     needs the gradient to be wider than the box for the slide to be visible. */
+  .gradient-text-flow {
+    background-size: 200% auto;
   }
 
   ul,
