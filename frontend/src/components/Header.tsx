@@ -62,7 +62,7 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-[var(--tp-border)] bg-[var(--tp-surface)]/95 shadow-[var(--tp-shadow-xs)] backdrop-blur-md transition-colors duration-200">
+      <header className="sticky top-0 z-40 border-b border-[var(--tp-border)] bg-[var(--tp-bg)]/85 shadow-[var(--tp-shadow-xs)] backdrop-blur-xl transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             {/* Logo & Brand */}
@@ -85,9 +85,9 @@ export const Header: React.FC = () => {
               <Link
                 to="/map"
                 aria-current={isActive('/map') ? 'page' : undefined}
-                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
+                className={`link-underline rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-fluid ${
                   isActive('/map')
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
+                    ? 'bg-[var(--tp-primary-soft)] font-semibold text-[var(--tp-primary-soft-text)]'
                     : 'text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)] hover:text-[var(--tp-primary)]'
                 }`}
               >
@@ -97,13 +97,13 @@ export const Header: React.FC = () => {
               <Link
                 to="/about"
                 aria-current={isActive('/about') ? 'page' : undefined}
-                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
+                className={`link-underline rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-fluid ${
                   isActive('/about')
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-[var(--tp-primary-soft)] font-semibold text-[var(--tp-primary-soft-text)]'
+                    : 'text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)] hover:text-[var(--tp-primary)]'
                 }`}
               >
-                {t('about')}
+                {t('footer.about')}
               </Link>
 
               {/* Saved Places Bookmark Trigger */}
@@ -282,7 +282,7 @@ export const Header: React.FC = () => {
               className="flex items-center gap-2 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
             >
               <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              <span>{t('about')}</span>
+              <span>{t('footer.about')}</span>
             </Link>
 
             {auth ? (

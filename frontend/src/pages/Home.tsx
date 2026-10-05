@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { SearchBar } from '../components/SearchBar';
 import { CategoryChips } from '../components/CategoryChips';
@@ -9,17 +8,18 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
+import { ScrollScene } from '../components/ScrollScene';
+import { WorldScene } from '../components/WorldScene';
 import { useSeo } from '../hooks/useSeo';
-import { town, townLabel } from '../config/site';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
+import { WelcomeExperience } from '../components/WelcomeExperience';
 import {
   ArrowDown,
   ArrowRight,
   Clock3,
-  Compass,
   Map as MapIcon,
   MapPin,
   Plus,
@@ -30,7 +30,13 @@ import {
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
-  const { t } = useTranslation();
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return window.sessionStorage.getItem('townpulse-welcome-seen') !== 'true';
+    } catch {
+      return true;
+    }
+  });
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesUnavailable, setCategoriesUnavailable] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -49,11 +55,9 @@ export const Home: React.FC = () => {
   const [offlineData, setOfflineData] = useState(false);
 
   useSeo({
-    title: t('seo.homeTitle', { town: town.name, region: town.region }),
-    description: t('seo.homeDescription', {
-      town: town.name,
-      region: town.region,
-    }),
+    title: 'Local places and services, wherever you are | TownPulse',
+    description:
+      'Explore community-listed places and essential local services. Search by category or use your location to discover listings nearby.',
     path: '/',
     ogKey: 'home',
   });
@@ -127,7 +131,7 @@ export const Home: React.FC = () => {
       radius: filters.radius,
       lat: filters.lat,
       lng: filters.lng,
-      sort_by: filters.lat ? 'distance' : 'created_at',
+      sort_by: filters.lat != null && filters.lng != null ? 'distance' : 'created_at',
       page: 1,
     }));
   };
@@ -141,31 +145,53 @@ export const Home: React.FC = () => {
 
   const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
 
+  if (showWelcome) {
+    return (
+      <WelcomeExperience
+        onEnter={() => {
+          try {
+            window.sessionStorage.setItem('townpulse-welcome-seen', 'true');
+          } catch {
+            // The guide remains usable when browser storage is unavailable.
+          }
+          setShowWelcome(false);
+          window.requestAnimationFrame(() => {
+            document.getElementById('home-heading')?.focus();
+          });
+        }}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-[var(--tp-bg)] text-[var(--tp-text)] transition-colors duration-200">
-      <section className="relative overflow-hidden border-b border-[var(--tp-border)] bg-[radial-gradient(ellipse_at_80%_0%,var(--tp-primary-soft),transparent_48%),linear-gradient(145deg,var(--tp-surface),var(--tp-bg-subtle))]">
+      <section className="tp-home-hero relative isolate overflow-hidden">
+        <div className="tp-home-hero__grain" aria-hidden="true" />
         <div className="tp-container relative py-12 sm:py-16 lg:py-20">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
-            <Reveal direction="left" className="max-w-2xl">
-              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[var(--tp-border)] bg-[var(--tp-surface)] px-3.5 py-2 text-xs font-semibold tracking-wide text-[var(--tp-accent)] shadow-[var(--tp-shadow-xs)]">
-                <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
-                MADE FOR {town.name.toUpperCase()} · {town.region.toUpperCase()}
+          <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.02fr] lg:gap-10">
+            <Reveal direction="left" className="tp-home-hero__copy relative z-10">
+              <p className="tp-home-hero__eyebrow mb-5 inline-flex items-center gap-2">
+                <span className="tp-welcome__live-dot" />A LOCAL FIELD GUIDE
               </p>
-              <h1 className="mb-5 font-[var(--tp-font-display)] text-4xl font-bold leading-[1.04] tracking-tight text-[var(--tp-text)] sm:text-5xl lg:text-6xl">
-                Good local help,
+              <h1
+                id="home-heading"
+                tabIndex={-1}
+                className="tp-home-hero__title mb-5 font-[var(--tp-font-display)] text-[clamp(3.1rem,6vw,5.7rem)] font-bold leading-[1.04] tracking-tight max-[680px]:text-[clamp(3.3rem,13vw,5rem)] focus:outline-none"
+              >
+                Find your way
                 <br />
-                <span className="text-[var(--tp-primary)]">right around</span> you.
+                <span>anywhere.</span>
               </h1>
-              <p className="mb-8 max-w-xl text-base leading-relaxed text-[var(--tp-text-muted)] sm:text-lg">
-                Find the people and essential services that keep {town.name} moving. Clear details,
-                useful directions, all in one local guide.
+              <p className="mb-8 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
+                Search for everyday essentials nearby, or discover the local places that make a new
+                destination feel familiar.
               </p>
               <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
               <a
                 href="#directory-results"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--tp-text-muted)] transition-colors hover:text-[var(--tp-primary)]"
+                className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white"
               >
-                Explore the local directory
+                Explore what’s nearby
                 <ArrowDown aria-hidden="true" className="h-4 w-4" />
               </a>
             </Reveal>
@@ -173,57 +199,46 @@ export const Home: React.FC = () => {
             <Reveal
               direction="scale"
               threshold={0.05}
-              className="tp-scene-frame relative mx-auto w-full max-w-md lg:ml-auto"
+              className="tp-home-hero__visual tp-scene-frame relative mx-auto w-full max-w-2xl lg:ml-auto"
             >
-              <div
-                aria-hidden="true"
-                className="absolute -inset-4 rounded-[2.5rem] border border-[var(--tp-border)] opacity-60"
-              />
-              <div className="tp-scene-card relative overflow-hidden rounded-[2rem] border border-[var(--tp-border)] bg-[var(--tp-surface)] p-6 shadow-[var(--tp-shadow-lg)] sm:p-8">
-                <div className="tp-scene-card__detail mb-8 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--tp-accent-soft)] text-[var(--tp-accent)]">
-                    <Compass aria-hidden="true" className="h-6 w-6" />
+              <ScrollScene className="tp-home-hero__depth">
+                <div className="tp-home-hero__scene">
+                  <WorldScene />
+                  <div className="tp-home-hero__scene-label">
+                    <span className="tp-home-hero__scene-icon">
+                      <MapPin aria-hidden="true" />
+                    </span>
+                    <span>
+                      <small>LOCAL DISCOVERY</small>
+                      <strong>Start wherever you are</strong>
+                    </span>
                   </div>
-                  <span className="rounded-full bg-[var(--tp-accent-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--tp-accent-soft-text)]">
-                    Your town, at a glance
-                  </span>
-                </div>
-                <p className="mb-1 text-sm font-medium text-[var(--tp-text-muted)]">
-                  A community guide to
-                </p>
-                <p className="mb-7 font-[var(--tp-font-display)] text-3xl font-bold tracking-tight text-[var(--tp-text)]">
-                  {townLabel}
-                </p>
-                <div className="tp-scene-card__detail grid grid-cols-2 divide-x divide-[var(--tp-border)] border-y border-[var(--tp-border)] py-5">
-                  <div className="pr-4">
-                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-primary)]">
-                      {totalCount}
-                    </p>
-                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">
-                      places in this view
-                    </p>
+                  <div className="tp-home-hero__scene-counter">
+                    <strong>{totalCount}</strong>
+                    <span>
+                      places in
+                      <br />
+                      your results
+                    </span>
                   </div>
-                  <div className="pl-5">
-                    <p className="font-[var(--tp-font-display)] text-3xl font-bold text-[var(--tp-accent)]">
-                      {categories.length}
-                    </p>
-                    <p className="mt-1 text-xs font-medium text-[var(--tp-text-muted)]">
-                      ways to find help
-                    </p>
+                  <div className="tp-home-hero__scene-caption">
+                    <span className="tp-home-hero__scene-line" />
+                    <span>THE WORLD, THROUGH LOCAL EYES</span>
                   </div>
                 </div>
-                <p className="tp-scene-card__detail mt-5 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
-                  Listings are community-submitted and locally verified where marked. Check details
-                  before you travel.
-                </p>
-              </div>
+              </ScrollScene>
             </Reveal>
           </div>
         </div>
       </section>
 
-      <main className="tp-container w-full flex-1 py-10 sm:py-12">
-        <Reveal as="section" aria-labelledby="browse-heading" direction="left" className="mb-10">
+      <main className="tp-home-main w-full flex-1">
+        <Reveal
+          as="section"
+          aria-labelledby="browse-heading"
+          direction="left"
+          className="tp-container tp-home-browse"
+        >
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-primary)]">
@@ -253,13 +268,15 @@ export const Home: React.FC = () => {
               Categories are temporarily unavailable. You can still search all listed places below.
             </p>
           )}
-          <div className="rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-3 shadow-[var(--tp-shadow-xs)] sm:p-4">
-            <CategoryChips
-              categories={categories}
-              selectedCategoryId={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-          </div>
+          <ScrollScene className="tp-home-browse__depth">
+            <div className="tp-home-browse__chips rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-3 shadow-[var(--tp-shadow-xs)] sm:p-4">
+              <CategoryChips
+                categories={categories}
+                selectedCategoryId={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
+            </div>
+          </ScrollScene>
         </Reveal>
 
         <Reveal
@@ -268,7 +285,7 @@ export const Home: React.FC = () => {
           aria-labelledby="results-heading"
           direction="up"
           threshold={0.01}
-          className="scroll-mt-24"
+          className="tp-container tp-home-directory scroll-mt-24"
         >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--tp-border)] pb-4">
             <div>
@@ -364,14 +381,11 @@ export const Home: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {displayedListings.map((listing, index) => (
-                    <Reveal
-                      key={listing.id}
-                      direction="up"
-                      delay={Math.min(index, 7) * 40}
-                      className="h-full"
-                    >
-                      <ListingCard listing={listing} />
-                    </Reveal>
+                    <ScrollScene key={listing.id} className="h-full">
+                      <Reveal direction="up" delay={Math.min(index, 7) * 40} className="h-full">
+                        <ListingCard listing={listing} />
+                      </Reveal>
+                    </ScrollScene>
                   ))}
                 </div>
               )}
@@ -391,35 +405,39 @@ export const Home: React.FC = () => {
               )}
             </div>
 
-            <Reveal
-              as="section"
-              aria-label={`Map around ${town.name}`}
-              direction="right"
-              threshold={0.08}
-              className="lg:sticky lg:top-24"
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">
-                    Get your bearings
-                  </p>
-                  <h3 className="mt-1 font-[var(--tp-font-display)] text-lg font-bold text-[var(--tp-text)]">
-                    Around {town.name}
-                  </h3>
+            <section aria-label="Map of local search results">
+              <Reveal direction="right" threshold={0.08} className="lg:sticky lg:top-24">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-text-subtle)]">
+                      Search area
+                    </p>
+                    <h3 className="mt-1 font-[var(--tp-font-display)] text-lg font-bold text-[var(--tp-text)]">
+                      Places near your search
+                    </h3>
+                  </div>
+                  <Link to="/map" aria-label="Open full map" className="tp-btn-icon">
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
                 </div>
-                <Link to="/map" aria-label="Open full map" className="tp-btn-icon">
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
-              </div>
-              <Map
-                listings={displayedListings}
-                className="h-[260px] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-sm)]"
-              />
-              <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
-                <MapPin aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                Map pins reflect the places in your current results.
-              </p>
-            </Reveal>
+                <ScrollScene className="tp-home-map-depth">
+                  <Map
+                    listings={displayedListings}
+                    center={
+                      searchParams.lat != null && searchParams.lng != null
+                        ? [searchParams.lat, searchParams.lng]
+                        : [20, 0]
+                    }
+                    zoom={searchParams.lat != null && searchParams.lng != null ? undefined : 2}
+                    className="h-[260px] overflow-hidden rounded-2xl border border-[var(--tp-border)] shadow-[var(--tp-shadow-sm)]"
+                  />
+                </ScrollScene>
+                <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-[var(--tp-text-subtle)]">
+                  <MapPin aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  Map pins reflect the places in your current results.
+                </p>
+              </Reveal>
+            </section>
           </div>
         </Reveal>
       </main>

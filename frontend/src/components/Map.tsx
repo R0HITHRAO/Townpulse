@@ -64,6 +64,20 @@ const WheelZoomBehavior: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   return null;
 };
 
+const MapCenterBehavior: React.FC<{
+  center: [number, number];
+  zoom: number;
+}> = ({ center, zoom }) => {
+  const map = useMap();
+  const [latitude, longitude] = center;
+
+  useEffect(() => {
+    map.setView([latitude, longitude], zoom, { animate: true });
+  }, [latitude, longitude, map, zoom]);
+
+  return null;
+};
+
 interface MapProps {
   listings: Listing[];
   /** Defaults to the configured town centre, never a hardcoded city. */
@@ -199,6 +213,7 @@ export const Map: React.FC<MapProps> = ({
           }}
         />
 
+        <MapCenterBehavior center={mapCenter} zoom={mapZoom} />
         <AutoFitBounds listings={listings} enabled={autoFitBounds} singleZoom={singleMarkerZoom} />
         <FocusSelectedListing listings={listings} selectedListingId={selectedListingId} />
         <WheelZoomBehavior enabled={scrollWheelZoom} />
