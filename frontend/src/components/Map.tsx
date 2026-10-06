@@ -132,10 +132,9 @@ export const Map: React.FC<MapProps> = ({
   const mapCenter: [number, number] = center ?? [town.lat, town.lng];
   const mapZoom = zoom ?? town.zoom;
 
-  // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
-  const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
   const attribution =
-    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
   return (
     <div className={`rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative z-10 ${className}`}>
