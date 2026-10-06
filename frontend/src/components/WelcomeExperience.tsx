@@ -88,7 +88,7 @@ export const WelcomeExperience: React.FC<WelcomeExperienceProps> = ({ onEnter })
             <ArrowRight aria-hidden="true" />
           </span>
         </button>
-        <span className="tp-welcome__footer-note">YOUR TOWN, OPENED UP</span>
+        <span className="tp-welcome__footer-note">YOUR WORLD, OPENED UP</span>
       </footer>
     </main>,
     document.body

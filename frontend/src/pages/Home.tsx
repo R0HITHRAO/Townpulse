@@ -53,6 +53,8 @@ export const Home: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   // True when we fell back to the bundled offline snapshot.
   const [offlineData, setOfflineData] = useState(false);
+  const [directoryUnavailable, setDirectoryUnavailable] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useSeo({
     title: 'Local places and services, wherever you are | TownPulse',
@@ -94,20 +96,29 @@ export const Home: React.FC = () => {
         setTotalCount(res.total);
         setTotalPages(res.total_pages);
         setOfflineData(false);
+        setDirectoryUnavailable(false);
       })
       // `.catch(console.error)` left `listings` empty and the page rendered
-      // "No local services found matching your criteria." — telling the user
-      // this town has no services when the truth was that the server was
-      // unreachable. Fall back to the bundled real-data snapshot instead.
+      // Offline data is used only when its configured area matches this site;
+      // never present another area's records as nearby results.
       .catch(async () => {
         const snapshot = await searchSnapshot(params);
-        setListings(snapshot.items);
-        setTotalCount(snapshot.total);
-        setTotalPages(snapshot.total_pages);
-        setOfflineData(true);
+        if (snapshot.available) {
+          setListings(snapshot.items);
+          setTotalCount(snapshot.total);
+          setTotalPages(snapshot.total_pages);
+          setOfflineData(true);
+          setDirectoryUnavailable(false);
+        } else {
+          setListings([]);
+          setTotalCount(0);
+          setTotalPages(1);
+          setOfflineData(false);
+          setDirectoryUnavailable(true);
+        }
       })
       .finally(() => setLoading(false));
-  }, [searchParams, selectedCategory, verifiedOnly]);
+  }, [searchParams, selectedCategory, verifiedOnly, retryKey]);
 
   // Client-side Open Now filtering
   const displayedListings = useMemo(() => {
@@ -368,15 +379,28 @@ export const Home: React.FC = () => {
                     className="mx-auto mb-4 h-8 w-8 text-[var(--tp-text-subtle)]"
                   />
                   <h3 className="mb-2 font-[var(--tp-font-display)] text-xl font-bold text-[var(--tp-text)]">
-                    No places found just yet
+                    {directoryUnavailable ? 'Live directory unavailable' : 'No places found just yet'}
                   </h3>
                   <p className="mb-5 text-sm text-[var(--tp-text-muted)]">
-                    Try another category or add a local service you know.
+                    {directoryUnavailable
+                      ? 'There is no saved directory for this area. Reconnect and try again to load current local places.'
+                      : 'Try another category or add a local service you know.'}
                   </p>
-                  <Link to="/submit" className="tp-btn tp-btn-primary">
-                    <Plus aria-hidden="true" className="h-4 w-4" />
-                    Add a local place
-                  </Link>
+                  {directoryUnavailable ? (
+                    <button
+                      type="button"
+                      onClick={() => setRetryKey((key) => key + 1)}
+                      className="tp-btn tp-btn-primary"
+                    >
+                      <RefreshCw aria-hidden="true" className="h-4 w-4" />
+                      Try again
+                    </button>
+                  ) : (
+                    <Link to="/submit" className="tp-btn tp-btn-primary">
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      Add a local place
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

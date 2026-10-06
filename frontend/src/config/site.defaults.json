@@ -1,20 +1,20 @@
 {
   "town": {
-    "name": "Hampi",
-    "region": "Karnataka",
-    "district": "Vijayanagara",
-    "lat": 15.335,
-    "lng": 76.46,
-    "zoom": 14,
-    "radiusMeters": 6000,
-    "timezoneOffsetMinutes": 330,
-    "timezone": "Asia/Kolkata"
+    "name": "your area",
+    "region": "",
+    "district": "",
+    "lat": 20,
+    "lng": 0,
+    "zoom": 2,
+    "radiusMeters": 15000,
+    "timezoneOffsetMinutes": 0,
+    "timezone": "UTC"
   },
   "site": {
-    "url": "https://hampi.townpulse.app",
+    "url": "https://townpulse.app",
     "name": "TownPulse",
-    "tagline": "Find clinics, mechanics, shelter and food in your town",
-    "locale": "en_IN",
+    "tagline": "Discover the places and people around you",
+    "locale": "en",
     "themeColor": "#9a3412",
     "themeColorDark": "#17120e",
     "contactEmail": "hello@townpulse.app",
@@ -22,11 +22,11 @@
   },
   "emergencyContacts": [
     { "id": "ambulance", "labelKey": "emergency.ambulance", "phone": "" },
-    { "id": "police", "labelKey": "emergency.police", "phone": "100" },
-    { "id": "fire", "labelKey": "emergency.fire", "phone": "101" },
-    { "id": "women", "labelKey": "emergency.women", "phone": "1091" },
-    { "id": "child", "labelKey": "emergency.child", "phone": "1098" },
-    { "id": "tollfree", "labelKey": "emergency.tollfree", "phone": "112" }
+    { "id": "police", "labelKey": "emergency.police", "phone": "" },
+    { "id": "fire", "labelKey": "emergency.fire", "phone": "" },
+    { "id": "women", "labelKey": "emergency.women", "phone": "" },
+    { "id": "child", "labelKey": "emergency.child", "phone": "" },
+    { "id": "tollfree", "labelKey": "emergency.tollfree", "phone": "" }
   ],
   "routes": {
     "home": "/",

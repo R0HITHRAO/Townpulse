@@ -850,18 +850,6 @@
       linear-gradient(0deg, rgb(23 18 15 / 0.64), transparent 46%, rgb(23 18 15 / 0.18));
   }
 
-  .tp-route-content > * {
-    background-color: color-mix(in srgb, var(--tp-bg) 80%, transparent) !important;
-  }
-
-  .dark .tp-route-content > * {
-    background-color: color-mix(in srgb, var(--tp-bg) 82%, transparent) !important;
-  }
-
-  .tp-app-content > footer {
-    background-color: color-mix(in srgb, var(--tp-surface) 86%, transparent) !important;
-  }
-
   .tp-welcome {
     position: fixed;
     z-index: 100;
@@ -1038,7 +1026,7 @@
     font-family: var(--tp-font-display);
     font-size: clamp(4.3rem, 9vw, 8.8rem);
     font-weight: 500;
-    line-height: 0.79;
+    line-height: 0.88;
     letter-spacing: -0.075em;
     text-wrap: balance;
   }
@@ -1423,7 +1411,7 @@
   .tp-home-main {
     background:
       radial-gradient(ellipse at 6% 4%, rgb(215 157 106 / 0.1), transparent 28%),
-      color-mix(in srgb, var(--tp-bg) 80%, transparent);
+      color-mix(in srgb, var(--tp-bg) 95%, transparent);
   }
 
   .tp-home-browse {

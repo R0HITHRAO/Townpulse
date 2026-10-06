@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="relative z-10 mt-auto border-t border-[var(--tp-border)] transition-colors duration-200">
+    <footer className="relative z-10 mt-auto border-t border-[var(--tp-border)] bg-[var(--tp-surface)] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Col */}
@@ -125,7 +125,7 @@ export const Footer: React.FC = () => {
         <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-[var(--tp-border)] pt-6 text-xs text-[var(--tp-text-subtle)] sm:flex-row">
           <p>© {new Date().getFullYear()} TownPulse. Open-source under MIT License.</p>
           <p className="flex items-center gap-1">
-            Built for rural and small-town resilience{' '}
+            Built for local discovery everywhere{' '}
             <Heart className="w-3.5 h-3.5 text-red-500 fill-current animate-heartbeat" />
           </p>
         </div>

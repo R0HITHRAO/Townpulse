@@ -33,6 +33,11 @@ const snapshotPath = resolve(publicDir, 'data/listings.json');
 const snapshot = existsSync(snapshotPath)
   ? JSON.parse(readFileSync(snapshotPath, 'utf8'))
   : { categories: [], listings: [] };
+const townName = process.env.VITE_TOWN_NAME || cfg.town.name;
+const townRegion = process.env.VITE_TOWN_REGION || cfg.town.region;
+const snapshotMatchesConfiguredArea =
+  (snapshot.town?.name ?? '').trim().toLowerCase() === townName.trim().toLowerCase() &&
+  (snapshot.town?.region ?? '').trim().toLowerCase() === townRegion.trim().toLowerCase();
 
 /** [path, changefreq, priority] */
 const entries = [];
@@ -56,7 +61,7 @@ for (const cat of snapshot.categories ?? []) {
   add(`/c/${cat.slug}`, 'weekly', 0.7);
 }
 
-for (const l of snapshot.listings ?? []) {
+for (const l of snapshotMatchesConfiguredArea ? snapshot.listings ?? [] : []) {
   add(`/listings/${l.id}`, 'weekly', 0.6);
 }
 

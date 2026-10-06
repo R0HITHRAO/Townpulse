@@ -78,6 +78,14 @@ export interface SnapshotSearchResult {
   available: boolean;
 }
 
+function snapshotMatchesConfiguredArea(snapshot: DirectorySnapshot): boolean {
+  const normalize = (value: string) => value.trim().toLocaleLowerCase();
+  return (
+    normalize(snapshot.town.name) === normalize(town.name) &&
+    normalize(snapshot.town.region) === normalize(town.region)
+  );
+}
+
 /**
  * Client-side equivalent of the backend's `/listings` search, so the offline
  * snapshot behaves like the live API rather than being an unfilterable blob.
@@ -89,6 +97,18 @@ export async function searchSnapshot(
   if (!snapshot) {
     // `available: false` — the snapshot itself could not be read, so there is
     // genuinely nothing to show and the API error is the whole story.
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      per_page: 20,
+      total_pages: 1,
+      distances: new Map(),
+      available: false,
+    };
+  }
+
+  if (!snapshotMatchesConfiguredArea(snapshot)) {
     return {
       items: [],
       total: 0,

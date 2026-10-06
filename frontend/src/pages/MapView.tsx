@@ -9,7 +9,6 @@ import { api, ApiError, Category, Listing } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { getOpenStatus } from '../utils/businessHours';
-import { town } from '../config/site';
 import {
   Search,
   SlidersHorizontal,
@@ -24,6 +23,7 @@ import {
 } from 'lucide-react';
 
 type LayoutMode = 'split' | 'map' | 'list';
+const WORLD_CENTER: [number, number] = [20, 0];
 
 export const MapView: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -43,9 +43,10 @@ export const MapView: React.FC = () => {
   // so honestly instead of pretending it is live data.
   const [offlineData, setOfflineData] = useState(false);
 
-  // The map is always centred on the configured town, so there is one
-  // coordinate pair for both the fetch and the viewport.
-  const townCenter = useMemo<[number, number]>(() => [town.lat, town.lng], []);
+  // Start with a world view; use browser location only after the visitor asks.
+  const [locationCenter, setLocationCenter] = useState<[number, number] | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const mapCenter = locationCenter ?? WORLD_CENTER;
 
   const recordError = (err: unknown) => {
     if (err instanceof ApiError) {
@@ -83,9 +84,9 @@ export const MapView: React.FC = () => {
         const params = {
           q: searchQuery || undefined,
           category_id: selectedCategory || undefined,
-          lat: townCenter[0],
-          lng: townCenter[1],
-          radius,
+          ...(locationCenter
+            ? { lat: locationCenter[0], lng: locationCenter[1], radius }
+            : {}),
           per_page: 100,
         };
 
@@ -122,7 +123,7 @@ export const MapView: React.FC = () => {
       currentRequest = false;
       window.clearTimeout(requestTimer);
     };
-  }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
+  }, [searchQuery, selectedCategory, radius, retryKey, locationCenter]);
 
   // Filter listings by open status if enabled
   const displayedListings = useMemo(() => {
@@ -186,6 +187,30 @@ export const MapView: React.FC = () => {
             <span>Open Now</span>
           </button>
 
+          <button
+            type="button"
+            onClick={() => {
+              setLocationError(null);
+              if (!navigator.geolocation) {
+                setLocationError('Location is unavailable in this browser.');
+                return;
+              }
+              navigator.geolocation.getCurrentPosition(
+                ({ coords }) => setLocationCenter([coords.latitude, coords.longitude]),
+                () => setLocationError('Could not access your location. Check browser permissions.'),
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+              );
+            }}
+            className={`tp-btn min-h-11 rounded-xl border px-3 text-xs ${
+              locationCenter
+                ? 'border-[var(--tp-primary)] bg-[var(--tp-primary-soft)] text-[var(--tp-primary-soft-text)]'
+                : 'border-[var(--tp-border)] bg-[var(--tp-surface)] text-[var(--tp-text-muted)] hover:bg-[var(--tp-surface-2)]'
+            }`}
+          >
+            <Navigation aria-hidden="true" className="h-3.5 w-3.5" />
+            <span>{locationCenter ? 'Near me' : 'Use my location'}</span>
+          </button>
+
           {/* Radius Selector */}
           <label className="flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--tp-border)] bg-[var(--tp-surface-2)] px-3 text-xs font-semibold text-[var(--tp-text-muted)]">
             <SlidersHorizontal aria-hidden="true" className="h-3.5 w-3.5" />
@@ -194,6 +219,7 @@ export const MapView: React.FC = () => {
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
               aria-label="Search radius"
+              disabled={!locationCenter}
               className="cursor-pointer border-0 bg-transparent text-xs font-bold text-[var(--tp-text)] focus:outline-none"
             >
               <option value={5000}>5 km</option>
@@ -258,10 +284,10 @@ export const MapView: React.FC = () => {
         <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mb-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--tp-primary)]">
-              Explore the neighborhood
+              WORLDWIDE DISCOVERY
             </p>
             <h1 className="font-[var(--tp-font-display)] text-3xl font-bold tracking-tight text-[var(--tp-text)] sm:text-4xl">
-              Around {town.name}
+              Explore places everywhere
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--tp-text-muted)]">
               Find a place in the directory, then see where it is and plan your visit.
@@ -271,6 +297,11 @@ export const MapView: React.FC = () => {
             {displayedListings.length} places in view
           </span>
         </header>
+        {locationError && (
+          <p className="mb-4 text-sm text-[var(--tp-urgent)]" role="status">
+            {locationError}
+          </p>
+        )}
         <div className="flex flex-col lg:flex-row gap-6">
           {offlineData && (
             <OfflineDataBanner
@@ -438,13 +469,13 @@ export const MapView: React.FC = () => {
                 >
                   <Map
                     listings={displayedListings}
-                    center={townCenter}
-                    zoom={town.zoom}
+                    center={mapCenter}
+                    zoom={locationCenter ? 12 : 2}
                     selectedListingId={selectedListing?.id}
                     onSelectListing={(l) => setSelectedListing(l)}
                     className="h-full w-full border-none"
                     autoFitBounds={layoutMode === 'split'}
-                    singleMarkerZoom={town.zoom + 1}
+                    singleMarkerZoom={13}
                     scrollWheelZoom={layoutMode === 'map'}
                   />
                 </div>

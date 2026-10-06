@@ -11,8 +11,8 @@ describe('applySeo', () => {
   });
 
   it('sets the document title', () => {
-    applySeo({ title: 'Health & clinics in Hampi', description: 'x', path: '/c/healthcare' });
-    expect(document.title).toBe('Health & clinics in Hampi');
+    applySeo({ title: 'Health & clinics nearby', description: 'x', path: '/c/healthcare' });
+    expect(document.title).toBe('Health & clinics nearby');
   });
 
   it('emits exactly one canonical, derived from site.url', () => {
@@ -82,7 +82,7 @@ describe('listingJsonLd', () => {
   it('emits LocalBusiness markup with geo and town', () => {
     const data = listingJsonLd({
       id: 'osm-1',
-      name: 'Hampi Clinic',
+      name: 'Central Clinic',
       address: 'Main Road',
       lat: 15.3,
       lng: 76.4,
@@ -90,7 +90,7 @@ describe('listingJsonLd', () => {
     }) as Record<string, unknown>;
 
     expect(data['@type']).toBe('LocalBusiness');
-    expect(data.name).toBe('Hampi Clinic');
+    expect(data.name).toBe('Central Clinic');
     expect((data.geo as Record<string, unknown>).latitude).toBe(15.3);
     expect(data.telephone).toBe('+91 12345 67890');
     expect((data.address as Record<string, unknown>).addressLocality).toBe(town.name);

@@ -4,31 +4,28 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
  * The offline snapshot is what a static deployment (Vercel, no backend) actually
  * serves, so its search contract has to be right.
  *
- * `available` exists because MapView used to treat "the filter matched nothing"
- * as "the server is broken". A visitor who narrowed the radius, or typed a
- * search term with no hits, was shown a red "Could not load services" panel
- * saying the backend was unreachable — when the truth was an ordinary empty
- * result set. Only a snapshot that cannot be read at all may surface the API
- * error.
+ * `available` distinguishes a usable snapshot for the configured area from an
+ * ordinary empty result. A snapshot for a different area is not a valid
+ * fallback, even when it can be read successfully.
  */
 
-const TOWN = { lat: 15.335, lng: 76.462 };
+const TOWN = { lat: 20, lng: 0 };
 
-/** `near` sits ~15 m from the town centre; `far` sits ~1.5 km away. */
+/** `near` sits ~15 m from the configured centre; `far` sits ~1.5 km away. */
 const snapshotPayload = {
   generated_from: 'OpenStreetMap',
   attribution: '© OpenStreetMap contributors',
-  town: { name: 'Hampi', region: 'Karnataka', district: 'Vijayanagara', ...TOWN },
+  town: { name: 'Your area', region: '', district: '', ...TOWN },
   categories: [{ id: 1, name: 'Healthcare', slug: 'healthcare' }],
   listings: [
     {
       id: 'near',
-      name: 'Hampi Health Centre',
-      address: 'Bazaar Road',
+      name: 'Central Health Centre',
+      address: 'Central Avenue',
       category_id: 1,
       category: { id: 1, name: 'Healthcare', slug: 'healthcare' },
-      lat: 15.3351,
-      lng: 76.4621,
+      lat: 20.0001,
+      lng: 0.0001,
       verified: true,
       status: 'approved',
     },
@@ -38,16 +35,16 @@ const snapshotPayload = {
       address: 'Station Road',
       category_id: 1,
       category: { id: 1, name: 'Healthcare', slug: 'healthcare' },
-      lat: 15.345,
-      lng: 76.472,
+      lat: 20.01,
+      lng: 0.01,
       verified: false,
       status: 'approved',
     },
   ],
 };
 
-const okFetch = () =>
-  vi.fn(async () => ({ ok: true, status: 200, json: async () => snapshotPayload }));
+const okFetch = (payload = snapshotPayload) =>
+  vi.fn(async () => ({ ok: true, status: 200, json: async () => payload }));
 
 /**
  * `loadDirectorySnapshot` memoises its promise at module scope, so each test
@@ -111,6 +108,19 @@ describe('searchSnapshot (offline directory contract)', () => {
 
     expect(res.available).toBe(false);
     expect(res.total).toBe(0);
+    expect(res.items).toEqual([]);
+  });
+
+  it('does not use a saved snapshot for a different area', async () => {
+    const otherArea = {
+      ...snapshotPayload,
+      town: { ...snapshotPayload.town, name: 'Another area' },
+    };
+    const { searchSnapshot } = await importFresh(okFetch(otherArea));
+
+    const res = await searchSnapshot({});
+
+    expect(res.available).toBe(false);
     expect(res.items).toEqual([]);
   });
 

@@ -2,13 +2,12 @@
  * TownPulse site configuration
  * =============================
  *
- * The single source of truth for *where this directory is*. Everything that
- * needs to know the town's identity reads from here: the header, the hero, page
- * titles, canonical URLs, the sitemap, JSON-LD `areaServed`, and the backend's
- * map centre and timezone (mirrored in `backend/app/core/config.py`).
+ * The single source of truth for an optional local deployment. Without town
+ * overrides, TownPulse starts as a global directory and uses the visitor's
+ * chosen search location instead of assuming a particular town.
  *
  * ── Retargeting to your town ────────────────────────────────────────────────
- * 1. Change the values below. That alone updates the entire site.
+ * 1. Set the values below for a town-specific deployment.
  * 2. Set the same values in the backend `.env`:
  *      TOWN_NAME, TOWN_REGION, TOWN_LAT, TOWN_LNG, TZ_OFFSET_MINUTES
  * 3. Re-run the seed:  `python scripts/import_osm.py --lat <lat> --lng <lng>`
@@ -28,7 +27,7 @@ import defaults from './site.defaults.json';
 
 const env = import.meta.env;
 
-/** Read a build-time env override, falling back to the value below. */
+/** Read a build-time env override, falling back to the value in site.defaults.json. */
 function setting(key: string, fallback: string): string {
   const value = env[key];
   return typeof value === 'string' && value.length > 0 ? value : fallback;
@@ -39,27 +38,42 @@ function num(key: string, fallback: number): number {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+function coordinate(key: string, fallback: number, min: number, max: number): number {
+  const value = Number(env[key]);
+  return Number.isFinite(value) && value >= min && value <= max ? value : fallback;
+}
+
+function signedNumber(key: string, fallback: number, min: number, max: number): number {
+  const value = Number(env[key]);
+  return Number.isFinite(value) && value >= min && value <= max ? value : fallback;
+}
+
 export const town = {
-  /** Short name used throughout the UI: "Hampi". */
+  /** Optional area label for town-specific deployments. */
   name: setting('VITE_TOWN_NAME', defaults.town.name),
-  /** State / province / region: "Karnataka". */
+  /** State / province / region for town-specific deployments. */
   region: setting('VITE_TOWN_REGION', defaults.town.region),
-  /** District, shown in page titles and structured data. */
+  /** District, shown in page titles and structured data when configured. */
   district: setting('VITE_TOWN_DISTRICT', defaults.town.district),
-  /** Map centre for the directory and the map view. */
-  lat: num('VITE_TOWN_LAT', defaults.town.lat),
-  lng: num('VITE_TOWN_LNG', defaults.town.lng),
+  /** Neutral world-view fallback; location searches supply their own centre. */
+  lat: coordinate('VITE_TOWN_LAT', defaults.town.lat, -90, 90),
+  lng: coordinate('VITE_TOWN_LNG', defaults.town.lng, -180, 180),
   /** Default zoom and search radius in metres. */
   zoom: num('VITE_TOWN_ZOOM', defaults.town.zoom),
   radiusMeters: num('VITE_TOWN_RADIUS_M', defaults.town.radiusMeters),
   /** UTC offset in minutes — drives "open now" in the backend. */
-  timezoneOffsetMinutes: num('VITE_TOWN_TZ_OFFSET', defaults.town.timezoneOffsetMinutes),
+  timezoneOffsetMinutes: signedNumber(
+    'VITE_TOWN_TZ_OFFSET',
+    defaults.town.timezoneOffsetMinutes,
+    -840,
+    840
+  ),
   /** IANA timezone, for display only. */
   timezone: setting('VITE_TOWN_TZ', defaults.town.timezone),
 } as const;
 
-/** "Hampi, Karnataka" — used in prose, titles and structured data. */
-export const townLabel = `${town.name}, ${town.region}`;
+/** Location label for local deployments, with a generic global fallback. */
+export const townLabel = town.region ? `${town.name}, ${town.region}` : town.name;
 
 export const site = {
   /** Canonical origin. Must be set to the real domain in production. */
@@ -69,7 +83,7 @@ export const site = {
   tagline: setting('VITE_SITE_TAGLINE', defaults.site.tagline),
   description: setting(
     'VITE_SITE_DESCRIPTION',
-    `A community directory of local services in ${townLabel} — clinics, mechanics, shops, civic offices and emergency numbers, with the source and date shown for every entry.`
+    `Discover community-listed places and local services wherever you are, with sources and last-checked dates shown for every entry.`
   ),
   locale: defaults.site.locale,
   themeColor: defaults.site.themeColor,
@@ -111,7 +125,7 @@ export const isProduction = env.PROD === true;
  */
 export const configWarnings: string[] = [];
 
-if (site.url.includes('townpulse.app')) {
+if (site.url === 'https://townpulse.app') {
   configWarnings.push(
     `VITE_SITE_URL is still the placeholder (${site.url}). ` +
       'Canonical URLs, sitemap and OG images will point at the wrong origin.'

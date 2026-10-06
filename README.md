@@ -117,22 +117,28 @@ Three things worth knowing before you change these:
   failing the deployment — `public/og/home.png` is committed for exactly that
   case, so every page still has a valid `og:image`.
 
-### Retargeting to another town
+### Configuring a local deployment
 
-Edit `frontend/src/config/site.defaults.json` (shared by the app and the build
-scripts), set `VITE_SITE_URL`, then rebuild. The sitemap, share cards and
-pre-rendered pages all regenerate from it.
+Set `VITE_TOWN_NAME`, `VITE_TOWN_REGION`, `VITE_TOWN_DISTRICT`, `VITE_TOWN_LAT`,
+`VITE_TOWN_LNG`, `VITE_TOWN_ZOOM`, `VITE_TOWN_RADIUS_M`, `VITE_TOWN_TZ`,
+`VITE_TOWN_TZ_OFFSET` and `VITE_SITE_URL`, then rebuild. The sitemap, share
+cards and pre-rendered pages regenerate from `frontend/src/config/site.defaults.json`
+and those build-time overrides.
 
 ---
 
 ## 🗺️ Targeting a town
 
-Town identity is configured in one place:
-[`frontend/src/config/site.ts`](./frontend/src/config/site.ts) (name, region,
-district, map centre, timezone, emergency numbers) and mirrored in the backend
-`.env`. Full instructions are in [`DATA_NEEDED.md`](./DATA_NEEDED.md) §5.
+Town identity is optional. With no `VITE_TOWN_*` overrides, the frontend opens
+to a neutral world map and asks before using browser location. Town-specific
+deployments can configure a name, region, map centre and timezone in the
+frontend and backend environment. Full instructions are in
+[`DATA_NEEDED.md`](./DATA_NEEDED.md) §5.
 
-The current default is **Hampi, Vijayanagara district, Karnataka**.
+The bundled offline directory is still the real, area-specific snapshot in
+`frontend/public/data/listings.json`; it is used only when its configured area
+matches the site. A global deployment needs a matching global/API dataset to
+show listings worldwide.
 
 ---
 

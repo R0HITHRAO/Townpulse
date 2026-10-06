@@ -397,7 +397,9 @@ function listingCard(cfg) {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 const cfg = JSON.parse(readFileSync(resolve(root, 'src/config/site.defaults.json'), 'utf8'));
-const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
+const townName = process.env.VITE_TOWN_NAME || cfg.town.name;
+const townRegion = process.env.VITE_TOWN_REGION || cfg.town.region;
+const townLabel = townRegion ? `${townName}, ${townRegion}` : townName;
 
 const snapshotPath = resolve(root, 'public/data/listings.json');
 if (!existsSync(snapshotPath)) {
@@ -410,7 +412,11 @@ if (!existsSync(snapshotPath)) {
   );
   process.exit(0);
 }
-const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+const loadedSnapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+const matchesConfiguredArea =
+  (loadedSnapshot.town?.name ?? '').trim().toLowerCase() === townName.trim().toLowerCase() &&
+  (loadedSnapshot.town?.region ?? '').trim().toLowerCase() === townRegion.trim().toLowerCase();
+const snapshot = matchesConfiguredArea ? loadedSnapshot : { ...loadedSnapshot, listings: [] };
 
 mkdirSync(outDir, { recursive: true });
 
@@ -434,8 +440,8 @@ function add(name, svg) {
 add(
   'home',
   homeCard({
-    town: cfg.town.name,
-    region: cfg.town.region,
+    town: townName,
+    region: townRegion,
     title: cfg.site.tagline,
     subtitle:
       'Clinics, mechanics, food, shelter and civic offices — with the source and the date checked for every entry.',
@@ -447,9 +453,7 @@ for (const cat of snapshot.categories ?? []) {
   add(
     `category-${cat.slug}`,
     categoryCard({
-      // Several categories genuinely have no entries in this town's OSM
-      // extract (Hampi has no healthcare or mechanics mapped). Saying
-      // "0 listings" is honest; implying a count we do not have is not.
+      // Saying "0 listings" is honest; implying a count we do not have is not.
       eyebrow:
         count > 0
           ? `${townLabel} · ${count} ${count === 1 ? 'listing' : 'listings'}`

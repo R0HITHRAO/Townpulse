@@ -45,7 +45,9 @@ if (!existsSync(resolve(dist, 'index.html'))) {
 
 const cfg = JSON.parse(readFileSync(resolve(root, 'src/config/site.defaults.json'), 'utf8'));
 const siteUrl = (process.env.VITE_SITE_URL || cfg.site.url).replace(/\/$/, '');
-const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
+const townName = process.env.VITE_TOWN_NAME || cfg.town.name;
+const townRegion = process.env.VITE_TOWN_REGION || cfg.town.region;
+const townLabel = townRegion ? `${townName}, ${townRegion}` : townName;
 
 const template = readFileSync(resolve(dist, 'index.html'), 'utf8');
 
@@ -53,6 +55,10 @@ const snapshotPath = resolve(root, 'public/data/listings.json');
 const snapshot = existsSync(snapshotPath)
   ? JSON.parse(readFileSync(snapshotPath, 'utf8'))
   : { categories: [], listings: [] };
+const snapshotMatchesConfiguredArea =
+  (snapshot.town?.name ?? '').trim().toLowerCase() === townName.trim().toLowerCase() &&
+  (snapshot.town?.region ?? '').trim().toLowerCase() === townRegion.trim().toLowerCase();
+const listings = snapshotMatchesConfiguredArea ? snapshot.listings ?? [] : [];
 
 /**
  * OG image manifest, written by `generate-og.mjs`. Read here so a route only
@@ -177,7 +183,7 @@ function categorySection() {
 
 /** Static links to real listings, so the directory itself is crawlable. */
 function listingSection(limit = 40) {
-  const items = (snapshot.listings ?? [])
+  const items = listings
     .slice(0, limit)
     .map(
       (l) =>
@@ -223,13 +229,13 @@ routes.push({
 routes.push({
   out: 'emergency/index.html',
   head: head({
-    title: `Emergency numbers in ${cfg.town.name} — TownPulse`,
+    title: `Emergency numbers in ${townName} — TownPulse`,
     description: `Police, fire, ambulance and helpline numbers for ${townLabel} and the surrounding area.`,
     path: cfg.routes.emergency,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: `Emergency numbers in ${cfg.town.name}`,
+      name: `Emergency numbers in ${townName}`,
       url: abs(cfg.routes.emergency),
       about: { '@type': 'Place', name: townLabel },
     },
@@ -245,13 +251,13 @@ routes.push({
 routes.push({
   out: 'categories/index.html',
   head: head({
-    title: `All categories — local services in ${cfg.town.name} | TownPulse`,
+    title: `All categories — local services in ${townName} | TownPulse`,
     description: `Browse every category in the ${townLabel} community directory.`,
     path: cfg.routes.categories,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: `Categories in ${cfg.town.name}`,
+      name: `Categories in ${townName}`,
       url: abs(cfg.routes.categories),
     },
   }),
@@ -262,14 +268,14 @@ for (const cat of snapshot.categories ?? []) {
   routes.push({
     out: `c/${cat.slug}/index.html`,
     head: head({
-      title: `${cat.name} in ${cfg.town.name} — TownPulse`,
+      title: `${cat.name} in ${townName} — TownPulse`,
       description: `${cat.name} listings in ${townLabel}, with source and last-checked date on each one.`,
       path: `/c/${cat.slug}`,
       ogKey: `category-${cat.slug}`,
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        name: `${cat.name} in ${cfg.town.name}`,
+        name: `${cat.name} in ${townName}`,
         url: abs(`/c/${cat.slug}`),
         about: { '@type': 'Place', name: townLabel },
       },
@@ -282,14 +288,14 @@ for (const cat of snapshot.categories ?? []) {
   });
 }
 
-for (const l of snapshot.listings ?? []) {
+for (const l of listings) {
   const detail =
     l.phone ||
     (l.address && l.address !== 'Address not listed' ? l.address : 'No phone number listed yet');
   routes.push({
     out: `listings/${l.id}/index.html`,
     head: head({
-      title: `${l.name}, ${cfg.town.name} — address, phone & hours | TownPulse`,
+      title: `${l.name}, ${townName} — address, phone & hours | TownPulse`,
       description: `${l.name} in ${townLabel}: ${detail}. ${
         l.verified ? 'Recently verified.' : 'Not yet verified — check before you travel.'
       }`,
@@ -304,8 +310,8 @@ for (const l of snapshot.listings ?? []) {
         address: {
           '@type': 'PostalAddress',
           streetAddress: l.address,
-          addressLocality: cfg.town.name,
-          addressRegion: cfg.town.region,
+          addressLocality: townName,
+          addressRegion: townRegion,
           addressCountry: 'IN',
         },
         geo: { '@type': 'GeoCoordinates', latitude: l.lat, longitude: l.lng },

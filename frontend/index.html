@@ -32,15 +32,13 @@
     <meta name="twitter:title" content="TownPulse — local services for your town" />
     <meta name="twitter:description" content="Clinics, mechanics, food, shelter and civic offices — with the source and the date checked for every entry." />
     <meta name="twitter:image" content="/og/home.png" />
-    <link rel="canonical" href="https://hampi.townpulse.app/" />
-
     <!-- Structured Data (SEO) -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "TownPulse",
-        "description": "Community-first local resource & services finder for small towns.",
+        "description": "Discover local places, services and community resources around the world.",
         "potentialAction": {
           "@type": "SearchAction",
           "target": "/?q={search_term_string}",
@@ -93,9 +91,8 @@
       without JavaScript — on a crawler, on a mid-load failure, or on the
       low-end Android device this audience actually uses.
 
-      `scripts/prerender.mjs` runs after `vite build` and writes a real,
-      readable page into `#root`: town identity, the emergency numbers, and the
-      directory as plain links. React replaces it on hydration; a crawler or a
+      `      scripts/prerender.mjs` runs after `vite build` and writes a real,
+      readable page into `#root`: directory information and plain links. React replaces it on hydration; a crawler or a
       no-JS visitor reads it as-is.
 
       The `<noscript>` block below is the second layer. It is deliberately
@@ -115,27 +112,18 @@
 
       Inline styles are used deliberately: this block must render correctly even
       if the stylesheet never loads, which is exactly the scenario it exists for.
-      It leads with the emergency numbers because that is what a visitor on a
-      phone with no data connection is actually looking for.
     -->
     <noscript>
       <div style="max-width:42rem;margin:0 auto;padding:1.5rem;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#2b211a;line-height:1.6">
         <h1 style="font-size:1.5rem;margin:0 0 .25rem">TownPulse</h1>
         <p style="margin:0 0 1.5rem;color:#6a5a4a">
-          Local services in Hampi, Karnataka. This page needs JavaScript for search and
-          the map, but the information below works without it.
+          Find community-listed places and local services wherever you are. This page needs
+          JavaScript for search and the map, but the information below works without it.
         </p>
 
-        <h2 style="font-size:1.125rem;margin:1.5rem 0 .5rem">Emergency numbers</h2>
-        <table style="width:100%;border-collapse:collapse;margin-bottom:1rem">
-          <tbody>
-            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Police</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:100">100</a></td></tr>
-            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Fire</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:101">101</a></td></tr>
-            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Ambulance</th><td style="text-align:right;border-bottom:1px solid #e3d9c8;color:#6a5a4a">Not yet collected</td></tr>
-            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Women &amp; child helpline</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:1091">1091</a></td></tr>
-            <tr><th scope="row" style="text-align:left;padding:.4rem 0;border-bottom:1px solid #e3d9c8">Emergency (all)</th><td style="text-align:right;border-bottom:1px solid #e3d9c8"><a href="tel:112">112</a></td></tr>
-          </tbody>
-        </table>
+        <p style="margin:0 0 1.5rem;color:#6a5a4a">
+          Emergency numbers vary by country. Contact your local emergency services for immediate help.
+        </p>
 
         <h2 style="font-size:1.125rem;margin:1.5rem 0 .5rem">Browse the directory</h2>
         <ul style="margin:0 0 1rem;padding-left:1.25rem">

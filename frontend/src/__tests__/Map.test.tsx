@@ -7,7 +7,7 @@ import { Listing } from '../services/api';
 const makeListing = (id: string, lat: number, lng: number): Listing => ({
   id,
   name: `Place ${id}`,
-  address: 'Hampi',
+  address: 'Central Avenue',
   lat,
   lng,
   verified: false,
@@ -20,9 +20,9 @@ describe('Map', () => {
       <BrowserRouter>
         <Map
           listings={[
-            makeListing('valid', 15.335, 76.46),
-            makeListing('outside-latitude', 95, 76.46),
-            makeListing('not-a-number', Number.NaN, 76.46),
+            makeListing('valid', 20, 0),
+            makeListing('outside-latitude', 95, 0),
+            makeListing('not-a-number', Number.NaN, 0),
           ]}
         />
       </BrowserRouter>
