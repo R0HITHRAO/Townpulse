@@ -89,20 +89,24 @@ def seed_database() -> None:
         # invented clinics and diagnostics with made-up phone numbers, all
         # flagged verified=true, so it must never be the default.
         seed_dir = Path(__file__).resolve().parent.parent / "seed"
-        osm_seed = seed_dir / "hampi_osm.json"
+        osm_seed = seed_dir / "osm_seed.json"
+        named_seed = seed_dir / "hampi_osm.json"
         legacy_seed = seed_dir / "seed_data.json"
 
         if osm_seed.exists():
             seed_path = osm_seed
             print(f"ℹ️  Using real OpenStreetMap data: {osm_seed.name}")
+        elif named_seed.exists():
+            seed_path = named_seed
+            print(f"ℹ️  Using real OpenStreetMap data: {named_seed.name}")
         elif legacy_seed.exists():
             seed_path = legacy_seed
             print(
                 "⚠️  WARNING: falling back to seed_data.json, which contains "
                 "INVENTED businesses with fake phone numbers.\n"
-                "    Generate real data first:\n"
-                "      python scripts/import_osm.py --lat 15.335 --lng 76.46\n"
-                "      python scripts/build_seed_from_osm.py seed/_osm_raw_hampi.json"
+                "    Generate real data for any place first:\n"
+                "      python scripts/import_osm.py --lat <LAT> --lng <LNG>\n"
+                "      python scripts/build_seed_from_osm.py seed/_osm_raw.json --name \"Your town\""
             )
         else:
             raise FileNotFoundError(

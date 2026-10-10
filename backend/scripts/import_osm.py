@@ -16,8 +16,8 @@ dataset.
 
 Usage
 -----
-    python scripts/import_osm.py --lat 12.9716 --lng 77.5946 --radius 3000
-    python scripts/import_osm.py --lat 15.335 --lng 76.46 --radius 5000 --limit 400 --dry-run
+    python scripts/import_osm.py --lat <lat> --lng <lng> --radius 3000
+    python scripts/import_osm.py --lat <lat> --lng <lng> --radius 5000 --limit 400 --dry-run
 
 `--lat`/`--lng` are required and have no default: the importer must always be
 told which place to import around. A hardcoded default centre silently re-seeds

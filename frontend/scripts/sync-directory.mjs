@@ -19,7 +19,7 @@
  * The snapshot is *real* data — same source, same records, still marked
  * unverified. It is a fallback, not a substitute for the API.
  *
- * Reads: ../backend/seed/hampi_osm.json
+ * Reads: ../backend/seed/osm_seed.json (falls back to hampi_osm.json)
  * Writes: public/data/listings.json
  */
 
@@ -28,14 +28,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const seedPath = path.resolve(here, '../../backend/seed/hampi_osm.json');
+const seedDir = path.resolve(here, '../../backend/seed');
+// `osm_seed.json` is what `build_seed_from_osm.py` writes for any place;
+// `hampi_osm.json` is the older named extract, kept as a fallback.
+const seedCandidates = [
+  path.resolve(seedDir, 'osm_seed.json'),
+  path.resolve(seedDir, 'hampi_osm.json'),
+];
+const seedPath = seedCandidates.find((p) => fs.existsSync(p));
 const outPath = path.resolve(here, '../public/data/listings.json');
 
-if (!fs.existsSync(seedPath)) {
-  console.error(`Seed file not found: ${seedPath}`);
-  console.error('Generate it first:');
-  console.error('  python scripts/import_osm.py --lat 15.335 --lng 76.46');
-  console.error('  python scripts/build_seed_from_osm.py seed/_osm_raw_hampi.json');
+if (!seedPath) {
+  console.error(`No seed file found. Looked for:`);
+  for (const p of seedCandidates) console.error(`  ${p}`);
+  console.error('Generate one for any place first:');
+  console.error('  python scripts/import_osm.py --lat <LAT> --lng <LNG>');
+  console.error('  python scripts/build_seed_from_osm.py seed/_osm_raw.json --name "Your town"');
   process.exit(1);
 }
 
@@ -96,7 +104,7 @@ const listings = seed.listings
   });
 
 const payload = {
-  generated_from: 'OpenStreetMap via backend/seed/hampi_osm.json',
+  generated_from: `OpenStreetMap via ${path.basename(seedPath)}`,
   attribution:
     'Contains information from OpenStreetMap, available under the Open Database License (ODbL). (c) OpenStreetMap contributors.',
   town: seed.town,
