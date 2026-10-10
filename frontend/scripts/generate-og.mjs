@@ -328,7 +328,7 @@ function homeCard(cfg) {
     weight: 400,
   });
   return frame(`${title.svg}${subtitle.svg}`, {
-    eyebrow: `${cfg.town}, ${cfg.region}`,
+    eyebrow: townLabel,
   });
 }
 
@@ -397,7 +397,6 @@ function listingCard(cfg) {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 const cfg = JSON.parse(readFileSync(resolve(root, 'src/config/site.defaults.json'), 'utf8'));
-const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
 
 const snapshotPath = resolve(root, 'public/data/listings.json');
 if (!existsSync(snapshotPath)) {
@@ -411,6 +410,13 @@ if (!existsSync(snapshotPath)) {
   process.exit(0);
 }
 const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
+
+// There is no hardcoded default town. The place label comes from whatever town
+// the bundled snapshot was actually seeded from, so re-seeding for another town
+// re-labels these cards automatically.
+const townLabel = snapshot.town?.name
+  ? `${snapshot.town.name}${snapshot.town.region ? `, ${snapshot.town.region}` : ''}`
+  : 'Your area';
 
 mkdirSync(outDir, { recursive: true });
 
@@ -434,8 +440,8 @@ function add(name, svg) {
 add(
   'home',
   homeCard({
-    town: cfg.town.name,
-    region: cfg.town.region,
+    town: snapshot.town?.name ?? 'Your area',
+    region: snapshot.town?.region ?? '',
     title: cfg.site.tagline,
     subtitle:
       'Clinics, mechanics, food, shelter and civic offices — with the source and the date checked for every entry.',

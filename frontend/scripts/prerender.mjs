@@ -45,7 +45,6 @@ if (!existsSync(resolve(dist, 'index.html'))) {
 
 const cfg = JSON.parse(readFileSync(resolve(root, 'src/config/site.defaults.json'), 'utf8'));
 const siteUrl = (process.env.VITE_SITE_URL || cfg.site.url).replace(/\/$/, '');
-const townLabel = `${cfg.town.name}, ${cfg.town.region}`;
 
 const template = readFileSync(resolve(dist, 'index.html'), 'utf8');
 
@@ -53,6 +52,20 @@ const snapshotPath = resolve(root, 'public/data/listings.json');
 const snapshot = existsSync(snapshotPath)
   ? JSON.parse(readFileSync(snapshotPath, 'utf8'))
   : { categories: [], listings: [] };
+
+// There is no hardcoded default town. The place label is taken from whatever
+// town the bundled snapshot was actually seeded from, so a re-seed for another
+// town re-labels these static pages automatically. With no snapshot town we
+// fall back to a neutral phrase rather than inventing a location.
+const place = snapshot.town?.name
+  ? `${snapshot.town.name}${snapshot.town.region ? `, ${snapshot.town.region}` : ''}`
+  : 'your area';
+
+// A single label used across every pre-rendered page. Derived from whatever
+// town the bundled snapshot was actually seeded from, so re-seeding the data
+// for a different place re-labels these pages automatically. There is no
+// hardcoded town in site.defaults.json to read here.
+const townLabel = place;
 
 /**
  * OG image manifest, written by `generate-og.mjs`. Read here so a route only
@@ -223,13 +236,13 @@ routes.push({
 routes.push({
   out: 'emergency/index.html',
   head: head({
-    title: `Emergency numbers in ${cfg.town.name} — TownPulse`,
+    title: `Emergency numbers in ${townLabel} — TownPulse`,
     description: `Police, fire, ambulance and helpline numbers for ${townLabel} and the surrounding area.`,
     path: cfg.routes.emergency,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: `Emergency numbers in ${cfg.town.name}`,
+      name: `Emergency numbers in ${townLabel}`,
       url: abs(cfg.routes.emergency),
       about: { '@type': 'Place', name: townLabel },
     },
@@ -245,13 +258,13 @@ routes.push({
 routes.push({
   out: 'categories/index.html',
   head: head({
-    title: `All categories — local services in ${cfg.town.name} | TownPulse`,
+    title: `All categories — local services in ${townLabel} | TownPulse`,
     description: `Browse every category in the ${townLabel} community directory.`,
     path: cfg.routes.categories,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: `Categories in ${cfg.town.name}`,
+      name: `Categories in ${townLabel}`,
       url: abs(cfg.routes.categories),
     },
   }),
@@ -262,14 +275,14 @@ for (const cat of snapshot.categories ?? []) {
   routes.push({
     out: `c/${cat.slug}/index.html`,
     head: head({
-      title: `${cat.name} in ${cfg.town.name} — TownPulse`,
+      title: `${cat.name} in ${townLabel} — TownPulse`,
       description: `${cat.name} listings in ${townLabel}, with source and last-checked date on each one.`,
       path: `/c/${cat.slug}`,
       ogKey: `category-${cat.slug}`,
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        name: `${cat.name} in ${cfg.town.name}`,
+        name: `${cat.name} in ${townLabel}`,
         url: abs(`/c/${cat.slug}`),
         about: { '@type': 'Place', name: townLabel },
       },
@@ -289,7 +302,7 @@ for (const l of snapshot.listings ?? []) {
   routes.push({
     out: `listings/${l.id}/index.html`,
     head: head({
-      title: `${l.name}, ${cfg.town.name} — address, phone & hours | TownPulse`,
+      title: `${l.name}, ${townLabel} — address, phone & hours | TownPulse`,
       description: `${l.name} in ${townLabel}: ${detail}. ${
         l.verified ? 'Recently verified.' : 'Not yet verified — check before you travel.'
       }`,
@@ -304,8 +317,8 @@ for (const l of snapshot.listings ?? []) {
         address: {
           '@type': 'PostalAddress',
           streetAddress: l.address,
-          addressLocality: cfg.town.name,
-          addressRegion: cfg.town.region,
+          addressLocality: snapshot.town?.name ?? 'Your area',
+          addressRegion: snapshot.town?.region ?? '',
           addressCountry: 'IN',
         },
         geo: { '@type': 'GeoCoordinates', latitude: l.lat, longitude: l.lng },
