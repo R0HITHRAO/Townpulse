@@ -6,7 +6,6 @@ import { CategoryChips } from '../components/CategoryChips';
 import { ListingCard } from '../components/ListingCard';
 import { Map } from '../components/Map';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { AnimatedBackground } from '../components/AnimatedBackground';
 import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
@@ -127,8 +126,20 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative transition-colors duration-200">
-      {/* Live Animated Background with Floating Particles & Ambient Glow */}
-      <AnimatedBackground />
+      {/* Above-the-fold decorative backdrop — static only (AUDIT.md 1.4):
+          no aurora, beam or orb loops; ambient motion is removed from the
+          critical path so low-end Android devices keep their battery and
+          main thread. The soft grid + single glow layer stays as restraint. */}
+      <div
+        className="pointer-events-none fixed inset-0 overflow-hidden z-0"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 bg-grid-pattern opacity-20 dark:opacity-10" />
+        <div
+          className="absolute -top-24 left-1/2 h-72 w-[500px] -translate-x-1/2 rounded-full bg-gradient-to-b from-orange-200/40 via-transparent to-transparent blur-3xl dark:from-orange-900/15 dark:via-transparent"
+          aria-hidden="true"
+        />
+      </div>
 
       {/* Hero Section */}
       <section className="tp-home-hero relative overflow-hidden px-4 pb-20 pt-14 transition-colors duration-200 sm:px-6 lg:px-8">
