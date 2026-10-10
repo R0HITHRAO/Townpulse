@@ -34,8 +34,12 @@ removed from the load path and replaced with real OpenStreetMap data.
 
 ## 2. What we have right now
 
+The directory ships with a bundled sample extract,
 `backend/seed/hampi_osm.json` — **170 real listings** within 4 km of
-15.3350, 76.4600, pulled from OpenStreetMap.
+15.3350, 76.4600, pulled from OpenStreetMap. This is only a sample to prove
+the pipeline works; TownPulse has **no default town**. Re-seed it for any
+place with `scripts/import_osm.py` + `scripts/build_seed_from_osm.py` (which
+writes `seed/osm_seed.json`), then `npm run sync:directory` in `frontend/`.
 
 | Field | Coverage | Source |
 |---|---|---|

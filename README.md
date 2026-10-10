@@ -168,11 +168,14 @@ Regenerate for any town:
 ```bash
 cd backend
 python scripts/import_osm.py --lat <lat> --lng <lng> --radius 6000
-python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json
+python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json \
+    --name "Your Town" --region "Your Region" --district "Your District" \
+    --out seed/osm_seed.json
 ```
 
 The second command prints a coverage report — how many listings still need a
-phone number, opening hours or an address.
+phone number, opening hours or an address. Refresh the offline frontend
+snapshot afterwards with `npm run sync:directory` in `frontend/`.
 
 ---
 
