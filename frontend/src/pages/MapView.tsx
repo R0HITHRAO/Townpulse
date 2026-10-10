@@ -9,19 +9,8 @@ import { api, ApiError, Category, Listing } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { getOpenStatus } from '../utils/businessHours';
-import { town } from '../config/site';
-import {
-  Search,
-  SlidersHorizontal,
-  Map as MapIcon,
-  List,
-  Columns,
-  X,
-  Clock,
-  Sparkles,
-  Navigation,
-  RefreshCw,
-} from 'lucide-react';
+import { useCurrentLocation } from '../context/LocationContext';
+import { LocateFixed, Map as MapIcon, Navigation, RefreshCw, Search, SlidersHorizontal, Sparkles, X, Columns, List, Clock } from 'lucide-react';
 
 type LayoutMode = 'split' | 'map' | 'list';
 
@@ -43,9 +32,12 @@ export const MapView: React.FC = () => {
   // so honestly instead of pretending it is live data.
   const [offlineData, setOfflineData] = useState(false);
 
-  // The map is always centred on the configured town, so there is one
-  // coordinate pair for both the fetch and the viewport.
-  const townCenter = useMemo<[number, number]>(() => [town.lat, town.lng], []);
+  // The place the user is (or chose). Everything - search origin, map centre,
+  // radius - is driven by this, never by a hardcoded town.
+  const { location, requestLocation, setLocation, clearLocation, isLocating } =
+    useCurrentLocation();
+  const [locationLat, setLocationLat] = useState<string>('');
+  const [locationLng, setLocationLng] = useState<string>('');
 
   const recordError = (err: unknown) => {
     if (err instanceof ApiError) {
@@ -82,10 +74,11 @@ export const MapView: React.FC = () => {
       .searchListings({
         q: searchQuery || undefined,
         category_id: selectedCategory || undefined,
-        // Send the town centre. Without lat/lng the backend has no origin to
-        // apply `radius` to, so the radius selector silently did nothing.
-        lat: townCenter[0],
-        lng: townCenter[1],
+        // Search origin is the user's chosen position. Without lat/lng the
+        // backend has no origin to apply `radius` to, so the radius selector
+        // silently did nothing.
+        lat: location?.lat ?? undefined,
+        lng: location?.lng ?? undefined,
         radius: radius,
         per_page: 100,
       })
@@ -104,8 +97,8 @@ export const MapView: React.FC = () => {
         const snapshot = await searchSnapshot({
           q: searchQuery || undefined,
           category_id: selectedCategory || undefined,
-          lat: townCenter[0],
-          lng: townCenter[1],
+          lat: location?.lat ?? undefined,
+          lng: location?.lng ?? undefined,
           radius,
           per_page: 100,
         });
@@ -127,7 +120,9 @@ export const MapView: React.FC = () => {
       .finally(() => setLoading(false));
     // `selectedListing` is read through a functional update and is deliberately
     // left out of the deps: listing it re-ran the fetch on every pin selection.
-  }, [searchQuery, selectedCategory, radius, retryKey, townCenter]);
+    // `location?.lat`/`location?.lng` are primitives, so re-running on them is
+    // safe and re-searches when the user picks a new place.
+  }, [searchQuery, selectedCategory, radius, retryKey, location?.lat, location?.lng]);
 
   // Filter listings by open status if enabled
   // "Open now" excludes unknown hours — an unreadable listing is not an open
@@ -388,7 +383,7 @@ export const MapView: React.FC = () => {
               }
             >
               <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
-                {layoutMode === 'split' && (
+                {layoutMode === 'split' && location && (
                   <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     <span>Quick Map</span>
                     <button
@@ -400,30 +395,120 @@ export const MapView: React.FC = () => {
                   </div>
                 )}
 
-                <div
-                  className={
-                    layoutMode === 'split'
-                      ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
-                      : 'h-full min-h-[calc(100vh-9rem)] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
-                  }
-                >
-                  <Map
-                    listings={displayedListings}
-                    center={townCenter}
-                    zoom={town.zoom}
-                    selectedListingId={selectedListing?.id}
-                    onSelectListing={(l) => setSelectedListing(l)}
-                    className="h-full w-full border-none"
-                    autoFitBounds={layoutMode === 'split'}
-                    singleMarkerZoom={town.zoom + 1}
-                  />
-                </div>
+                {location ? (
+                  <div
+                    className={
+                      layoutMode === 'split'
+                        ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
+                        : 'h-full min-h-[calc(100vh-9rem)] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
+                    }
+                  >
+                    <Map
+                      listings={displayedListings}
+                      center={[location.lat, location.lng]}
+                      zoom={14}
+                      selectedListingId={selectedListing?.id}
+                      onSelectListing={(l) => setSelectedListing(l)}
+                      className="h-full w-full border-none"
+                      autoFitBounds={layoutMode === 'split'}
+                      singleMarkerZoom={15}
+                    />
+                  </div>
+                ) : null}
+
+                {/* No location chosen yet: show the picker instead of a map. */}
+                {!location && (
+                  <div className="h-full min-h-[calc(100vh-9rem)] space-y-4 p-6">
+                    <div className="flex items-center justify-center gap-3">
+                      <LocateFixed className="w-8 h-8 text-orange-500" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        Choose where you are
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      The directory works for any place you pick. There is no default
+                      town.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={requestLocation}
+                      disabled={isLocating}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      <LocateFixed className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} />
+                      {isLocating ? 'Locating...' : 'Use my current location'}
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                          Latitude
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={locationLat}
+                          onChange={(e) => setLocationLat(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder="e.g. 12.97"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                          Longitude
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={locationLng}
+                          onChange={(e) => setLocationLng(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder="e.g. 77.59"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const lat = parseFloat(locationLat);
+                          const lng = parseFloat(locationLng);
+                          if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                            setLocation({
+                              name: 'My chosen place',
+                              region: '',
+                              country: '',
+                              lat,
+                              lng,
+                            });
+                          }
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition"
+                      >
+                        Set location
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearLocation}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {layoutMode === 'split' && selectedListing && (
                   <div className="p-3 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex items-center justify-between gap-2">
                     <div className="truncate flex-1">
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Selected Pin:</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">{selectedListing.name}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                        Selected Pin:
+                      </span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
+                        {selectedListing.name}
+                      </span>
                     </div>
                     <button
                       type="button"
