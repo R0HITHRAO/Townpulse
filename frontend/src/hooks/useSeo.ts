@@ -21,7 +21,7 @@
  */
 
 import { useEffect } from 'react';
-import { site, town, townLabel } from '../config/site';
+import { site } from '../config/site';
 // Imported from `i18n/languages` rather than `i18n`: the latter calls
 // `i18n.use(initReactI18next).init(...)` at module load, which breaks tests
 // that partially mock `react-i18next`.
@@ -149,7 +149,7 @@ export function applySeo({
       description,
       url,
       isPartOf: { '@type': 'WebSite', name: site.name, url: site.url },
-      about: { '@type': 'Place', name: townLabel },
+      about: { '@type': 'Place', name: 'Local services' },
     }
   );
 }
@@ -168,6 +168,10 @@ export function listingJsonLd(listing: {
   phone?: string | null;
   website?: string | null;
   sourceUrl?: string | null;
+  /** Friendly name of the place the listing belongs to (a town/city the
+   * operator recorded when the record was created). Falls back to a neutral
+   * label instead of inventing a town. */
+  areaName?: string;
 }): unknown {
   return {
     '@context': 'https://schema.org',
@@ -178,12 +182,12 @@ export function listingJsonLd(listing: {
     address: {
       '@type': 'PostalAddress',
       streetAddress: listing.address,
-      addressLocality: town.name,
-      addressRegion: town.region,
+      addressLocality: listing.areaName ?? 'Your town',
+      addressRegion: '',
       addressCountry: 'IN',
     },
     geo: { '@type': 'GeoCoordinates', latitude: listing.lat, longitude: listing.lng },
-    areaServed: { '@type': 'City', name: townLabel },
+    areaServed: { '@type': 'City', name: listing.areaName ?? 'Your town' },
     ...(listing.phone ? { telephone: listing.phone } : {}),
     ...(listing.website ? { url: listing.website } : {}),
     ...(listing.sourceUrl ? { sameAs: listing.sourceUrl } : {}),
