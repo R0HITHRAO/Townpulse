@@ -58,8 +58,11 @@ class ListingBase(BaseModel):
         None, examples=["https://images.unsplash.com/photo-storefront"]
     )
     category_id: int | None = Field(None, examples=[1])
-    lat: float | None = Field(None, ge=-90.0, le=90.0, examples=[12.9716])
-    lng: float | None = Field(None, ge=-180.0, le=180.0, examples=[77.5946])
+    # Deliberately neutral placeholders (0,0 "null island"): the API has no
+    # default town, so the schema must not suggest one via a real city's
+    # coordinates.
+    lat: float | None = Field(None, ge=-90.0, le=90.0, examples=[0.0])
+    lng: float | None = Field(None, ge=-180.0, le=180.0, examples=[0.0])
     phone: str | None = Field(None, examples=["+1234567890"])
     email: str | None = Field(None, examples=["contact@townclinic.org"])
     website: str | None = Field(None, examples=["https://townclinic.org"])
