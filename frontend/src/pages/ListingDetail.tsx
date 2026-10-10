@@ -450,7 +450,10 @@ export const ListingDetail: React.FC = () => {
 
         {/* Report Modal */}
         {reportOpen && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div
+            data-lenis-prevent
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-100 dark:border-slate-800 animate-scale-in">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('report.title')}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">

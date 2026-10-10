@@ -22,7 +22,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ listing, isOpen, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div data-lenis-prevent className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl space-y-5 border border-slate-200 dark:border-slate-800 animate-scale-in text-center relative">
         <button
           onClick={onClose}

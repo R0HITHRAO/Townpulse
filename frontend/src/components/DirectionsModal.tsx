@@ -135,6 +135,7 @@ export const DirectionsModal: React.FC<DirectionsModalProps> = ({ listing, onClo
 
   return (
     <div
+      data-lenis-prevent
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-fade-in"
       role="dialog"
       aria-modal="true"
