@@ -1,29 +1,17 @@
 /**
  * TownPulse site configuration
- * =============================
+ * ============================
  *
- * The single source of truth for *where this directory is*. Everything that
- * needs to know the town's identity reads from here: the header, the hero, page
- * titles, canonical URLs, the sitemap, JSON-LD `areaServed`, and the backend's
- * map centre and timezone (mirrored in `backend/app/core/config.py`).
+ * The single source of truth for everything the site exposes about itself that
+ * is not the user's location: canonical origin, wordmark, theme, emergency
+ * contacts and the route table. It deliberately does NOT contain a town: the
+ * app is now location-first and resolves where the user is at runtime
+ * (see LocationContext and useCurrentLocation).
  *
- * ── Retargeting to your town ────────────────────────────────────────────────
- * 1. Change the values below. That alone updates the entire site.
- * 2. Set the same values in the backend `.env`:
- *      TOWN_NAME, TOWN_REGION, TOWN_LAT, TOWN_LNG, TZ_OFFSET_MINUTES
- * 3. Re-run the seed:  `python scripts/import_osm.py --lat <lat> --lng <lng>`
- * 4. Set VITE_SITE_URL in `.env` to your production domain (see README).
- *
- * Every field is overridable at build time via `import.meta.env`, so one source
- * tree can be deployed for several towns without a code change.
+ * Retargeting the site (different domain, wordmark, theme, contacts) is still
+ * done through env vars and site.defaults.json below.
  */
 
-/**
- * Build scripts (`generate-og.mjs`, `generate-sitemap.mjs`, `prerender.mjs`) also
- * need the town identity, but they run in plain Node and cannot import this
- * module. The values therefore live in `site.defaults.json`, read by both sides,
- * so retargeting the site means editing one file.
- */
 import defaults from './site.defaults.json';
 
 const env = import.meta.env;
@@ -34,33 +22,6 @@ function setting(key: string, fallback: string): string {
   return typeof value === 'string' && value.length > 0 ? value : fallback;
 }
 
-function num(key: string, fallback: number): number {
-  const value = Number(env[key]);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-export const town = {
-  /** Short name used throughout the UI: "Hampi". */
-  name: setting('VITE_TOWN_NAME', defaults.town.name),
-  /** State / province / region: "Karnataka". */
-  region: setting('VITE_TOWN_REGION', defaults.town.region),
-  /** District, shown in page titles and structured data. */
-  district: setting('VITE_TOWN_DISTRICT', defaults.town.district),
-  /** Map centre for the directory and the map view. */
-  lat: num('VITE_TOWN_LAT', defaults.town.lat),
-  lng: num('VITE_TOWN_LNG', defaults.town.lng),
-  /** Default zoom and search radius in metres. */
-  zoom: num('VITE_TOWN_ZOOM', defaults.town.zoom),
-  radiusMeters: num('VITE_TOWN_RADIUS_M', defaults.town.radiusMeters),
-  /** UTC offset in minutes — drives "open now" in the backend. */
-  timezoneOffsetMinutes: num('VITE_TOWN_TZ_OFFSET', defaults.town.timezoneOffsetMinutes),
-  /** IANA timezone, for display only. */
-  timezone: setting('VITE_TOWN_TZ', defaults.town.timezone),
-} as const;
-
-/** "Hampi, Karnataka" — used in prose, titles and structured data. */
-export const townLabel = `${town.name}, ${town.region}`;
-
 export const site = {
   /** Canonical origin. Must be set to the real domain in production. */
   url: setting('VITE_SITE_URL', defaults.site.url).replace(/\/$/, ''),
@@ -69,7 +30,7 @@ export const site = {
   tagline: setting('VITE_SITE_TAGLINE', defaults.site.tagline),
   description: setting(
     'VITE_SITE_DESCRIPTION',
-    `A community directory of local services in ${townLabel} — clinics, mechanics, shops, civic offices and emergency numbers, with the source and date shown for every entry.`
+    'A community directory of local services - clinics, mechanics, shops, civic offices and emergency numbers, with the source and date shown for every entry.'
   ),
   locale: defaults.site.locale,
   themeColor: defaults.site.themeColor,
@@ -78,48 +39,42 @@ export const site = {
   githubUrl: defaults.site.githubUrl,
 } as const;
 
-/**
- * Emergency services.
- *
- * `phone` values are intentionally left empty for anything we cannot source
- * from a published, citable record. The Emergency page renders a "number not
- * yet collected" state with instructions for how to find it offline, rather
- * than showing a plausible-looking but invented number. Populate these from
- * your local administration — see DATA_NEEDED.md.
- */
+/** Canonical routes that must exist, be linked in the footer, and enter the sitemap. */
+export const routes = defaults.routes;
+
+/** One emergency contact as declared in site.defaults.json. */
 export interface EmergencyContact {
   id: string;
+  /** i18n key for the contact's label (e.g. "emergency.police"). */
   labelKey: string;
-  /** Empty means "not yet collected" — never a guess. */
+  /** Dialable number; empty means "not yet collected". */
   phone: string;
-  /** Alternative number when the primary is a station rather than a line. */
-  altPhone?: string;
+  /** Optional i18n key for a short note shown under the label. */
   noteKey?: string;
 }
 
-export const emergencyContacts: EmergencyContact[] = defaults.emergencyContacts;
-
-/** Canonical routes that must exist, be linked in the footer, and enter the sitemap. */
-export const routes: Record<string, string> = defaults.routes;
+/** Emergency services as disclosed in the footer and Emergency page. */
+export const emergencyContacts = defaults.emergencyContacts as EmergencyContact[];
 
 export const isProduction = env.PROD === true;
 
 /**
- * Flagged by `src/lib/validate-config.ts` at build time in production. It is
- * not fatal — the site still works on a placeholder domain — but the build log
- * shouts about it and the README explains the one-line fix.
+ * Build-time warnings for settings the operator left at their shipped defaults.
+ * These are hints, not errors: the site still works, but a placeholder domain or
+ * missing emergency numbers mean SEO, share previews and safety pages are wrong.
  */
 export const configWarnings: string[] = [];
 
 if (site.url.includes('townpulse.app')) {
   configWarnings.push(
-    `VITE_SITE_URL is still the placeholder (${site.url}). ` +
+    'VITE_SITE_URL is still the placeholder (' + site.url + '). ' +
       'Canonical URLs, sitemap and OG images will point at the wrong origin.'
   );
 }
+
 if (!emergencyContacts.some((c) => c.phone)) {
   configWarnings.push(
     'Most emergency numbers are empty. The Emergency page will show ' +
-      '"number not yet collected" — see DATA_NEEDED.md.'
+      '"number not yet collected" - see DATA_NEEDED.md.'
   );
 }

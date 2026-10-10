@@ -1,17 +1,6 @@
 {
-  "town": {
-    "name": "Hampi",
-    "region": "Karnataka",
-    "district": "Vijayanagara",
-    "lat": 15.335,
-    "lng": 76.46,
-    "zoom": 14,
-    "radiusMeters": 6000,
-    "timezoneOffsetMinutes": 330,
-    "timezone": "Asia/Kolkata"
-  },
   "site": {
-    "url": "https://hampi.townpulse.app",
+    "url": "https://townpulse.app",
     "name": "TownPulse",
     "tagline": "Find clinics, mechanics, shelter and food in your town",
     "locale": "en_IN",
