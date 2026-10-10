@@ -19,7 +19,6 @@
  */
 
 import type { Category, Listing, SearchParams } from './api';
-import { town } from '../config/site';
 
 export interface DirectorySnapshot {
   generated_from: string;
@@ -129,13 +128,16 @@ export async function searchSnapshot(
     items = items.filter((l) => l.verified);
   }
 
-  // Radius needs an origin. Fall back to the town centre so the radius
-  // selector behaves the same as it does against the live API.
-  const originLat = lat ?? town.lat;
-  const originLng = lng ?? town.lng;
+  // Radius needs an origin. Without a chosen location the caller is asking a
+  // location-free query, so there is no origin to measure distance from and the
+  // radius / distance sort features are simply not applied.
+  const originLat = lat ?? null;
+  const originLng = lng ?? null;
   const distances = new Map<string, number>();
-  for (const l of items) {
-    distances.set(l.id, distanceMeters(originLat, originLng, l.lat!, l.lng!));
+  if (originLat != null && originLng != null) {
+    for (const l of items) {
+      distances.set(l.id, distanceMeters(originLat, originLng, l.lat!, l.lng!));
+    }
   }
 
   if (radius) {
