@@ -115,12 +115,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = 100
     RATE_LIMIT_WINDOW: int = 60  # seconds
 
-    # ─── Maps ───────────────────────────────────────────────
-    # Centre and zoom for the directory map; mirrored from the named town
-    # identity in frontend/src/config/site.defaults.json.
-    DEFAULT_MAP_LAT: float = 15.335
-    DEFAULT_MAP_LNG: float = 76.46
-    DEFAULT_MAP_ZOOM: int = 14
+    # No map centre is configured here on purpose. TownPulse is location-first:
+    # the map, search radius and distance sort are all driven by the place the
+    # *user* picks at runtime (see the frontend LocationContext), never by a
+    # baked-in town. A hardcoded default centre silently misplaces a record
+    # thousands of km from its true location, so none is defined.
 
     class Config:
         env_file = ".env"
