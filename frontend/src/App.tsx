@@ -9,7 +9,7 @@ import { OfflineNotice } from './components/OfflineNotice';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ScrollToTop } from './components/ScrollToTop';
-import { LoadingSpinner } from './components/LoadingSpinner';
+import { ScreenSkeleton } from './components/SkeletonScreen';
 import { ScrollProgressBar } from './components/ScrollProgressBar';
 import { PageTransition } from './components/PageTransition';
 import { SmoothScroll } from './components/SmoothScroll';
@@ -66,7 +66,7 @@ export const App: React.FC = () => {
                 <div id="main-content" className="flex-1 flex flex-col">
                   <PageTransition>
                     <Suspense
-                      fallback={<LoadingSpinner className="py-24" message="Loading TownPulse..." />}
+                      fallback={<ScreenSkeleton />}
                     >
                       <Routes>
                         <Route path="/" element={<Home />} />
