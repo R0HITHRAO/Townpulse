@@ -105,32 +105,24 @@ meaningful — "Verified on 12 March" is a checkable claim; a green tick is not.
 
 ---
 
-## 5. Priority 3 — retarget to your town
+## 5. Priority 3 — seed the directory for your area
 
-If Hampi is not the town you want:
+There is no town baked into the app; the visitor picks their location at
+runtime. The only thing *you* choose is which OpenStreetMap area to seed the
+directory from. Fetch real OSM data and build the offline snapshot:
 
-1. Edit `frontend/src/config/site.ts` — `town.name`, `region`, `district`,
-   `lat`, `lng`, `zoom`, `timezoneOffsetMinutes`.
-2. Mirror it in the backend `.env`:
-   ```
-   TOWN_NAME=Hampi
-   TOWN_REGION=Karnataka
-   TOWN_DISTRICT=Vijayanagara
-   TOWN_LAT=15.335
-   TOWN_LNG=76.46
-   TZ_OFFSET_MINUTES=330
-   ```
-3. Fetch fresh OpenStreetMap data:
-   ```
-   python scripts/import_osm.py --lat <lat> --lng <lng> --radius 6000
-   python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json
-   ```
-   The builder prints a coverage report telling you how many listings still
-   need a phone number, hours or address.
-4. Set `VITE_SITE_URL` to your real domain before deploying.
+```
+python scripts/import_osm.py --name "<Your town>" --lat <lat> --lng <lng> --radius 6000
+python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json
+```
 
-For a town with better OSM coverage than Hampi (larger, or with an active
-mapper community) you should see 30–60% phone coverage instead of 6%.
+`import_osm.py` derives the map centre as the centroid of the listings it
+finds, so there is no hardcoded coordinate to retarget. The builder prints a
+coverage report telling you how many listings still need a phone number, hours
+or address.
+
+Set `VITE_SITE_URL` (frontend) and the backend `.env` to your real domain
+before deploying.
 
 ---
 

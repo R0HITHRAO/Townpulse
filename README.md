@@ -117,22 +117,32 @@ Three things worth knowing before you change these:
   failing the deployment — `public/og/home.png` is committed for exactly that
   case, so every page still has a valid `og:image`.
 
-### Retargeting to another town
+### Configuring the site
 
-Edit `frontend/src/config/site.defaults.json` (shared by the app and the build
-scripts), set `VITE_SITE_URL`, then rebuild. The sitemap, share cards and
-pre-rendered pages all regenerate from it.
+The app has no baked-in town. The only per-deployment settings are things about
+the *site* (canonical domain, wordmark, theme, emergency numbers), held in
+`frontend/src/config/site.defaults.json` (shared by the app and the build
+scripts) and overridable via `VITE_*` env vars. Set `VITE_SITE_URL`, then
+rebuild — the sitemap, share cards and pre-rendered pages all regenerate from
+it.
 
 ---
 
-## 🗺️ Targeting a town
+## 🗺️ Anywhere, not one town
 
-Town identity is configured in one place:
-[`frontend/src/config/site.ts`](./frontend/src/config/site.ts) (name, region,
-district, map centre, timezone, emergency numbers) and mirrored in the backend
-`.env`. Full instructions are in [`DATA_NEEDED.md`](./DATA_NEEDED.md) §5.
+TownPulse has **no default location baked in**. There is no hardcoded
+town, city or map centre anywhere in the app or the backend. When a visitor
+opens the site, they choose where they are — with one tap ("Use my current
+location") or by entering any latitude/longitude on the map. Every search
+origin, radius and map centre follows that choice.
 
-The current default is **Hampi, Vijayanagara district, Karnataka**.
+The only things configured in one place are things that are genuinely about
+the *site*, not the *place*: the canonical domain, wordmark, theme and
+emergency numbers. Those live in
+[`frontend/src/config/site.ts`](./frontend/src/config/site.ts) (env-overridable)
+and the backend `.env`. Full instructions are in
+[`DATA_NEEDED.md`](./DATA_NEEDED.md) §5.
+
 
 ---
 
