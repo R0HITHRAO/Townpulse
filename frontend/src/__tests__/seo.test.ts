@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { applySeo, absoluteUrl, listingJsonLd } from '../hooks/useSeo';
-import { site, town } from '../config/site';
+import { site } from '../config/site';
 
 const meta = (selector: string) =>
   document.querySelector<HTMLMetaElement>(selector)?.getAttribute('content');
@@ -57,7 +57,8 @@ describe('applySeo', () => {
     const el = document.getElementById('tp-jsonld');
     const data = JSON.parse(el?.textContent ?? '{}');
     expect(data['@type']).toBe('WebPage');
-    expect(data.about.name).toContain(town.name);
+    // The default describes "Local services", not a hardcoded town.
+    expect(data.about.name).toBe('Local services');
   });
 
   it('uses the supplied JSON-LD instead of the default', () => {
@@ -79,7 +80,7 @@ describe('absoluteUrl', () => {
 });
 
 describe('listingJsonLd', () => {
-  it('emits LocalBusiness markup with geo and town', () => {
+  it('emits LocalBusiness markup with geo and a neutral area', () => {
     const data = listingJsonLd({
       id: 'osm-1',
       name: 'Hampi Clinic',
@@ -93,7 +94,8 @@ describe('listingJsonLd', () => {
     expect(data.name).toBe('Hampi Clinic');
     expect((data.geo as Record<string, unknown>).latitude).toBe(15.3);
     expect(data.telephone).toBe('+91 12345 67890');
-    expect((data.address as Record<string, unknown>).addressLocality).toBe(town.name);
+    // No area name recorded -> neutral fallback, never an invented town.
+    expect((data.address as Record<string, unknown>).addressLocality).toBe('Your town');
   });
 
   it('omits telephone rather than inventing one', () => {

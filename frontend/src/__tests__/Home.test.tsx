@@ -7,6 +7,7 @@ import { api, Category, Listing } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { ThemeProvider } from '../context/ThemeContext';
 import { BookmarkProvider } from '../context/BookmarkContext';
+import { LocationProvider } from '../context/LocationContext';
 import { site } from '../config/site';
 
 // The real module is kept so type exports and untouched helpers keep working;
@@ -56,11 +57,13 @@ const page = (items: Listing[]) => ({
 const renderHome = () =>
   render(
     <ThemeProvider>
-      <BookmarkProvider>
-        <MemoryRouter>
-          <Home />
-        </MemoryRouter>
-      </BookmarkProvider>
+      <LocationProvider>
+        <BookmarkProvider>
+          <MemoryRouter>
+            <Home />
+          </MemoryRouter>
+        </BookmarkProvider>
+      </LocationProvider>
     </ThemeProvider>
   );
 
