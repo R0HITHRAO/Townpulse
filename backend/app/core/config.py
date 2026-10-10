@@ -116,9 +116,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_WINDOW: int = 60  # seconds
 
     # ─── Maps ───────────────────────────────────────────────
-    DEFAULT_MAP_LAT: float = 12.9716
-    DEFAULT_MAP_LNG: float = 77.5946
-    DEFAULT_MAP_ZOOM: int = 12
+    # Centre and zoom for the directory map; mirrored from the named town
+    # identity in frontend/src/config/site.defaults.json.
+    DEFAULT_MAP_LAT: float = 15.335
+    DEFAULT_MAP_LNG: float = 76.46
+    DEFAULT_MAP_ZOOM: int = 14
 
     class Config:
         env_file = ".env"

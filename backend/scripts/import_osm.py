@@ -663,10 +663,10 @@ def main() -> None:
         description="Import TownPulse listings from OpenStreetMap."
     )
     parser.add_argument(
-        "--lat", type=float, default=float(os.getenv("OSM_LAT", 12.9716))
+        "--lat", type=float, default=float(os.getenv("OSM_LAT", 15.335))
     )
     parser.add_argument(
-        "--lng", type=float, default=float(os.getenv("OSM_LNG", 77.5946))
+        "--lng", type=float, default=float(os.getenv("OSM_LNG", 76.46))
     )
     parser.add_argument(
         "--radius",
