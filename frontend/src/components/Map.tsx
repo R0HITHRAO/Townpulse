@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { Listing } from '../services/api';
 import { Phone, CheckCircle2, Star } from 'lucide-react';
 import { OpenStatusBadge } from './OpenStatusBadge';
-import { town } from '../config/site';
 // Leaflet's stylesheet is bundled from node_modules instead of being fetched
 // from unpkg.com in index.html. A render-blocking third-party request meant a
 // slow or blocked CDN produced a completely unstyled, unusable map.
@@ -126,11 +125,12 @@ export const Map: React.FC<MapProps> = ({
   autoFitBounds = true,
   singleMarkerZoom = 15,
 }) => {
-  // Default to the configured town. The previous hardcoded default was
-  // Bengaluru (12.9716, 77.5946), so every map opened on the wrong city and
-  // showed no pins at all.
-  const mapCenter: [number, number] = center ?? [town.lat, town.lng];
-  const mapZoom = zoom ?? town.zoom;
+  // No default town: the map always receives a real `center` from the user's
+  // chosen location. The fallback below is only a safe neutral world view for
+  // the rare case `center` is omitted — it is deliberately not a real city, so
+  // the map can never open on the wrong place.
+  const mapCenter: [number, number] = center ?? [20, 0];
+  const mapZoom = zoom ?? 2;
 
   // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
   const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
