@@ -16,9 +16,12 @@ dataset.
 
 Usage
 -----
-    python scripts/import_osm.py
     python scripts/import_osm.py --lat 12.9716 --lng 77.5946 --radius 3000
-    python scripts/import_osm.py --radius 5000 --limit 400 --dry-run
+    python scripts/import_osm.py --lat 15.335 --lng 76.46 --radius 5000 --limit 400 --dry-run
+
+`--lat`/`--lng` are required and have no default: the importer must always be
+told which place to import around. A hardcoded default centre silently re-seeds
+the wrong town on every run, so there is deliberately no fallback coordinate.
 
 The import is idempotent: re-running refreshes records that already exist
 instead of creating duplicates, keyed on name + coordinates.
@@ -663,10 +666,16 @@ def main() -> None:
         description="Import TownPulse listings from OpenStreetMap."
     )
     parser.add_argument(
-        "--lat", type=float, default=float(os.getenv("OSM_LAT", 15.335))
+        "--lat",
+        type=float,
+        required=True,
+        help="Latitude of the centre to import around (required, no default)",
     )
     parser.add_argument(
-        "--lng", type=float, default=float(os.getenv("OSM_LNG", 76.46))
+        "--lng",
+        type=float,
+        required=True,
+        help="Longitude of the centre to import around (required, no default)",
     )
     parser.add_argument(
         "--radius",
