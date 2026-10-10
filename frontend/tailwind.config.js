@@ -239,8 +239,8 @@ export default {
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         'tp-page-in': {
-          from: { opacity: '0', transform: 'translateY(20px) scale(0.98)', filter: 'blur(10px)' },
-          to: { opacity: '1', transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+          from: { opacity: '0', transform: 'translateY(6px)', filter: 'blur(3px)' },
+          to: { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
         },
 
         // ── Ambient ────────────────────────────────────────────────────────────
