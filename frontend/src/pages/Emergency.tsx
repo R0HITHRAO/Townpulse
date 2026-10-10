@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Printer, ShieldAlert } from 'lucide-react';
-import { emergencyContacts, routes, town } from '../config/site';
+import { emergencyContacts, routes } from '../config/site';
 import { useSeo } from '../hooks/useSeo';
 import { searchSnapshot } from '../services/directoryFallback';
 import { Listing } from '../services/api';
+import { useCurrentLocation } from '../context/LocationContext';
 
 /**
  * Emergency numbers, first and largest.
@@ -21,12 +22,15 @@ import { Listing } from '../services/api';
  */
 export const Emergency: React.FC = () => {
   const { t } = useTranslation();
+  const { location } = useCurrentLocation();
   const [nearby, setNearby] = useState<Listing[]>([]);
   const [loaded, setLoaded] = useState(false);
+  // No default town: name the visitor's chosen place, or a neutral phrase.
+  const place = location?.name?.trim() || 'your area';
 
   useSeo({
-    title: t('seo.emergencyTitle', { town: town.name }),
-    description: t('seo.emergencyDescription', { town: town.name }),
+    title: t('seo.emergencyTitle', { town: place }),
+    description: t('seo.emergencyDescription', { town: place }),
     path: routes.emergency,
     ogKey: 'emergency',
   });
@@ -56,7 +60,7 @@ export const Emergency: React.FC = () => {
             {t('emergency.title')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto">
-            {t('emergency.subtitle', { town: town.name })}
+            {t('emergency.subtitle', { town: place })}
           </p>
           <button
             type="button"
@@ -118,11 +122,11 @@ export const Emergency: React.FC = () => {
 
         <section className="space-y-3">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            {t('emergency.nearbyHeading', { town: town.name })}
+            {t('emergency.nearbyHeading', { town: place })}
           </h2>
           {loaded && nearby.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t('emergency.nearbyEmpty', { town: town.name })}
+              {t('emergency.nearbyEmpty', { town: place })}
             </p>
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">

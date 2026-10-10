@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Flag } from 'lucide-react';
 import { api } from '../services/api';
 import { useSeo } from '../hooks/useSeo';
-import { routes, town } from '../config/site';
+import { routes } from '../config/site';
 
 /** Any UUID inside the pasted value, so a full /listings/<id> URL works. */
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -34,8 +34,8 @@ export const Report: React.FC = () => {
   const [done, setDone] = useState<{ name?: string } | null>(null);
 
   useSeo({
-    title: t('seo.reportTitle', { town: town.name }),
-    description: t('seo.reportDescription', { town: town.name }),
+    title: t('seo.reportTitle'),
+    description: t('seo.reportDescription'),
     path: routes.report,
     ogKey: 'report',
   });

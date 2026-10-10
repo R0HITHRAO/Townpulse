@@ -5,7 +5,8 @@ import { CheckCircle2, PlusCircle } from 'lucide-react';
 import { ListingForm } from '../components/ListingForm';
 import { api, Listing } from '../services/api';
 import { useSeo } from '../hooks/useSeo';
-import { routes, town } from '../config/site';
+import { routes } from '../config/site';
+import { useCurrentLocation } from '../context/LocationContext';
 
 /**
  * "Suggest a listing" — the promise is explicit: no account needed.
@@ -17,13 +18,16 @@ import { routes, town } from '../config/site';
  */
 export const Suggest: React.FC = () => {
   const { t } = useTranslation();
+  const { location } = useCurrentLocation();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  // No default town: name the visitor's chosen place, or a neutral phrase.
+  const place = location?.name?.trim() || 'your town';
 
   useSeo({
-    title: t('seo.suggestTitle', { town: town.name }),
-    description: t('seo.suggestDescription', { town: town.name }),
+    title: t('seo.suggestTitle', { town: place }),
+    description: t('seo.suggestDescription', { town: place }),
     path: routes.suggest,
     ogKey: 'suggest',
   });

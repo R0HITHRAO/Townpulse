@@ -10,7 +10,6 @@ import { PrintableDirectoryModal } from '../components/PrintableDirectoryModal';
 import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
 import { useSeo } from '../hooks/useSeo';
-import { town } from '../config/site';
 import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
@@ -33,8 +32,8 @@ export const Home: React.FC = () => {
   const [offlineData, setOfflineData] = useState(false);
 
   useSeo({
-    title: t('seo.homeTitle', { town: town.name, region: town.region }),
-    description: t('seo.homeDescription', { town: town.name, region: town.region }),
+    title: t('seo.homeTitle'),
+    description: t('seo.homeDescription'),
     path: '/',
     ogKey: 'home',
   });
@@ -166,7 +165,7 @@ export const Home: React.FC = () => {
           </p>
           </div>
           <div className="tp-hero-search animate-rise anim-delay-4">
-            <div className="tp-search-caption"><MapPin className="h-4 w-4" /> Explore services in {town.name}</div>
+            <div className="tp-search-caption"><MapPin className="h-4 w-4" /> Explore services near you</div>
             <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
             <div className="tp-hero-footnote"><ShieldCheck className="h-4 w-4" /> Community sourced. Locally relevant.</div>
           </div>
