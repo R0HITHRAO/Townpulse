@@ -1,6 +1,8 @@
 """Build a real, honest seed file for the TownPulse directory.
 
-    python scripts/build_seed_from_osm.py seed/_osm_raw_hampi.json
+    python scripts/build_seed_from_osm.py seed/_osm_raw.json \
+        --name "Your Town" --region "Your Region" --district "Your District" \
+        --out seed/osm_seed.json
 
 Why this exists
 ---------------
@@ -15,10 +17,14 @@ coordinates OSM holds, carrying only the fields OSM actually has. Nothing is
 invented; anything OSM does not know is left empty. Every record is written
 `verified: false`, `status: "unverified"`, `source: "openstreetmap"`, because
 none has been checked by a human yet. `DATA_NEEDED.md` lists what is missing.
+
+The place identity (name/region/district) and the output path are supplied as
+arguments — this tool seeds *any* area and never assumes a particular town.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import sys
@@ -33,7 +39,17 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parent.parent
-TOWN_CENTER = (15.3350, 76.4600)
+
+# There is deliberately no baked-in town centre or name here. TownPulse is
+# location-first: this script is told which place it is seeding via CLI args
+# (see `main`), and the geographic centre is computed from the actual records
+# rather than assumed. Hardcoding a town silently mislabels every seed it ever
+# produces, so nothing is assumed.
+
+# Set in `main()` to the centroid of the imported records; used as the origin
+# for per-listing distances. Starts as a neutral placeholder and is overwritten
+# before any distance is emitted.
+TOWN_CENTER: tuple[float, float] = (0.0, 0.0)
 
 # Slugs are stable and drive the /c/<slug> URLs.
 CATEGORIES: dict[str, dict[str, str]] = {
@@ -85,11 +101,13 @@ def pick_category(tags: dict[str, str]) -> str | None:
     return None
 
 
-def haversine_m(lat: float, lng: float) -> int:
+def haversine_m(lat: float, lng: float, origin: tuple[float, float] | None = None) -> int:
+    """Distance in metres from `origin` (defaults to the computed centroid)."""
     r = 6371000.0
-    p1, p2 = math.radians(TOWN_CENTER[0]), math.radians(lat)
-    dp = math.radians(lat - TOWN_CENTER[0])
-    dl = math.radians(lng - TOWN_CENTER[1])
+    lat0, lng0 = origin if origin is not None else TOWN_CENTER
+    p1, p2 = math.radians(lat0), math.radians(lat)
+    dp = math.radians(lat - lat0)
+    dl = math.radians(lng - lng0)
     a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
     return round(2 * r * math.asin(math.sqrt(a)))
 
@@ -148,7 +166,10 @@ def to_listing(element: dict[str, Any]) -> dict[str, Any] | None:
         "address": build_address(tags),
         "lat": round(lat, 6),
         "lng": round(lng, 6),
-        "distance_meters": haversine_m(lat, lng),
+        # Distance from the seeded area is filled in `main()` once the centroid
+        # of the actual records is known; there is no assumed centre to measure
+        # against during collection.
+        "distance_meters": 0,
         "phone": first(tags, "phone", "contact:phone", "contact:mobile"),
         "email": first(tags, "email", "contact:email"),
         "website": first(tags, "website", "contact:website"),
@@ -164,11 +185,23 @@ def to_listing(element: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print(__doc__)
-        raise SystemExit(2)
+    global TOWN_CENTER
 
-    payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("raw", help="Path to the raw OSM JSON payload")
+    parser.add_argument(
+        "--name", default="Your town",
+        help="Human name of the place being seeded (no default town is assumed)",
+    )
+    parser.add_argument("--region", default="", help="State/region name")
+    parser.add_argument("--district", default="", help="District name")
+    parser.add_argument(
+        "--out", default=str(ROOT / "seed" / "osm_seed.json"),
+        help="Where to write the seed JSON",
+    )
+    args = parser.parse_args()
+
+    payload = json.loads(Path(args.raw).read_text(encoding="utf-8"))
     elements = payload.get("elements", []) if isinstance(payload, dict) else payload
 
     listings: list[dict[str, Any]] = []
@@ -187,13 +220,24 @@ def main() -> None:
         if listing:
             listings.append(listing)
 
+    # The area centre is the centroid of the records themselves, never an
+    # assumed coordinate. Distances and the town.lat/lng below are measured
+    # from it, so the seed describes exactly the area it was fetched for.
+    if listings:
+        TOWN_CENTER = (
+            round(sum(l["lat"] for l in listings) / len(listings), 6),
+            round(sum(l["lng"] for l in listings) / len(listings), 6),
+        )
+        for l in listings:
+            l["distance_meters"] = haversine_m(l["lat"], l["lng"], TOWN_CENTER)
+
     listings.sort(key=lambda item: item["distance_meters"])
 
     output = {
         "town": {
-            "name": "Hampi", "region": "Karnataka", "district": "Vijayanagara",
+            "name": args.name, "region": args.region, "district": args.district,
             "lat": TOWN_CENTER[0], "lng": TOWN_CENTER[1],
-            "languages": ["en", "kn", "hi"],
+            "languages": ["en"],
         },
         "attribution": (
             "Contains information from OpenStreetMap, available under the Open "
@@ -203,7 +247,7 @@ def main() -> None:
         "listings": listings,
     }
 
-    out_path = ROOT / "seed" / "hampi_osm.json"
+    out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(output, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
