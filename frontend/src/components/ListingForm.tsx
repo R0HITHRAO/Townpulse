@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Category, Listing, api } from '../services/api';
 import { MapPin, Phone, Building, Check, Crosshair, Image as ImageIcon } from 'lucide-react';
-import { town } from '../config/site';
 
 interface ListingFormProps {
   initialData?: Partial<Listing>;
@@ -30,8 +29,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   // Default to the configured town centre, never to Bengaluru's coordinates:
   // a listing dropped at a hardcoded city 2,000 km away silently pollutes the
   // map, the distance sort and the radius filter (AUDIT.md 2.1, 4.6).
-  const [lat, setLat] = useState<string>(initialData.lat?.toString() || String(town.lat));
-  const [lng, setLng] = useState<string>(initialData.lng?.toString() || String(town.lng));
+  // Left blank on purpose: a listing must always name the place the person
+  // submitting it is actually in. A hardcoded centre would silently misplace a
+  // record thousands of kilometres from its true location.
+  const [lat, setLat] = useState<string>(initialData.lat?.toString() || '');
+  const [lng, setLng] = useState<string>(initialData.lng?.toString() || '');
   const [phone, setPhone] = useState(initialData.phone || '');
   const [email, setEmail] = useState(initialData.email || '');
   const [website, setWebsite] = useState(initialData.website || '');

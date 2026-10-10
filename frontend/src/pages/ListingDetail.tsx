@@ -13,7 +13,8 @@ import { OpenStatusBadge } from '../components/OpenStatusBadge';
 import { Reveal } from '../components/Reveal';
 import { useBookmarks } from '../context/BookmarkContext';
 import { useSeo, listingJsonLd } from '../hooks/useSeo';
-import { site, town } from '../config/site';
+import { site } from '../config/site';
+import { useCurrentLocation } from '../context/LocationContext';
 import { getWhatsAppShareUrl } from '../utils/whatsapp';
 import { Map } from '../components/Map';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
@@ -38,6 +39,7 @@ import {
 
 export const ListingDetail: React.FC = () => {
   const { t } = useTranslation();
+  const { location } = useCurrentLocation();
   const { id } = useParams<{ id: string }>();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const [listing, setListing] = useState<Listing | null>(null);
@@ -60,12 +62,12 @@ export const ListingDetail: React.FC = () => {
 
   useSeo({
     title: listing
-      ? `${listing.name}, ${town.name} — address, phone & hours | TownPulse`
+      ? `${listing.name}, ${location?.name ?? 'Your town'} — address, phone & hours | TownPulse`
       : `${t('seo.loadingTitle')}`,
     description: listing
       ? t('seo.listingDescription', {
           name: listing.name,
-          town: town.name,
+          town: location?.name ?? 'Your town',
           verification: listing.verified
             ? t('seo.verifiedOnListing', { date: 'a recent check' })
             : t('seo.unverifiedOnListing'),
