@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Database, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
 import { useSeo } from '../hooks/useSeo';
-import { site, town } from '../config/site';
+import { site } from '../config/site';
+import { useCurrentLocation } from '../context/LocationContext';
 
 /**
  * About & verification.
@@ -15,10 +16,15 @@ import { site, town } from '../config/site';
  */
 export const About: React.FC = () => {
   const { t } = useTranslation();
+  const { location } = useCurrentLocation();
+  // No default town: name the place the visitor actually chose, or fall back to
+  // a neutral phrase. `site.ts` no longer carries a hardcoded place.
+  const place = location?.name?.trim() || 'your town';
+  const region = location?.region?.trim() || 'your area';
 
   useSeo({
-    title: t('seo.aboutTitle', { town: town.name }),
-    description: t('seo.aboutDescription', { town: town.name }),
+    title: t('seo.aboutTitle', { town: place }),
+    description: t('seo.aboutDescription', { town: place }),
     path: '/about',
     ogKey: 'about',
   });
@@ -36,7 +42,7 @@ export const About: React.FC = () => {
             {t('about.title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-            {t('about.subtitle', { town: town.name, region: town.region })}
+            {t('about.subtitle', { town: place, region })}
           </p>
         </header>
 

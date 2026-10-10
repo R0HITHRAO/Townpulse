@@ -10,7 +10,7 @@ import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
 import { absoluteUrl, useSeo } from '../hooks/useSeo';
-import { town } from '../config/site';
+import { useCurrentLocation } from '../context/LocationContext';
 import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
 
 const PER_PAGE = 12;
@@ -27,6 +27,7 @@ const PER_PAGE = 12;
 export const CategoryPage: React.FC = () => {
   const { t } = useTranslation();
   const { slug = '' } = useParams<{ slug: string }>();
+  const { location } = useCurrentLocation();
   const [category, setCategory] = useState<Category | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -50,26 +51,29 @@ export const CategoryPage: React.FC = () => {
       : category.description ?? ''
     : '';
 
+  // No default town: name the visitor's chosen place, or a neutral phrase.
+  const place = location?.name?.trim() || 'your town';
+  const region = location?.region?.trim() || 'your area';
+
   useSeo({
     title: category
-      ? t('seo.categoryTitle', { category: categoryLabel, town: town.name })
+      ? t('seo.categoryTitle', { category: categoryLabel })
       : t('common.loading'),
     description: category
       ? t('seo.categoryDescription', {
           category: categoryLabel,
-          town: town.name,
-          region: town.region,
+          region,
         })
-      : t('seo.categoriesDescription', { town: town.name }),
+      : t('seo.categoriesDescription', { town: place }),
     path: `/c/${slug}`,
     ogKey: `category-${slug}`,
     jsonLd: category
       ? {
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: `${categoryLabel}, ${town.name}`,
+          name: `${categoryLabel}, ${place}`,
           url: absoluteUrl(`/c/${slug}`),
-          about: { '@type': 'Place', name: `${town.name}, ${town.region}` },
+          about: { '@type': 'Place', name: `${place}, ${region}` },
         }
       : undefined,
   });
@@ -198,7 +202,7 @@ export const CategoryPage: React.FC = () => {
             {categoryLabel || t('common.loading')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {categoryDescription || t('categories.subheading', { town: town.name })}
+            {categoryDescription || t('categories.subheading', { town: place })}
           </p>
         </header>
 

@@ -6,7 +6,8 @@ import { loadDirectorySnapshot } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useSeo } from '../hooks/useSeo';
-import { routes, town } from '../config/site';
+import { routes } from '../config/site';
+import { useCurrentLocation } from '../context/LocationContext';
 import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
 
 /**
@@ -18,14 +19,17 @@ import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
  */
 export const Categories: React.FC = () => {
   const { t } = useTranslation();
+  const { location } = useCurrentLocation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [offlineData, setOfflineData] = useState(false);
   const [loading, setLoading] = useState(true);
+  // No default town: name the visitor's chosen place, or a neutral phrase.
+  const place = location?.name?.trim() || 'your town';
 
   useSeo({
-    title: t('seo.categoriesTitle', { town: town.name }),
-    description: t('seo.categoriesDescription', { town: town.name }),
+    title: t('seo.categoriesTitle', { town: place }),
+    description: t('seo.categoriesDescription', { town: place }),
     path: routes.categories,
     ogKey: 'categories',
   });
@@ -77,7 +81,7 @@ export const Categories: React.FC = () => {
             {t('categories.heading')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {t('categories.subheading', { town: town.name })}
+            {t('categories.subheading', { town: place })}
           </p>
         </header>
 
