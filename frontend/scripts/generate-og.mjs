@@ -39,28 +39,47 @@
  * its image path, which the runtime `Seo` layer reads.
  */
 
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const outDir = resolve(root, 'public/og');
 
+function removeStaleImages(nextManifest) {
+  const manifestPath = resolve(outDir, 'manifest.json');
+  if (!existsSync(manifestPath)) return;
+
+  const previousManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const retainedImages = new Set(Object.values(nextManifest));
+
+  for (const imagePath of Object.values(previousManifest)) {
+    if (typeof imagePath !== 'string' || retainedImages.has(imagePath)) continue;
+    const filename = basename(imagePath);
+    if (imagePath !== `/og/${filename}` || !filename.endsWith('.png')) continue;
+
+    const staleImage = resolve(outDir, filename);
+    if (existsSync(staleImage)) unlinkSync(staleImage);
+  }
+}
+
 /**
  * Reduce the manifest to only the images that genuinely exist on disk.
  *
  * Called when rendering is skipped. Leaving a previously-generated manifest in
- * place is the dangerous option: it still advertises one card per listing and
- * category, so every share would resolve to a PNG that was never written. That
- * is precisely the failure this whole fallback exists to prevent.
+ * place is the dangerous option: it still advertises cards for listings and
+ * categories no longer present, so shares can point to PNGs that were never
+ * written. That is precisely the failure this fallback exists to prevent.
  */
 function writeMinimalManifest() {
   mkdirSync(outDir, { recursive: true });
   const home = resolve(outDir, 'home.png');
+  const minimalManifest = existsSync(home) ? { home: '/og/home.png' } : {};
+  removeStaleImages(minimalManifest);
   writeFileSync(
     resolve(outDir, 'manifest.json'),
-    `${JSON.stringify(existsSync(home) ? { home: '/og/home.png' } : {}, null, 2)}\n`
+    `${JSON.stringify(minimalManifest, null, 2)}\n`
   );
 }
 
@@ -73,9 +92,8 @@ try {
   // Nothing was rendered, so the only image guaranteed to exist is the
   // committed home card. The manifest MUST be reduced to match reality:
   // `useSeo` reads it to pick an og:image, and `prerender.mjs` writes it into
-  // each page's <head>. Leaving a stale manifest claiming 179 cards while only
-  // home.png exists points every share at a 404 — the exact failure this
-  // fallback exists to prevent.
+  // each page's <head>. Leaving a stale manifest pointing at old cards can send
+  // shares to 404s — the exact failure this fallback exists to prevent.
   writeMinimalManifest();
   console.warn(
     '\n  [generate:og] sharp is unavailable, so share images were not ' +
@@ -453,8 +471,7 @@ for (const cat of snapshot.categories ?? []) {
   add(
     `category-${cat.slug}`,
     categoryCard({
-      // Several categories genuinely have no entries in this town's OSM
-      // extract (Hampi has no healthcare or mechanics mapped). Saying
+      // Categories can be empty in an operator's OSM extract. Saying
       // "0 listings" is honest; implying a count we do not have is not.
       eyebrow:
         count > 0
@@ -502,6 +519,7 @@ for (const job of jobs) {
   }
 }
 
+removeStaleImages(manifest);
 writeFileSync(resolve(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 
 console.log(`\n  ${done} Open Graph images written to public/og/`);

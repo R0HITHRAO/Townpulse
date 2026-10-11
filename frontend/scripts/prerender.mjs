@@ -102,8 +102,8 @@ const abs = (p) => `${siteUrl}${p === '/' ? '/' : p}`;
  * Must read `public/og/manifest.json` rather than constructing the filename:
  * `generate:og` deliberately reduces the manifest to just `home` when `sharp`
  * is unavailable, so only that one PNG exists. Building `/og/<key>.png`
- * unconditionally left 178 of 181 pre-rendered pages pointing `og:image` at a
- * file that was never written — a 404 on every listing and category share.
+ * unconditionally left pre-rendered pages pointing `og:image` at files that
+ * were never written — a 404 on listing and category shares.
  */
 function ogImageFor(key) {
   const entry = ogManifest[key] ?? ogManifest.home;
