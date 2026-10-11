@@ -12,34 +12,34 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
  * error.
  */
 
-const TOWN = { lat: 15.335, lng: 76.462 };
+const TOWN = { lat: 0.335, lng: 0.462 };
 
-/** `near` sits ~15 m from the town centre; `far` sits ~1.5 km away. */
+/** `near` sits ~15 m from the sample centre; `far` sits ~1.5 km away. */
 const snapshotPayload = {
   generated_from: 'OpenStreetMap',
   attribution: '© OpenStreetMap contributors',
-  town: { name: 'Hampi', region: 'Karnataka', district: 'Vijayanagara', ...TOWN },
+  town: { name: 'Sample Town', region: 'Sample Region', district: 'Sample District', ...TOWN },
   categories: [{ id: 1, name: 'Healthcare', slug: 'healthcare' }],
   listings: [
     {
       id: 'near',
-      name: 'Hampi Health Centre',
+      name: 'Sample Health Centre',
       address: 'Bazaar Road',
       category_id: 1,
       category: { id: 1, name: 'Healthcare', slug: 'healthcare' },
-      lat: 15.3351,
-      lng: 76.4621,
+      lat: 0.3351,
+      lng: 0.4621,
       verified: true,
       status: 'approved',
     },
     {
       id: 'far',
-      name: 'Kamalapur Clinic',
+      name: 'Nearby Clinic',
       address: 'Station Road',
       category_id: 1,
       category: { id: 1, name: 'Healthcare', slug: 'healthcare' },
-      lat: 15.345,
-      lng: 76.472,
+      lat: 0.345,
+      lng: 0.472,
       verified: false,
       status: 'approved',
     },
@@ -72,6 +72,7 @@ describe('searchSnapshot (offline directory contract)', () => {
 
     expect(res.available).toBe(true);
     expect(res.total).toBe(2);
+    expect(res.directoryCount).toBe(2);
     expect(res.items.map((l) => l.id).sort()).toEqual(['far', 'near']);
 
     const nearDistance = res.items.find((l) => l.id === 'near')?.distance_meters ?? -1;
@@ -90,6 +91,31 @@ describe('searchSnapshot (offline directory contract)', () => {
     expect(wide.total).toBe(2);
   });
 
+  it('does not apply a radius when no origin was selected', async () => {
+    const { searchSnapshot } = await importFresh(okFetch());
+
+    const res = await searchSnapshot({ radius: 15000 });
+
+    expect(res.available).toBe(true);
+    expect(res.total).toBe(2);
+    expect(res.directoryCount).toBe(2);
+  });
+
+  it('distinguishes an empty snapshot from an unavailable snapshot', async () => {
+    const emptySnapshot = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...snapshotPayload, listings: [] }),
+    }));
+    const { searchSnapshot } = await importFresh(emptySnapshot);
+
+    const res = await searchSnapshot();
+
+    expect(res.available).toBe(true);
+    expect(res.total).toBe(0);
+    expect(res.directoryCount).toBe(0);
+  });
+
   it('reports available:true, not a failure, when the filter matches nothing', async () => {
     const { searchSnapshot } = await importFresh(okFetch());
 
@@ -97,6 +123,7 @@ describe('searchSnapshot (offline directory contract)', () => {
 
     expect(res.available).toBe(true);
     expect(res.total).toBe(0);
+    expect(res.directoryCount).toBe(2);
     expect(res.items).toEqual([]);
   });
 

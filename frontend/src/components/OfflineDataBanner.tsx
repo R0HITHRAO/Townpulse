@@ -27,10 +27,10 @@ export const OfflineDataBanner: React.FC<OfflineDataBannerProps> = ({
   >
     <CloudOff className="h-4 w-4 shrink-0" aria-hidden="true" />
     <p className="min-w-0 flex-1 leading-relaxed">
-      <strong className="font-semibold">Showing saved directory data.</strong>{' '}
-      The TownPulse server is not reachable, so these are the last records saved
-      with this site. Nothing here is marked verified — confirm by phone before
-      you travel.
+      <strong className="font-semibold">Using saved directory data.</strong>{' '}
+      The TownPulse server is not reachable, so this is the last directory
+      snapshot bundled with the site. It may not cover your area or be current.
+      Nothing here is marked verified — confirm by phone before you travel.
     </p>
     {onRetry && (
       <button

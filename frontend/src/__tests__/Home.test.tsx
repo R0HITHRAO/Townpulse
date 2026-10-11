@@ -36,12 +36,12 @@ const categories: Category[] = [
 
 const listing: Listing = {
   id: 'osm-1',
-  name: 'Hampi Clinic',
-  address: 'Krishna Bazaar, Hampi',
+  name: 'Sample Clinic',
+  address: 'Market Street',
   verified: true,
   status: 'approved',
-  lat: 15.335,
-  lng: 76.46,
+  lat: 0.335,
+  lng: 0.462,
   phone: '+91 98765 43210',
   category: { id: 1, name: 'Healthcare', icon: '🏥', slug: 'healthcare' },
 };
@@ -96,7 +96,7 @@ describe('Home page (directory regression suite)', () => {
 
     // Settle the initial data load inside this test so its async renders do
     // not leak into the next one.
-    expect(await screen.findAllByRole('link', { name: /Hampi Clinic/ })).not.toHaveLength(0);
+    expect(await screen.findAllByRole('link', { name: /Sample Clinic/ })).not.toHaveLength(0);
   });
 
   it('sets the homepage canonical URL through useSeo', async () => {
@@ -138,7 +138,7 @@ describe('Home page (directory regression suite)', () => {
   it('renders listings as links to their detail pages', async () => {
     renderHome();
 
-    const links = await screen.findAllByRole('link', { name: /Hampi Clinic/ });
+    const links = await screen.findAllByRole('link', { name: /Sample Clinic/ });
     expect(links.some((a) => a.getAttribute('href') === '/listings/osm-1')).toBe(true);
   });
 
@@ -146,11 +146,16 @@ describe('Home page (directory regression suite)', () => {
     (api.getCategories as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('offline'));
     (api.searchListings as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('offline'));
     (loadSnapshotCategories as ReturnType<typeof vi.fn>).mockResolvedValue(categories);
-    (searchSnapshot as ReturnType<typeof vi.fn>).mockResolvedValue(page([listing]));
+    (searchSnapshot as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ...page([listing]),
+      available: true,
+      directoryCount: 1,
+      distances: new Map(),
+    });
 
     renderHome();
 
-    expect(await screen.findByText(/Showing saved directory data/i)).toBeInTheDocument();
-    expect(await screen.findAllByRole('link', { name: /Hampi Clinic/ })).not.toHaveLength(0);
+    expect(await screen.findByText(/Using saved directory data/i)).toBeInTheDocument();
+    expect(await screen.findAllByRole('link', { name: /Sample Clinic/ })).not.toHaveLength(0);
   });
 });

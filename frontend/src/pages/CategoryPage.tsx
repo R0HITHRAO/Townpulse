@@ -152,7 +152,7 @@ export const CategoryPage: React.FC = () => {
         setListings(snapshot.items);
         setTotal(snapshot.total);
         setTotalPages(snapshot.total_pages);
-        setOfflineData(true);
+        setOfflineData(snapshot.available && snapshot.directoryCount > 0);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

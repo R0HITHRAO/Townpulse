@@ -30,6 +30,7 @@ export const Home: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   // True when we fell back to the bundled offline snapshot.
   const [offlineData, setOfflineData] = useState(false);
+  const [fallbackUnavailable, setFallbackUnavailable] = useState(false);
 
   useSeo({
     title: t('seo.homeTitle'),
@@ -69,6 +70,7 @@ export const Home: React.FC = () => {
         setTotalCount(res.total);
         setTotalPages(res.total_pages);
         setOfflineData(false);
+        setFallbackUnavailable(false);
       })
       // `.catch(console.error)` left `listings` empty and the page rendered
       // "No local services found matching your criteria." — telling the user
@@ -80,7 +82,8 @@ export const Home: React.FC = () => {
         setListings(snapshot.items);
         setTotalCount(snapshot.total);
         setTotalPages(snapshot.total_pages);
-        setOfflineData(true);
+        setOfflineData(snapshot.available && snapshot.directoryCount > 0);
+        setFallbackUnavailable(!snapshot.available || snapshot.directoryCount === 0);
       })
       .finally(() => setLoading(false));
   }, [searchParams, selectedCategory, verifiedOnly]);
@@ -302,15 +305,30 @@ export const Home: React.FC = () => {
             ) : displayedListings.length === 0 ? (
               <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center animate-scale-in">
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
-                  No local services found matching your criteria.
+                  {fallbackUnavailable
+                    ? 'The live directory is unavailable, and no saved location data is configured.'
+                    : offlineData
+                      ? 'No saved services match this search. The offline snapshot may cover a different area.'
+                      : 'No local services found matching your criteria.'}
                 </p>
-                <Link
-                  to="/submit"
-                  className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  Submit a Service in this Area
-                </Link>
+                {fallbackUnavailable ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchParams((prev) => ({ ...prev }))}
+                    className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Try again
+                  </button>
+                ) : (
+                  <Link
+                    to="/submit"
+                    className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    Submit a Service in this Area
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -10,7 +10,7 @@ import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFal
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
 import { getOpenStatus } from '../utils/businessHours';
 import { useCurrentLocation } from '../context/LocationContext';
-import { LocateFixed, Map as MapIcon, Navigation, RefreshCw, Search, SlidersHorizontal, Sparkles, X, Columns, List, Clock } from 'lucide-react';
+import { LocateFixed, Map as MapIcon, Navigation, RefreshCw, Search, SlidersHorizontal, Sparkles, X, Columns, List, Clock, ExternalLink } from 'lucide-react';
 
 type LayoutMode = 'split' | 'map' | 'list';
 
@@ -39,13 +39,16 @@ export const MapView: React.FC = () => {
   const [locationLat, setLocationLat] = useState<string>('');
   const [locationLng, setLocationLng] = useState<string>('');
 
-  const recordError = (err: unknown) => {
+  const recordError = (err: unknown, detail?: string) => {
+    const suffix = detail ? ` ${detail}` : '';
     if (err instanceof ApiError) {
       setErrorKind(err.kind);
-      setError(err.message);
+      setError(`${err.message}${suffix}`);
     } else {
       setErrorKind('server');
-      setError(err instanceof Error ? err.message : 'Could not reach the TownPulse server.');
+      setError(
+        `${err instanceof Error ? err.message : 'Could not reach the TownPulse server.'}${suffix}`
+      );
     }
   };
 
@@ -85,7 +88,9 @@ export const MapView: React.FC = () => {
       .then((res) => {
         setListings(res.items);
         setOfflineData(false);
-        setSelectedListing((current) => current ?? res.items[0] ?? null);
+        setSelectedListing(
+          (current) => res.items.find((listing) => listing.id === current?.id) ?? res.items[0] ?? null
+        );
       })
       // A dead backend used to be swallowed into console.error, leaving
       // `listings` empty and rendering "No services found in this search
@@ -110,8 +115,16 @@ export const MapView: React.FC = () => {
         // chosen a radius or search term that matched nothing.
         if (snapshot.available) {
           setListings(snapshot.items);
-          setOfflineData(true);
-          setSelectedListing((current) => current ?? snapshot.items[0] ?? null);
+          setOfflineData(snapshot.directoryCount > 0);
+          setSelectedListing(
+            (current) =>
+              snapshot.items.find((listing) => listing.id === current?.id) ??
+              snapshot.items[0] ??
+              null
+          );
+          if (snapshot.directoryCount === 0) {
+            recordError(err, 'No saved offline listings are available for this area.');
+          }
         } else {
           setListings([]);
           recordError(err);
@@ -131,6 +144,8 @@ export const MapView: React.FC = () => {
     if (!openOnly) return listings;
     return listings.filter((l) => getOpenStatus(l.hours).state === 'open');
   }, [listings, openOnly]);
+  const earthTarget =
+    selectedListing?.lat != null && selectedListing.lng != null ? selectedListing : location;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
@@ -324,12 +339,14 @@ export const MapView: React.FC = () => {
                 <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
                   <p className="font-semibold text-sm">No services found in this search area.</p>
                   <p className="text-xs text-slate-400">Try expanding the search radius or resetting category filters.</p>
-                  {searchQuery || selectedCategory ? (
+                  {searchQuery || selectedCategory || openOnly || radius !== 15000 ? (
                     <button
                       type="button"
                       onClick={() => {
                         setSearchQuery('');
                         setSelectedCategory(null);
+                        setOpenOnly(false);
+                        setRadius(15000);
                       }}
                       className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                     >
@@ -337,9 +354,9 @@ export const MapView: React.FC = () => {
                     </button>
                   ) : (
                     <p className="text-xs text-slate-400 pt-1">
-                      The directory loaded successfully but has no listings for this area yet.
-                      Seed it with <code className="font-mono">python scripts/import_osm.py</code>{' '}
-                      to pull real services from OpenStreetMap.
+                      {offlineData
+                        ? 'The saved directory has no listings near this location. It may cover a different area; try a larger radius or connect to the live server.'
+                        : 'No services are listed near this location yet. Try a larger radius or check again later.'}
                     </p>
                   )}
                 </div>
@@ -383,15 +400,29 @@ export const MapView: React.FC = () => {
               }
             >
               <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
-                {layoutMode === 'split' && location && (
+                {location && (
                   <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    <span>Quick Map</span>
-                    <button
-                      onClick={() => setLayoutMode('map')}
-                      className="text-orange-600 dark:text-orange-400 hover:underline font-semibold"
-                    >
-                      Expand Map ↗
-                    </button>
+                    <span>{layoutMode === 'split' ? 'Quick Map' : 'Map View'}</span>
+                    <div className="flex items-center gap-3">
+                      <a
+                        href={`https://earth.google.com/web/search/${earthTarget.lat},${earthTarget.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Open this location in Google Earth in a new tab"
+                        className="inline-flex items-center gap-1 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400"
+                      >
+                        Google Earth
+                        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                      </a>
+                      {layoutMode === 'split' && (
+                        <button
+                          onClick={() => setLayoutMode('map')}
+                          className="text-orange-600 dark:text-orange-400 hover:underline font-semibold"
+                        >
+                          Expand Map ↗
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
 
