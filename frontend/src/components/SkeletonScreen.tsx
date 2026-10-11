@@ -12,8 +12,14 @@ import React from 'react';
  * prefers-reduced-motion).
  */
 export const ScreenSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 dark:bg-slate-950">
-    <div className="mx-auto max-w-7xl space-y-6">
+  <div
+    className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 dark:bg-slate-950"
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
+    aria-label="Loading page content"
+  >
+    <div className="mx-auto max-w-7xl space-y-6" aria-hidden="true">
       <div className="space-y-3">
         <div className="h-4 w-24 rounded tp-skeleton" />
         <div className="h-6 w-36 rounded tp-skeleton" />
