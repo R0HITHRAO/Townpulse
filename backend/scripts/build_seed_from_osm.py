@@ -6,11 +6,8 @@
 
 Why this exists
 ---------------
-The bundled `seed/seed_data.json` contained *invented* businesses — a "Town
-Primary Health Centre", a "Dr. Rao Dental Clinic", an "Arogya Diagnostic" —
-each with a made-up phone number and email, each flagged `"verified": true`.
-Fabricated contact details for health services, presented as verified, is the
-single most harmful thing this project could ship.
+Legacy `seed_data.json` contained invented businesses with fabricated contact
+details and false verification. No location data is bundled now.
 
 Every record produced here is a real place recorded in OpenStreetMap, at the
 coordinates OSM holds, carrying only the fields OSM actually has. Nothing is

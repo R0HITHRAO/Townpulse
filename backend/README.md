@@ -96,8 +96,8 @@ backend/
 ├── scripts/                 # Utility scripts
 │   ├── seed.py              # Database seeder
 │   └── backup.sh            # PostgreSQL backup
-├── seed/
-│   └── seed_data.json       # 50 sample listings
+├── seed/                    # Operator-provided location data (not committed)
+│   └── osm_seed.json        # Optional OSM seed for the chosen area
 ├── Dockerfile               # Multi-stage production build
 ├── docker-compose.yml       # Local dev compose
 ├── requirements.txt

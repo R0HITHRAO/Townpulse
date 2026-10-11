@@ -56,7 +56,7 @@ function createCustomPin(listing: Listing, isSelected: boolean): L.DivIcon {
 
 interface MapProps {
   listings: Listing[];
-  /** Defaults to the configured town centre, never a hardcoded city. */
+  /** Optional initial map center; omitted centers use a neutral world view. */
   center?: [number, number];
   zoom?: number;
   selectedListingId?: string | null;

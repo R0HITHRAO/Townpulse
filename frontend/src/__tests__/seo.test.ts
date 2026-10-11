@@ -11,8 +11,8 @@ describe('applySeo', () => {
   });
 
   it('sets the document title', () => {
-    applySeo({ title: 'Health & clinics in Hampi', description: 'x', path: '/c/healthcare' });
-    expect(document.title).toBe('Health & clinics in Hampi');
+    applySeo({ title: 'Health & clinics in Sample Town', description: 'x', path: '/c/healthcare' });
+    expect(document.title).toBe('Health & clinics in Sample Town');
   });
 
   it('emits exactly one canonical, derived from site.url', () => {
@@ -83,7 +83,7 @@ describe('listingJsonLd', () => {
   it('emits LocalBusiness markup with geo and a neutral area', () => {
     const data = listingJsonLd({
       id: 'osm-1',
-      name: 'Hampi Clinic',
+      name: 'Sample Clinic',
       address: 'Main Road',
       lat: 15.3,
       lng: 76.4,
@@ -91,7 +91,7 @@ describe('listingJsonLd', () => {
     }) as Record<string, unknown>;
 
     expect(data['@type']).toBe('LocalBusiness');
-    expect(data.name).toBe('Hampi Clinic');
+    expect(data.name).toBe('Sample Clinic');
     expect((data.geo as Record<string, unknown>).latitude).toBe(15.3);
     expect(data.telephone).toBe('+91 12345 67890');
     // No area name recorded -> neutral fallback, never an invented town.

@@ -16,10 +16,10 @@
  * unreachable the app renders this snapshot and says clearly that it is
  * offline data.
  *
- * The snapshot is *real* data — same source, same records, still marked
- * unverified. It is a fallback, not a substitute for the API.
+ * When no operator-provided seed exists, the generated snapshot is intentionally
+ * empty. The frontend must never fall back to a bundled place.
  *
- * Reads: ../backend/seed/osm_seed.json (falls back to hampi_osm.json)
+ * Reads: ../backend/seed/osm_seed.json (optional)
  * Writes: public/data/listings.json
  */
 
@@ -29,22 +29,28 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const seedDir = path.resolve(here, '../../backend/seed');
-// `osm_seed.json` is what `build_seed_from_osm.py` writes for any place;
-// `hampi_osm.json` is the older named extract, kept as a fallback.
-const seedCandidates = [
-  path.resolve(seedDir, 'osm_seed.json'),
-  path.resolve(seedDir, 'hampi_osm.json'),
-];
-const seedPath = seedCandidates.find((p) => fs.existsSync(p));
+// `osm_seed.json` is generated for the operator's chosen area. No other
+// location file is loaded implicitly.
+const seedPath = path.resolve(seedDir, 'osm_seed.json');
 const outPath = path.resolve(here, '../public/data/listings.json');
+const EMPTY_PAYLOAD = {
+  generated_from: null,
+  attribution:
+    'Contains information from OpenStreetMap, available under the Open Database License (ODbL). (c) OpenStreetMap contributors.',
+  town: null,
+  categories: [],
+  listings: [],
+};
 
-if (!seedPath) {
-  console.error(`No seed file found. Looked for:`);
-  for (const p of seedCandidates) console.error(`  ${p}`);
-  console.error('Generate one for any place first:');
-  console.error('  python scripts/import_osm.py --lat <LAT> --lng <LNG>');
-  console.error('  python scripts/build_seed_from_osm.py seed/_osm_raw.json --name "Your town"');
-  process.exit(1);
+if (!fs.existsSync(seedPath)) {
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, `${JSON.stringify(EMPTY_PAYLOAD, null, 2)}\n`, 'utf8');
+  console.warn(`\n  No operator seed found at ${seedPath}.`);
+  console.warn('  Wrote an empty offline snapshot; no location is configured.');
+  console.warn(
+    '  Build seed/osm_seed.json from an OSM extract, then re-run `npm run sync:directory`.\n'
+  );
+  process.exit(0);
 }
 
 const seed = JSON.parse(fs.readFileSync(seedPath, 'utf8'));

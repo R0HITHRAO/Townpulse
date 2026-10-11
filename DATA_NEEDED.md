@@ -1,12 +1,10 @@
 # Data still needed — TownPulse
 
-**Target town:** Hampi, Vijayanagara district, Karnataka, India
+**Default location:** none — the operator chooses an area for each deployment
 **Languages:** English (complete) · Hindi (core strings) · Kannada (pending)
 
-This file lists exactly what has to be collected by a human before the
-directory can honestly claim to be useful. It exists because the honest answer
-to "how much of this data is real?" is: the *places* are real, the *details*
-mostly are not.
+This file lists what an operator must collect and verify before configuring a
+location. The repository deliberately ships no town-specific directory data.
 
 Nothing in this list may be filled in with a guess. If you do not know a phone
 number, leave it empty — the UI renders an explicit "not listed — call to
@@ -27,40 +25,23 @@ The previous `backend/seed/seed_data.json` shipped **invented** businesses:
 
 Fabricated phone numbers for clinics and diagnostics, presented as *verified*,
 is the worst thing this project could ship: someone dials a real person's
-number looking for an ambulance and reaches a stranger. That file has been
-removed from the load path and replaced with real OpenStreetMap data.
+number looking for an ambulance and reaches a stranger. The legacy file and
+bundled location extracts have been removed; any future location data must be
+explicitly supplied for the deployment that uses it.
 
 ---
 
 ## 2. What we have right now
 
-The directory ships with a bundled sample extract,
-`backend/seed/hampi_osm.json` — **170 real listings** within 4 km of
-15.3350, 76.4600, pulled from OpenStreetMap. This is only a sample to prove
-the pipeline works; TownPulse has **no default town**. Re-seed it for any
-place with `scripts/import_osm.py` + `scripts/build_seed_from_osm.py` (which
-writes `seed/osm_seed.json`), then `npm run sync:directory` in `frontend/`.
+The repository ships **no location-specific records**. The offline snapshot
+starts with `town: null`, no categories and no listings. The backend seeder
+also adds no location data unless an operator provides
+`backend/seed/osm_seed.json`; that local file is ignored by Git so one
+deployment's town cannot silently become another deployment's default.
 
-| Field | Coverage | Source |
-|---|---|---|
-| Name + coordinates | 170 / 170 | OSM |
-| Category | 170 / 170 | Derived from OSM tags |
-| Phone | **11 / 170** | OSM |
-| Opening hours | **4 / 170** | OSM |
-| Street address | **13 / 170** | OSM |
-| Verified | **0 / 170** | Nobody has checked any of them |
-
-Category spread: civic 76, food 54, community 36, shelter 4.
-
-### Two honest limitations
-
-1. **No healthcare or mechanics at all.** The single most important category
-   for this audience has zero entries in the current OSM extract. Hampi is a
-   heritage-tourism town, so OSM coverage skews to hotels, restaurants and
-   temples. If you are deploying for a different town, re-run the importer —
-   see §5.
-2. **Every listing is `unverified`.** The badge will say "Not yet verified" on
-   all 170 until a person checks them. That is the correct state, not a bug.
+Import records for the chosen area and verify them before presenting them as
+current or verified. OpenStreetMap records are not automatically verified:
+the badge must remain "Not yet verified" until a person checks each listing.
 ---
 
 ## 3. Priority 1 — emergency numbers
@@ -77,17 +58,14 @@ renders a "Number not yet collected" state rather than a guess.
 | Child helpline | `child` | `1098` | ⚠️ verify |
 | Emergency toll-free | `tollfree` | `112` | ⚠️ verify |
 | **Ambulance** | `ambulance` | **empty** | ❌ **needed** |
-| Hampi Traffic Police | — | **empty** | ❌ **needed** |
-| Hampi Police Station | — | **empty** | ❌ **needed** |
-| Kamalapura Police Station | — | **empty** | ❌ **needed** |
-| Deputy SP, Hampi | — | **empty** | ❌ **needed** |
+| Local traffic police | — | **empty** | ❌ **needed for chosen area** |
+| Local police station | — | **empty** | ❌ **needed for chosen area** |
+| District police contact | — | **empty** | ❌ **needed for chosen area** |
 | Nearest fire station | — | **empty** | ❌ **needed** |
 | Nearest hospital / clinic | — | **empty** | ❌ **needed** |
 
-**Where to get them:** Vijayanagara district administration, Hampi police
-station, or the Karnataka emergency services directory. The four police
-stations above are real, mapped OSM records (`source_url` in the seed file) —
-only their phone numbers are missing.
+**Where to get them:** the relevant local and district authorities for the
+operator's chosen area. Do not reuse local contacts from another deployment.
 
 > The single highest-value thing you can add to this repository.
 
@@ -111,19 +89,26 @@ meaningful — "Verified on 12 March" is a checkable claim; a green tick is not.
 
 ## 5. Priority 3 — seed the directory for your area
 
-There is no town baked into the app; the visitor picks their location at
-runtime. The only thing *you* choose is which OpenStreetMap area to seed the
-directory from. Fetch real OSM data and build the offline snapshot:
+There is no town baked into the app; visitors choose their location at runtime.
+To seed the live database, run the importer with coordinates for the chosen
+area from the `backend/` directory:
 
 ```
-python scripts/import_osm.py --name "<Your town>" --lat <lat> --lng <lng> --radius 6000
-python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json
+python scripts/import_osm.py --lat <lat> --lng <lng> --radius 6000
 ```
 
-`import_osm.py` derives the map centre as the centroid of the listings it
-finds, so there is no hardcoded coordinate to retarget. The builder prints a
-coverage report telling you how many listings still need a phone number, hours
-or address.
+For the frontend's offline snapshot, provide an OpenStreetMap JSON extract to
+`build_seed_from_osm.py` and write the resulting seed to
+`backend/seed/osm_seed.json`:
+
+```
+python scripts/build_seed_from_osm.py <osm-extract.json> --name "<Your town>" --region "<Region>" --out seed/osm_seed.json
+```
+
+Then run `npm run sync:directory` from `frontend/`. With no operator seed, that
+command writes an empty snapshot rather than falling back to another area.
+Review the builder's coverage report and verify important details before
+deployment.
 
 Set `VITE_SITE_URL` (frontend) and the backend `.env` to your real domain
 before deploying.
@@ -138,7 +123,7 @@ before deploying.
 | Logo | ❌ needed | Wordmark only; see `AUDIT.md` §3.1 |
 | Kannada translation | ❌ needed | `frontend/src/i18n/kn.json` does not exist yet; falls back to English |
 | Full Hindi translation | ⚠️ partial | Core strings done (~90 of 258) |
-| Open Graph images | ✅ done | `npm run generate:og` renders 179 cards from `tokens.css` (1 homepage, 8 categories, 170 listings) |
+| Open Graph images | ✅ done | `npm run generate:og` creates cards from the currently configured snapshot |
 | Analytics | ❌ decision | Recommend a self-hosted, cookieless counter; no third-party trackers |
 
 ---

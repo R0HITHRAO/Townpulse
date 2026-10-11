@@ -9,8 +9,8 @@ import {
 
 describe('Routing & Navigation Service', () => {
   it('correctly calculates Haversine distance between two coordinates', () => {
-    // Distance between Bengaluru and nearby point (~1.1 km)
-    const dist = calculateHaversineDistance(12.9716, 77.5946, 12.9816, 77.5946);
+    // Distance between a sample point and a nearby point (~1.1 km).
+    const dist = calculateHaversineDistance(0.9716, 0.5946, 0.9816, 0.5946);
     expect(dist).toBeGreaterThan(1000);
     expect(dist).toBeLessThan(1200);
   });
@@ -31,12 +31,12 @@ describe('Routing & Navigation Service', () => {
   });
 
   it('generates accurate Google Maps and Apple Maps navigation URLs', () => {
-    const googleUrl = getGoogleMapsNavigationUrl(12.9716, 77.5946, 12.9000, 77.5000);
+    const googleUrl = getGoogleMapsNavigationUrl(0.9716, 0.5946, 0.9000, 0.5000);
     expect(googleUrl).toContain('google.com/maps/dir/');
-    expect(googleUrl).toContain('origin=12.9,77.5');
-    expect(googleUrl).toContain('destination=12.9716,77.5946');
+    expect(googleUrl).toContain('origin=0.9,0.5');
+    expect(googleUrl).toContain('destination=0.9716,0.5946');
 
-    const appleUrl = getAppleMapsNavigationUrl(12.9716, 77.5946);
-    expect(appleUrl).toContain('maps.apple.com/?daddr=12.9716,77.5946');
+    const appleUrl = getAppleMapsNavigationUrl(0.9716, 0.5946);
+    expect(appleUrl).toContain('maps.apple.com/?daddr=0.9716,0.5946');
   });
 });

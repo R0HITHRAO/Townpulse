@@ -7,9 +7,7 @@ fictional seed records.
 
 Why this exists
 ---------------
-The bundled `seed_data.json` is hand-written sample data. It is fine for demos
-but it does not answer the question a resident actually asks: "is there a
-pharmacy near me *today*?". OpenStreetMap is community-maintained and carries
+TownPulse does not bundle location data. OpenStreetMap is community-maintained and carries
 the fields a directory needs (name, category tags, address, phone, website,
 opening hours, exact coordinates), so it is the right source for a first real
 dataset.

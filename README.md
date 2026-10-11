@@ -37,10 +37,10 @@ is the honest map of what is done and what is not.
 |---|---|
 | 1. Audit | ✅ [`AUDIT.md`](./AUDIT.md) — 40 findings, severity-ranked |
 | 2. Design system | ✅ "Clay & Teak" token layer, 36/36 contrast checks pass |
-| 4. Data integrity | ✅ Fabricated seed removed; 170 real OSM listings, all honestly `unverified` |
+| 4. Data integrity | ✅ No location data is bundled; operator imports are explicitly area-specific and unverified |
 | 7. i18n (registration) | ✅ All languages registered + language switcher plumbing |
-| 6. Performance / SSG | ✅ Build-time static generation — 181 pre-rendered pages + a real `<noscript>` fallback |
-| 8. SEO / sharing | ✅ 179 `og:image` cards, canonicals, `sitemap.xml`, `robots.txt`, per-listing JSON-LD |
+| 6. Performance / SSG | ✅ Build-time static generation for configured routes + a real `<noscript>` fallback |
+| 8. SEO / sharing | ✅ Snapshot-aware `og:image` cards, canonicals, `sitemap.xml`, `robots.txt`, per-listing JSON-LD |
 | 3. Information architecture | ⏳ Partial — `/emergency` and `/c/:slug` are pre-rendered, but not yet React routes |
 | 5. Discovery | ⏳ Not started |
 | 7. Accessibility | ⏳ Partial — tokens and focus done, components not yet migrated |
@@ -152,30 +152,40 @@ The previous seed file contained invented clinics, mechanics and diagnostics
 with made-up phone numbers, all marked `verified: true`. Fabricated contact
 details for health services is the most harmful thing this project could ship.
 
-It has been replaced with real OpenStreetMap data. Every listing now carries:
+The fabricated records and bundled location extracts have been removed. No
+location is selected by default, and the offline snapshot is empty until an
+operator explicitly configures one. Imported OpenStreetMap records carry:
 
 ```json
 {
   "verified": false,
   "status": "unverified",
   "source": "openstreetmap",
-  "source_url": "https://www.openstreetmap.org/node/4550586390"
+  "source_url": "<OpenStreetMap object URL>"
 }
 ```
 
-Regenerate for any town:
+To import directly into a configured backend database:
 
 ```bash
 cd backend
 python scripts/import_osm.py --lat <lat> --lng <lng> --radius 6000
+```
+
+To generate the frontend offline snapshot from an OpenStreetMap JSON extract:
+
+```bash
+cd backend
 python scripts/build_seed_from_osm.py seed/_osm_raw_<town>.json \
     --name "Your Town" --region "Your Region" --district "Your District" \
     --out seed/osm_seed.json
 ```
 
-The second command prints a coverage report — how many listings still need a
-phone number, opening hours or an address. Refresh the offline frontend
-snapshot afterwards with `npm run sync:directory` in `frontend/`.
+The builder prints a coverage report — how many listings still need a phone
+number, opening hours or an address. Refresh the offline frontend snapshot with
+`npm run sync:directory` in `frontend/`. Operator seed files are intentionally
+ignored by Git so one area's records cannot silently become another area's
+default.
 
 ---
 
@@ -256,7 +266,8 @@ make dev
 # Windows PowerShell:
 .\dev.ps1
 
-# In another terminal: seed the database with 50 sample listings
+# In another terminal: create development accounts and optionally load an
+# operator-provided backend/seed/osm_seed.json. No listings are bundled.
 # Linux / macOS:
 make seed
 # Windows:

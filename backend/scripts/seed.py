@@ -4,9 +4,8 @@ TownPulse Database Seeder
 Seeds the database with:
 - Default Admin User (admin@townpulse.dev / Admin123!)
 - Sample Business Owner (owner@townpulse.dev / Owner123!)
-- 9 Service Categories
-- 50 Realistic Listings with PostGIS geography coordinates
-- Sample Claims and Submissions for demonstration
+- Optional service categories and listings from seed/osm_seed.json
+- A sample claim only when an operator-provided listing exists
 
 Usage:
     python scripts/seed.py
@@ -84,40 +83,29 @@ def seed_database() -> None:
         else:
             print(f"ℹ️  Business owner already exists: {owner.email}")
 
-        # ─── 3. Load the seed file ─────────────────────────────────────────────
-        # Prefer the real OpenStreetMap extract. `seed_data.json` contained
-        # invented clinics and diagnostics with made-up phone numbers, all
-        # flagged verified=true, so it must never be the default.
+        # ─── 3. Load operator-provided location data (optional) ────────────────
+        # No location is bundled or assumed. Operators can generate this file
+        # for their chosen area with import_osm.py and build_seed_from_osm.py.
         seed_dir = Path(__file__).resolve().parent.parent / "seed"
         osm_seed = seed_dir / "osm_seed.json"
-        named_seed = seed_dir / "hampi_osm.json"
-        legacy_seed = seed_dir / "seed_data.json"
 
         if osm_seed.exists():
-            seed_path = osm_seed
-            print(f"ℹ️  Using real OpenStreetMap data: {osm_seed.name}")
-        elif named_seed.exists():
-            seed_path = named_seed
-            print(f"ℹ️  Using real OpenStreetMap data: {named_seed.name}")
-        elif legacy_seed.exists():
-            seed_path = legacy_seed
-            print(
-                "⚠️  WARNING: falling back to seed_data.json, which contains "
-                "INVENTED businesses with fake phone numbers.\n"
-                "    Generate real data for any place first:\n"
-                "      python scripts/import_osm.py --lat <LAT> --lng <LNG>\n"
-                "      python scripts/build_seed_from_osm.py seed/_osm_raw.json --name \"Your town\""
-            )
+            with open(osm_seed, encoding="utf-8") as f:
+                data = json.load(f)
+            print(f"ℹ️  Seeding location data from {osm_seed.name}")
         else:
-            raise FileNotFoundError(
-                f"No seed file found. Expected {osm_seed} or {legacy_seed}."
+            data = {"categories": [], "listings": []}
+            print(
+                "ℹ️  No seed/osm_seed.json found — starting with no location data.\n"
+                "    To import directly into this database, run:\n"
+                "      python scripts/import_osm.py --lat <LAT> --lng <LNG>\n"
+                "    To create a seed file from an OSM JSON extract, run:\n"
+                "      python scripts/build_seed_from_osm.py <osm-extract.json> "
+                '--name "Your town" --out seed/osm_seed.json\n'
+                "    then re-run this script."
             )
 
-        with open(seed_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        # The OSM extract keys categories by slug, the legacy file by name.
-        # Normalise to a lookup map that accepts either.
+        # Accept category slugs as well as display names in operator seed files.
         category_map: dict[str, Category] = {}
         for cat_data in data["categories"]:
             name = cat_data["name"]
@@ -169,8 +157,8 @@ def seed_database() -> None:
                     # nobody has called or visited them — that is what the
                     # "Not yet verified" badge in the UI is for.
                     #
-                    # Seeding them as "pending" would also dump all 170 into the
-                    # admin moderation queue on first boot.
+                    # Seeding them as "pending" would dump every imported
+                    # listing into the admin moderation queue on first boot.
                     status="approved",
                     town=item.get("town"),
                 )

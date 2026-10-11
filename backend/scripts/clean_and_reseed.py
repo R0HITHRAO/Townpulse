@@ -39,9 +39,14 @@ def clean_and_reseed():
         print(f"Removed {len(dummy_listings)} dummy test listings.")
 
         # Ensure correct categories exist
-        seed_path = Path(__file__).resolve().parent.parent / "seed" / "seed_data.json"
-        with open(seed_path, encoding="utf-8") as f:
-            data = json.load(f)
+        seed_path = Path(__file__).resolve().parent.parent / "seed" / "osm_seed.json"
+        if seed_path.exists():
+            with open(seed_path, encoding="utf-8") as f:
+                data = json.load(f)
+            print(f"Using operator-provided location data from {seed_path.name}.")
+        else:
+            data = {"categories": [], "listings": []}
+            print("No seed/osm_seed.json found — no location data will be added.")
 
         category_map = {}
         for cat_data in data["categories"]:

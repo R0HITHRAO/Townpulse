@@ -26,12 +26,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   const [description, setDescription] = useState(initialData.description || '');
   const [address, setAddress] = useState(initialData.address || '');
   const [imageUrl, setImageUrl] = useState(initialData.image_url || '');
-  // Default to the configured town centre, never to Bengaluru's coordinates:
-  // a listing dropped at a hardcoded city 2,000 km away silently pollutes the
-  // map, the distance sort and the radius filter (AUDIT.md 2.1, 4.6).
-  // Left blank on purpose: a listing must always name the place the person
-  // submitting it is actually in. A hardcoded centre would silently misplace a
-  // record thousands of kilometres from its true location.
+  // Leave coordinates blank unless they came from this listing. A default
+  // centre would silently misplace records and pollute distance/radius results.
   const [lat, setLat] = useState<string>(initialData.lat?.toString() || '');
   const [lng, setLng] = useState<string>(initialData.lng?.toString() || '');
   const [phone, setPhone] = useState(initialData.phone || '');
