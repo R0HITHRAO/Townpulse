@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapPin, PlusCircle, Shield, Briefcase, LogOut, Menu, X, Info, Heart, Printer, Phone, FolderOpen } from 'lucide-react';
@@ -18,6 +18,7 @@ export const Header: React.FC = () => {
   const [printableOpen, setPrintableOpen] = useState(false);
   const [printListings, setPrintListings] = useState<Listing[]>([]);
   const [printCategories, setPrintCategories] = useState<Category[]>([]);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
   const { bookmarks } = useBookmarks();
 
   // Escape closes the mobile menu — a keyboard user must not be trapped
@@ -25,11 +26,18 @@ export const Header: React.FC = () => {
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileMenuOpen(false);
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        mobileMenuButtonRef.current?.focus();
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleOpenPrintable = () => {
     api.getCategories().then(setPrintCategories).catch(console.error);
@@ -49,15 +57,28 @@ export const Header: React.FC = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const desktopNavLinkClass = (active: boolean) =>
+    `relative rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 after:absolute after:bottom-1 after:left-3 after:right-3 after:h-0.5 after:origin-left after:rounded-full after:bg-current after:transition-transform after:duration-200 ${
+      active
+        ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold after:scale-x-100'
+        : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800 after:scale-x-0 hover:after:scale-x-100'
+    }`;
 
   return (
     <>
-      <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs transition-colors duration-200 animate-slide-down">
+      <header
+        data-tp-header
+        className="sticky top-0 z-40 border-b border-[#e7ddce]/80 bg-[#fbf7f0]/90 shadow-[0_4px_20px_rgba(43,33,26,0.035)] backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 dark:border-slate-800/80 dark:bg-slate-900/90 motion-reduce:transition-none"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             {/* Logo & Brand */}
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="bg-gradient-to-tr from-orange-600 to-amber-600 text-white p-2 rounded-xl shadow-sm transition-all duration-400 ease-fluid group-hover:scale-110 group-hover:-rotate-6 group-hover:shadow-md">
+            <Link
+              to="/"
+              aria-label="TownPulse home"
+              className="group flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+            >
+              <div className="rounded-xl bg-gradient-to-tr from-orange-600 to-amber-600 p-2 text-white shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-105 group-hover:-rotate-3 group-hover:shadow-md motion-reduce:transition-none">
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
@@ -69,15 +90,11 @@ export const Header: React.FC = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-3">
+            <nav className="hidden xl:flex items-center gap-2">
               <Link
                 to="/map"
                 aria-current={isActive('/map') ? 'page' : undefined}
-                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
-                  isActive('/map')
-                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
+                className={desktopNavLinkClass(isActive('/map'))}
               >
                 {t('view_map')}
               </Link>
@@ -85,11 +102,7 @@ export const Header: React.FC = () => {
               <Link
                 to="/categories"
                 aria-current={isActive('/categories') ? 'page' : undefined}
-                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
-                  isActive('/categories')
-                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
+                className={desktopNavLinkClass(isActive('/categories'))}
               >
                 {t('nav.categories')}
               </Link>
@@ -97,11 +110,7 @@ export const Header: React.FC = () => {
               <Link
                 to="/about"
                 aria-current={isActive('/about') ? 'page' : undefined}
-                className={`link-underline px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 ease-fluid ${
-                  isActive('/about')
-                    ? 'text-orange-600 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/50 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
+                className={desktopNavLinkClass(isActive('/about'))}
               >
                 {t('nav.about')}
               </Link>
@@ -112,7 +121,7 @@ export const Header: React.FC = () => {
               <Link
                 to="/emergency"
                 aria-current={isActive('/emergency') ? 'page' : undefined}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ease-fluid ${
+                className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
                   isActive('/emergency')
                     ? 'text-white bg-rose-600 shadow-sm'
                     : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40'
@@ -224,7 +233,7 @@ export const Header: React.FC = () => {
             </nav>
 
             {/* Mobile Navigation controls */}
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex items-center gap-2 xl:hidden">
               <button
                 onClick={() => setBookmarksOpen(true)}
                 className="relative p-2 text-rose-500 rounded-lg transition-transform duration-300 ease-fluid hover:scale-110 active:scale-95"
@@ -245,9 +254,10 @@ export const Header: React.FC = () => {
               <ThemeToggle />
 
               <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform duration-300 ease-fluid active:scale-90"
-                aria-label="Toggle Mobile Menu"
+                ref={mobileMenuButtonRef}
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                className="rounded-xl p-2.5 text-slate-600 transition-[background-color,transform] duration-200 ease-out hover:bg-slate-100 active:scale-95 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 motion-reduce:transition-none"
+                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="mobile-menu"
               >
@@ -261,12 +271,17 @@ export const Header: React.FC = () => {
         {mobileMenuOpen && (
           <div
             id="mobile-menu"
-            className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-drawer-in stagger-children"
+            className="xl:hidden space-y-1 border-t border-slate-200/80 bg-white/95 px-4 pb-5 pt-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl animate-drawer-in stagger-children dark:border-slate-800/80 dark:bg-slate-900/95"
           >
             <Link
               to="/map"
+              aria-current={isActive('/map') ? 'page' : undefined}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
+              className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                isActive('/map')
+                  ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300'
+                  : 'text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+              }`}
             >
               <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               <span>{t('view_map')}</span>
@@ -274,8 +289,13 @@ export const Header: React.FC = () => {
 
             <Link
               to="/categories"
+              aria-current={isActive('/categories') ? 'page' : undefined}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-3 text-sm font-semibold text-slate-800 dark:text-slate-200"
+              className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                isActive('/categories')
+                  ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300'
+                  : 'text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+              }`}
             >
               <FolderOpen className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               <span>{t('nav.categories')}</span>
@@ -283,8 +303,13 @@ export const Header: React.FC = () => {
 
             <Link
               to="/emergency"
+              aria-current={isActive('/emergency') ? 'page' : undefined}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-3 text-sm font-bold text-rose-700 dark:text-rose-300"
+              className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                isActive('/emergency')
+                  ? 'bg-rose-600 text-white dark:bg-rose-700'
+                  : 'text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40'
+              }`}
             >
               <Phone className="w-4 h-4" />
               <span>{t('nav.emergency')}</span>
@@ -295,7 +320,7 @@ export const Header: React.FC = () => {
                 setMobileMenuOpen(false);
                 setBookmarksOpen(true);
               }}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-rose-600 dark:text-rose-400 w-full text-left"
+              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition-colors duration-200 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:text-rose-400 dark:hover:bg-rose-950/40 dark:focus-visible:ring-offset-slate-900"
             >
               <Heart className="w-4 h-4 fill-rose-500" />
               <span>Saved Places ({bookmarks.length})</span>
@@ -306,7 +331,7 @@ export const Header: React.FC = () => {
                 setMobileMenuOpen(false);
                 handleOpenPrintable();
               }}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 w-full text-left"
+              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-emerald-700 transition-colors duration-200 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:text-emerald-400 dark:hover:bg-emerald-950/40 dark:focus-visible:ring-offset-slate-900"
             >
               <Printer className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Print Emergency Directory</span>
@@ -314,8 +339,13 @@ export const Header: React.FC = () => {
 
             <Link
               to="/submit"
+              aria-current={isActive('/submit') ? 'page' : undefined}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-orange-700 dark:text-orange-400"
+              className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                isActive('/submit')
+                  ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300'
+                  : 'text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/40'
+              }`}
             >
               <PlusCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
               <span>{t('submit_listing')}</span>
@@ -323,8 +353,13 @@ export const Header: React.FC = () => {
 
             <Link
               to="/about"
+              aria-current={isActive('/about') ? 'page' : undefined}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200"
+              className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
+                isActive('/about')
+                  ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300'
+                  : 'text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800'
+              }`}
             >
               <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               <span>{t('nav.about')}</span>
