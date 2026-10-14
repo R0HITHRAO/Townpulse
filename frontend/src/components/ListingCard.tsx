@@ -26,7 +26,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({ listing }) => {
   const distanceText = formatDistance(listing.distance_meters);
 
   return (
-    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs backdrop-blur-xs transition-all duration-400 ease-fluid hover:-translate-y-1.5 hover:border-orange-400 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-orange-600 shine-sweep">
+    <div className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#e8ddce] bg-white p-5 shadow-[0_2px_8px_rgba(43,33,26,0.04)] transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[#c9875a] hover:shadow-[0_18px_40px_rgba(43,33,26,0.1)] dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-orange-700 motion-reduce:transition-none">
       {/* Gradient accent line that draws in from the left on hover */}
       <span
         className="accent-line pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-400"
