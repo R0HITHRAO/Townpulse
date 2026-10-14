@@ -68,8 +68,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl shadow-md dark:shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-orange-500/40">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-4xl">
+      <div className="flex flex-col items-center gap-2 rounded-2xl border border-[#e8ddce] bg-[#fffdfa] p-2 shadow-[0_12px_32px_rgba(33,24,17,0.16)] transition-shadow duration-200 focus-within:ring-2 focus-within:ring-orange-400/50 dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:rounded-[1.15rem]">
         {/* Search Keyword Input */}
         <div className="group/field flex-1 flex items-center gap-3 px-3 py-2 w-full">
           <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-orange-600 dark:group-focus-within/field:text-orange-400 group-focus-within/field:scale-110" />
@@ -88,7 +88,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <button
             type="button"
             onClick={handleToggleOpenOnly}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
               openOnly
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -121,7 +121,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             type="button"
             onClick={handleGetCurrentLocation}
             disabled={locating}
-            className={`p-2 rounded-xl border transition flex items-center gap-1 text-xs font-medium hover:scale-105 active:scale-95 ${
+            className={`inline-flex min-h-10 items-center gap-1 rounded-xl border p-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
               userLocation
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700'
@@ -136,7 +136,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {/* Search Button */}
           <button
             type="submit"
-            className="group/search bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ease-fluid shadow-sm flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md shine-sweep"
+            className="group/search inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#9a3412] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#7c2a0d] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 sm:w-auto motion-reduce:transition-none"
           >
             <Search className="w-4 h-4 transition-transform duration-300 ease-fluid group-hover/search:scale-110 group-hover/search:-rotate-6" />
             <span>Search</span>
