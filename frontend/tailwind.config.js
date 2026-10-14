@@ -243,61 +243,6 @@ export default {
           to: { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
         },
 
-        // ── Ambient ────────────────────────────────────────────────────────────
-        // These loop. Each is switched off for `prefers-reduced-motion` users by
-        // the blanket rule in base.css, so none can trap a motion-sensitive user
-        // in continuous movement.
-        'tp-float': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-6px)' },
-        },
-        'tp-heartbeat': {
-          '0%, 100%': { transform: 'scale(1)' },
-          '14%': { transform: 'scale(1.16)' },
-          '28%': { transform: 'scale(1)' },
-          '42%': { transform: 'scale(1.1)' },
-          '70%': { transform: 'scale(1)' },
-        },
-        // Softer than Tailwind's `ping`, which expands to 2x. This is a halo.
-        'tp-ping-soft': {
-          '0%': { transform: 'scale(1)', opacity: '0.55' },
-          '80%, 100%': { transform: 'scale(1.75)', opacity: '0' },
-        },
-        'tp-dot-bounce': {
-          '0%, 60%, 100%': { transform: 'translateY(0)', opacity: '0.45' },
-          '30%': { transform: 'translateY(-5px)', opacity: '1' },
-        },
-        'tp-glow-pulse': {
-          '0%, 100%': { opacity: '0.45', transform: 'scale(1)' },
-          '50%': { opacity: '0.9', transform: 'scale(1.06)' },
-        },
-        // A light bar sweeping left-to-right across an element.
-        'tp-beam': {
-          '0%': { transform: 'translateX(-130%)' },
-          '100%': { transform: 'translateX(430%)' },
-        },
-        'tp-aurora': {
-          '0%, 100%': { transform: 'translate3d(0,0,0) scale(1) rotate(0deg)' },
-          '33%': { transform: 'translate3d(4%, -3%, 0) scale(1.08) rotate(3deg)' },
-          '66%': { transform: 'translate3d(-3%, 4%, 0) scale(0.95) rotate(-3deg)' },
-        },
-        'tp-orb-1': {
-          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1)' },
-          '50%': { transform: 'translate3d(6%, 8%, 0) scale(1.12)' },
-        },
-        'tp-orb-2': {
-          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1.05)' },
-          '50%': { transform: 'translate3d(-7%, 5%, 0) scale(0.95)' },
-        },
-        'tp-orb-3': {
-          '0%, 100%': { transform: 'translate3d(0, 0, 0) scale(1)' },
-          '50%': { transform: 'translate3d(5%, -6%, 0) scale(1.1)' },
-        },
-        // Slides a gradient across gradient-clipped text (the 404 numerals).
-        'tp-gradient-x': {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-        },
       },
 
       animation: {
@@ -314,18 +259,6 @@ export default {
         'slide-down': 'tp-slide-down var(--tp-duration-base) var(--tp-ease-out) both',
         'drawer-in': 'tp-drawer-in var(--tp-duration-base) var(--tp-ease-out) both',
         'page-in': 'tp-page-in var(--tp-duration-slow) var(--tp-ease-out) both',
-
-        float: 'tp-float 5s var(--tp-ease-in-out) infinite',
-        heartbeat: 'tp-heartbeat 1.8s var(--tp-ease-in-out) infinite',
-        'ping-soft': 'tp-ping-soft 1.6s var(--tp-ease-out) infinite',
-        'dot-bounce': 'tp-dot-bounce 1.2s var(--tp-ease-in-out) infinite',
-        'glow-pulse': 'tp-glow-pulse 3.4s var(--tp-ease-in-out) infinite',
-        beam: 'tp-beam 7s var(--tp-ease-in-out) infinite',
-        aurora: 'tp-aurora 26s var(--tp-ease-in-out) infinite',
-        'orb-1': 'tp-orb-1 22s var(--tp-ease-in-out) infinite',
-        'orb-2': 'tp-orb-2 28s var(--tp-ease-in-out) infinite',
-        'orb-3': 'tp-orb-3 34s var(--tp-ease-in-out) infinite',
-        'gradient-x': 'tp-gradient-x 6s linear infinite',
       },
 
       // Stagger scale for `.anim-delay-1` … `.anim-delay-6`, emitted by the
