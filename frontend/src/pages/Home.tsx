@@ -150,7 +150,7 @@ export const Home: React.FC = () => {
           <div className="relative inline-flex mb-5">
             {/* Soft pulsing halo behind the badge */}
             <span
-              className="absolute inset-0 rounded-full bg-orange-400/30 dark:bg-orange-500/25 blur-xl animate-glow-pulse"
+              className="absolute inset-0 rounded-full bg-orange-400/30 dark:bg-orange-500/25 blur-xl"
               aria-hidden="true"
             />
             <div className="tp-hero-eyebrow relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xs">
