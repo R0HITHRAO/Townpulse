@@ -1,171 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { useTheme } from '../context/ThemeContext';
+import React from 'react';
 
 export const AnimatedBackground: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Respect the user's motion preference — skip the ambient particle loop entirely.
-    const prefersReducedMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // Particle nodes definition
-    const particleCount = Math.min(Math.floor((width * height) / 22000), 36);
-    const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      radius: Math.random() * 2 + 1,
-      baseAlpha: Math.random() * 0.35 + 0.15,
-      pulseSpeed: Math.random() * 0.02 + 0.005,
-      pulseOffset: Math.random() * Math.PI * 2,
-    }));
-
-    let frame = 0;
-
-    const render = () => {
-      frame++;
-
-      // Pause the constellation while the tab is hidden to save battery/CPU.
-      if (typeof document !== 'undefined' && document.hidden) {
-        animationFrameId = requestAnimationFrame(render);
-        return;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-
-      // Draw particle nodes
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-
-        // Move
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Wrap edges smoothly
-        if (p.x < -10) p.x = width + 10;
-        if (p.x > width + 10) p.x = -10;
-        if (p.y < -10) p.y = height + 10;
-        if (p.y > height + 10) p.y = -10;
-
-        const pulse = Math.sin(frame * p.pulseSpeed + p.pulseOffset);
-        const alpha = isDark
-          ? p.baseAlpha * 0.75 + pulse * 0.2
-          : p.baseAlpha * 0.4 + pulse * 0.1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = isDark
-          ? `rgba(147, 197, 253, ${Math.max(0.08, alpha)})`
-          : `rgba(59, 130, 246, ${Math.max(0.05, alpha)})`;
-        ctx.fill();
-
-        // Connect nearby particles with subtle filament lines
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dx = p.x - p2.x;
-          const dy = p.y - p2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 110) {
-            const lineAlpha = (1 - dist / 110) * (isDark ? 0.14 : 0.05);
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = isDark
-              ? `rgba(165, 180, 252, ${lineAlpha})`
-              : `rgba(99, 102, 241, ${lineAlpha})`;
-            ctx.lineWidth = 0.75;
-            ctx.stroke();
-          }
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isDark]);
-
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-colors duration-300">
-      {/* Background Gradient Mesh */}
       <div className="absolute inset-0 bg-grid-pattern opacity-30 dark:opacity-20" />
 
-      {/* Slow-drifting aurora veil — adds depth behind translucent surfaces */}
       <div
-        className="absolute -inset-x-1/4 -top-1/4 h-[80vh] blur-3xl opacity-25 animate-aurora will-change-transform"
+        className="absolute -inset-x-1/4 -top-1/4 h-[80vh] blur-3xl opacity-25"
         style={{
-          background: isDark
-            ? 'conic-gradient(from 120deg at 50% 50%, rgba(37, 99, 235, 0.28), rgba(139, 92, 246, 0.22), rgba(16, 185, 129, 0.18), rgba(37, 99, 235, 0.28))'
-            : 'conic-gradient(from 120deg at 50% 50%, rgba(191, 219, 254, 0.45), rgba(221, 214, 254, 0.4), rgba(167, 243, 208, 0.35), rgba(191, 219, 254, 0.45))',
+          background:
+            'conic-gradient(from 120deg at 50% 50%, rgba(191, 219, 254, 0.45), rgba(221, 214, 254, 0.4), rgba(167, 243, 208, 0.35), rgba(191, 219, 254, 0.45))',
         }}
       />
 
-      {/* Diagonal light beam that sweeps slowly across the page */}
-      <div
-        className="absolute -top-1/2 left-[-25%] h-[200%] w-[40%] bg-gradient-to-r from-transparent via-white/40 to-transparent dark:via-orange-400/10 animate-beam will-change-transform"
-        style={{ animationDelay: '1.5s' }}
-      />
-
-      {/* Floating Animated Gradient Orbs - Soft Light Mode / Deep Dark Mode */}
-      <div
-        className="absolute -top-32 -left-32 w-96 h-96 sm:w-[500px] sm:h-[500px] rounded-full blur-3xl opacity-35 dark:opacity-25 animate-orb-1 will-change-transform"
-        style={{
-          background: isDark
-            ? 'radial-gradient(circle, rgba(59, 130, 246, 0.45) 0%, rgba(37, 99, 235, 0) 70%)'
-            : 'radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, rgba(219, 234, 254, 0) 70%)',
-        }}
-      />
-
-      <div
-        className="absolute top-1/3 -right-32 w-96 h-96 sm:w-[550px] sm:h-[550px] rounded-full blur-3xl opacity-30 dark:opacity-20 animate-orb-2 will-change-transform"
-        style={{
-          background: isDark
-            ? 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0) 70%)'
-            : 'radial-gradient(circle, rgba(199, 210, 254, 0.35) 0%, rgba(238, 242, 255, 0) 70%)',
-        }}
-      />
-
-      <div
-        className="absolute -bottom-32 left-1/4 w-96 h-96 sm:w-[600px] sm:h-[600px] rounded-full blur-3xl opacity-25 dark:opacity-15 animate-orb-3 will-change-transform"
-        style={{
-          background: isDark
-            ? 'radial-gradient(circle, rgba(20, 184, 166, 0.35) 0%, rgba(16, 185, 129, 0) 70%)'
-            : 'radial-gradient(circle, rgba(167, 243, 208, 0.3) 0%, rgba(236, 253, 245, 0) 70%)',
-        }}
-      />
-
-      {/* Canvas for Live Filament Particle Constellation */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
+      <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-500/20 sm:h-[500px] sm:w-[500px]" />
+      <div className="absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-violet-200/30 blur-3xl dark:bg-violet-500/15 sm:h-[550px] sm:w-[550px]" />
+      <div className="absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-emerald-200/30 blur-3xl dark:bg-emerald-500/15 sm:h-[600px] sm:w-[600px]" />
     </div>
   );
 };
