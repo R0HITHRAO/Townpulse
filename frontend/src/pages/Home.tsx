@@ -127,58 +127,54 @@ export const Home: React.FC = () => {
   const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col relative transition-colors duration-200">
-      {/* Above-the-fold decorative backdrop — static only (AUDIT.md 1.4):
-          no aurora, beam or orb loops; ambient motion is removed from the
-          critical path so low-end Android devices keep their battery and
-          main thread. The soft grid + single glow layer stays as restraint. */}
-      <div
-        className="pointer-events-none fixed inset-0 overflow-hidden z-0"
-        aria-hidden="true"
-      >
-        <div className="absolute inset-0 bg-grid-pattern opacity-20 dark:opacity-10" />
-        <div
-          className="absolute -top-24 left-1/2 h-72 w-[500px] -translate-x-1/2 rounded-full bg-gradient-to-b from-orange-200/40 via-transparent to-transparent blur-3xl dark:from-orange-900/15 dark:via-transparent"
-          aria-hidden="true"
-        />
-      </div>
-
+    <div className="relative flex min-h-screen flex-col bg-[#fbf7f0] transition-colors duration-200 dark:bg-slate-950">
       {/* Hero Section */}
-      <section className="tp-home-hero relative overflow-hidden px-4 pb-20 pt-14 transition-colors duration-200 sm:px-6 lg:px-8">
+      <section className="tp-home-hero relative overflow-hidden px-4 pb-24 pt-14 transition-colors duration-200 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8">
         <div className="tp-hero-inner relative z-10 mx-auto max-w-7xl">
           <div className="tp-hero-copy animate-rise anim-delay-1">
-          <div className="relative inline-flex mb-5">
-            {/* Soft pulsing halo behind the badge */}
-            <span
-              className="absolute inset-0 rounded-full bg-orange-400/30 dark:bg-orange-500/25 blur-xl"
-              aria-hidden="true"
-            />
-            <div className="tp-hero-eyebrow relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xs">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Local knowledge, close at hand</span>
+            <div className="relative mb-6 inline-flex">
+              <div className="tp-hero-eyebrow relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Local knowledge, close at hand</span>
+              </div>
+            </div>
+
+            <h1 className="tp-hero-title mb-5 animate-rise anim-delay-2">
+              Find what you need<br /> <em>right around you.</em>
+            </h1>
+
+            <p className="tp-hero-description mb-8 max-w-xl animate-rise anim-delay-3">
+              {t('tagline')}
+            </p>
+            <div className="tp-hero-proof animate-fade-in anim-delay-4">
+              <span className="tp-proof-mark" aria-hidden="true"><ShieldCheck className="h-4 w-4" /></span>
+              <span>Community sourced</span>
+              <span className="tp-proof-divider" aria-hidden="true" />
+              <span>Built for your town</span>
             </div>
           </div>
 
-          <h1 className="tp-hero-title mb-4 animate-rise anim-delay-2">
-            Find what you need<br className="hidden sm:inline" /> <em>right around you.</em>
-          </h1>
-
-          <p className="tp-hero-description mb-8 max-w-xl animate-rise anim-delay-3">
-            {t('tagline')}
-          </p>
-          </div>
           <div className="tp-hero-search animate-rise anim-delay-4">
-            <div className="tp-search-caption"><MapPin className="h-4 w-4" /> Explore services near you</div>
+            <div className="tp-search-heading">
+              <span className="tp-search-icon"><MapPin className="h-4 w-4" /></span>
+              <div>
+                <div className="tp-search-caption">Start exploring</div>
+                <p className="tp-search-subcaption">Find useful services close to home</p>
+              </div>
+            </div>
             <SearchBar onSearch={handleHeroSearch} initialOpenOnly={openOnly} />
-            <div className="tp-hero-footnote"><ShieldCheck className="h-4 w-4" /> Community sourced. Locally relevant.</div>
+            <div className="tp-hero-footnote">
+              <span className="tp-footnote-dot" aria-hidden="true" />
+              Search the local directory by service or place
+            </div>
           </div>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <main className="tp-home-main max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 -mt-8 flex-1 w-full space-y-6 relative z-10">
+      <main className="tp-home-main relative z-10 mx-auto -mt-10 w-full max-w-7xl flex-1 space-y-7 px-4 pb-12 sm:-mt-12 sm:px-6 lg:px-8">
         {/* Refined Filter & Category Bar */}
-        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors duration-200 animate-fade-in-up anim-delay-5">
+        <div className="tp-directory-toolbar space-y-4 rounded-2xl border border-[#e7ddce] bg-white/95 p-4 shadow-[0_12px_40px_rgba(46,34,23,0.08)] backdrop-blur-xl transition-colors duration-200 animate-fade-in-up anim-delay-5 dark:border-slate-800 dark:bg-slate-900/95 sm:rounded-3xl sm:p-5">
           {/* Top Row: Full width Category Slider */}
           <div className="w-full">
             <CategoryChips
