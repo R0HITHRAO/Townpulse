@@ -14,7 +14,21 @@ import { getOpenStatus } from '../utils/businessHours';
 import { api, Category, Listing, SearchParams } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 import { OfflineDataBanner } from '../components/OfflineDataBanner';
-import { ShieldCheck, Map as MapIcon, MapPin, PlusCircle, Sparkles, SlidersHorizontal, RefreshCw, Clock, Printer } from 'lucide-react';
+import {
+  ShieldCheck,
+  Map as MapIcon,
+  MapPin,
+  PlusCircle,
+  Sparkles,
+  SlidersHorizontal,
+  RefreshCw,
+  Clock,
+  Printer,
+  ArrowRight,
+  CheckCircle2,
+  Compass,
+  Users,
+} from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -125,6 +139,36 @@ export const Home: React.FC = () => {
   };
 
   const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
+
+  const flagshipStats = [
+    { value: categories.length.toLocaleString(), label: 'service categories' },
+    { value: totalCount.toLocaleString(), label: 'services in this search' },
+    { value: 'Any town', label: 'no location lock-in' },
+  ];
+
+  const valuePillars = [
+    {
+      icon: Compass,
+      title: 'Fast to find',
+      description: 'Search by service, place, or nearby area in seconds — no guessing where to start.',
+    },
+    {
+      icon: CheckCircle2,
+      title: 'Open and reliable',
+      description: 'Know what is active now, what is verified, and what deserves a quick call first.',
+    },
+    {
+      icon: Users,
+      title: 'Built by the town',
+      description: 'A living directory shaped by residents, businesses, and community contributors.',
+    },
+  ];
+
+  const howItWorks = [
+    'Search by need or location.',
+    'Filter by open now and verified entries.',
+    'Visit, call, or save what matters.',
+  ];
 
   return (
     <div className="relative flex min-h-screen flex-col bg-[#fbf7f0] transition-colors duration-200 dark:bg-slate-950">
@@ -274,6 +318,70 @@ export const Home: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <section className="tp-flagship-band">
+          <div className="tp-flagship-copy">
+            <div className="tp-flagship-kicker">Why TownPulse feels different</div>
+            <h2>Built to help people act quickly, without friction.</h2>
+            <p>
+              The best local tools feel calm, useful, and reliable — exactly what you need when
+              you are trying to find a service, a clinic, or a trusted place nearby.
+            </p>
+          </div>
+
+          <div className="tp-flagship-stats">
+            {flagshipStats.map((stat) => (
+              <div key={stat.label} className="tp-flagship-stat">
+                <span>{stat.value}</span>
+                <small>{stat.label}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="tp-flagship-grid">
+          {valuePillars.map(({ icon: Icon, title, description }, index) => (
+            <div key={title} className="tp-flagship-card" style={{ animationDelay: `${index * 80}ms` }}>
+              <div className="tp-flagship-icon">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="tp-flagship-steps">
+          <div className="tp-flagship-steps-header">
+            <span className="tp-flagship-kicker">How it works</span>
+            <h2>From a quick search to a confident next step.</h2>
+          </div>
+
+          <div className="tp-steps-grid">
+            {howItWorks.map((step, index) => (
+              <div key={step} className="tp-step-item">
+                <div className="tp-step-number">0{index + 1}</div>
+                <p>{step}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="tp-flagship-cta">
+          <div>
+            <div className="tp-flagship-kicker">Ready when your town needs it</div>
+            <h2>Turn local discovery into a daily habit, not a chore.</h2>
+          </div>
+          <div className="tp-cta-actions">
+            <Link to="/map" className="tp-btn tp-btn-primary">
+              Explore the map
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link to="/submit" className="tp-btn tp-btn-secondary">
+              Add a service
+            </Link>
+          </div>
+        </section>
 
         {/* Listings Grid + Preview Map */}
         <div id="directory-results" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24">

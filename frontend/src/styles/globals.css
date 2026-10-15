@@ -202,3 +202,215 @@
     border-radius: 1.25rem;
   }
 }
+
+.tp-flagship-band {
+  display: grid;
+  gap: 1.5rem;
+  padding: clamp(1.4rem, 3vw, 2.5rem);
+  border: 1px solid rgb(231 221 206 / 1);
+  border-radius: 1.75rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 242, 233, 0.96));
+  box-shadow: 0 18px 40px rgba(46, 34, 23, 0.06);
+}
+
+.tp-flagship-copy {
+  max-width: 44rem;
+}
+
+.tp-flagship-kicker {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(154, 52, 18, 0.18);
+  border-radius: 9999px;
+  background: rgba(154, 52, 18, 0.06);
+  padding: 0.45rem 0.8rem;
+  color: #8b3a1e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tp-flagship-copy h2,
+.tp-flagship-steps-header h2,
+.tp-flagship-cta h2 {
+  color: #221914;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  letter-spacing: -0.04em;
+  line-height: 1.07;
+}
+
+.tp-flagship-copy p,
+.tp-flagship-card p {
+  margin-top: 0.9rem;
+  color: #615143;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.tp-flagship-stats {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tp-flagship-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(154, 52, 18, 0.08);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.tp-flagship-stat span {
+  color: #1a120d;
+  font-size: clamp(1.4rem, 2vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.tp-flagship-stat small {
+  color: #6d584c;
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tp-flagship-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tp-flagship-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.4rem;
+  border: 1px solid rgba(231, 221, 206, 1);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 28px rgba(46, 34, 23, 0.04);
+  animation: tp-rise-in 0.5s ease both;
+}
+
+.tp-flagship-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, rgba(154, 52, 18, 0.12), rgba(20, 84, 60, 0.12));
+  color: #9a3412;
+}
+
+.tp-flagship-card h3 {
+  color: #1d160f;
+  font-size: 1.4rem;
+  letter-spacing: -0.03em;
+}
+
+.tp-flagship-card p {
+  margin-top: 0;
+}
+
+.tp-flagship-steps,
+.tp-flagship-cta {
+  padding: clamp(1.3rem, 2vw, 2rem);
+  border: 1px solid rgba(231, 221, 206, 1);
+  border-radius: 1.75rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 32px rgba(46, 34, 23, 0.04);
+}
+
+.tp-flagship-steps-header {
+  margin-bottom: 1.2rem;
+}
+
+.tp-steps-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tp-step-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(231, 221, 206, 1);
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, rgba(247, 242, 233, 0.9), rgba(255, 255, 255, 0.9));
+}
+
+.tp-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(20, 84, 60, 0.08);
+  color: #14543c;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tp-step-item p {
+  color: #524335;
+  line-height: 1.6;
+}
+
+.tp-flagship-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(35, 24, 18, 0.97), rgba(20, 84, 60, 0.96));
+}
+
+.tp-flagship-cta .tp-flagship-kicker {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 247, 239, 0.18);
+  color: #f5dab1;
+}
+
+.tp-flagship-cta h2 {
+  color: #fff9ef;
+  max-width: 28rem;
+}
+
+.tp-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+@keyframes tp-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 960px) {
+  .tp-flagship-grid,
+  .tp-steps-grid,
+  .tp-flagship-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .tp-flagship-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
