@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MapView } from '../pages/MapView';
-import { api } from '../services/api';
+import { api, type Listing } from '../services/api';
 import { searchSnapshot, loadSnapshotCategories } from '../services/directoryFallback';
 
 const mockLocation = vi.hoisted(() => ({
@@ -24,7 +24,13 @@ vi.mock('../context/LocationContext', () => ({
 }));
 
 vi.mock('../components/Map', () => ({
-  Map: () => <div data-testid="directory-map" />,
+  Map: ({ className }: { className?: string }) => (
+    <div data-testid="directory-map" className={className} />
+  ),
+}));
+
+vi.mock('../components/ListingCard', () => ({
+  ListingCard: ({ listing }: { listing: Listing }) => <div>{listing.name}</div>,
 }));
 
 vi.mock('../components/CategoryChips', () => ({
@@ -90,5 +96,49 @@ describe('MapView empty offline results', () => {
       'href',
       'https://earth.google.com/web/search/0.335,0.462'
     );
+  });
+
+  it('gives full map mode an explicit height so Leaflet can render', async () => {
+    render(<MapView />);
+
+    await screen.findByText(/saved directory has no listings near this location/i);
+    fireEvent.click(screen.getByTitle('Map View'));
+
+    const map = screen.getByTestId('directory-map');
+    expect(map).toHaveClass('h-full');
+    expect(map.parentElement).toHaveClass('h-[calc(100vh-9rem)]');
+  });
+
+  it('lets visitors browse directory listings outside their current radius', async () => {
+    const listing: Listing = {
+      id: 'town-listing',
+      name: 'Town Clinic',
+      address: 'Market Street',
+      verified: false,
+      status: 'approved',
+    };
+    vi.mocked(api.searchListings).mockImplementation(async (params) => {
+      const items = params.lat === undefined ? [listing] : [];
+      return {
+        items,
+        total: items.length,
+        page: 1,
+        per_page: 100,
+        total_pages: 1,
+      };
+    });
+
+    render(<MapView />);
+    await screen.findByText('No services found in this search area.');
+    fireEvent.click(screen.getByRole('button', { name: 'Browse all locations' }));
+
+    expect(await screen.findByText('Town Clinic')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Near my location' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'List (1)' })).toBeInTheDocument();
+    const calls = vi.mocked(api.searchListings).mock.calls;
+    const lastSearch = calls[calls.length - 1]?.[0];
+    expect(lastSearch).not.toHaveProperty('lat');
+    expect(lastSearch).not.toHaveProperty('lng');
+    expect(lastSearch).not.toHaveProperty('radius');
   });
 });

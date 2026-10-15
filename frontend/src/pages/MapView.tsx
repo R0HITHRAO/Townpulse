@@ -24,6 +24,7 @@ export const MapView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [radius, setRadius] = useState(15000);
+  const [allLocations, setAllLocations] = useState(false);
   const [openOnly, setOpenOnly] = useState(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [directionsListing, setDirectionsListing] = useState<Listing | null>(null);
@@ -73,16 +74,19 @@ export const MapView: React.FC = () => {
     setLoading(true);
     setError(null);
     setErrorKind(null);
+    const locationFilters = allLocations
+      ? {}
+      : {
+          lat: location?.lat ?? undefined,
+          lng: location?.lng ?? undefined,
+          radius,
+        };
+
     api
       .searchListings({
         q: searchQuery || undefined,
         category_id: selectedCategory || undefined,
-        // Search origin is the user's chosen position. Without lat/lng the
-        // backend has no origin to apply `radius` to, so the radius selector
-        // silently did nothing.
-        lat: location?.lat ?? undefined,
-        lng: location?.lng ?? undefined,
-        radius: radius,
+        ...locationFilters,
         per_page: 100,
       })
       .then((res) => {
@@ -102,9 +106,7 @@ export const MapView: React.FC = () => {
         const snapshot = await searchSnapshot({
           q: searchQuery || undefined,
           category_id: selectedCategory || undefined,
-          lat: location?.lat ?? undefined,
-          lng: location?.lng ?? undefined,
-          radius,
+          ...locationFilters,
           per_page: 100,
         });
         // The bundled snapshot is what a static deployment (Vercel, no backend)
@@ -135,7 +137,7 @@ export const MapView: React.FC = () => {
     // left out of the deps: listing it re-ran the fetch on every pin selection.
     // `location?.lat`/`location?.lng` are primitives, so re-running on them is
     // safe and re-searches when the user picks a new place.
-  }, [searchQuery, selectedCategory, radius, retryKey, location?.lat, location?.lng]);
+  }, [searchQuery, selectedCategory, radius, retryKey, location?.lat, location?.lng, allLocations]);
 
   // Filter listings by open status if enabled
   // "Open now" excludes unknown hours — an unreadable listing is not an open
@@ -198,10 +200,11 @@ export const MapView: React.FC = () => {
           {/* Radius Selector */}
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-xl">
             <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            <span>Radius:</span>
+            <span>{allLocations ? 'Area:' : 'Radius:'}</span>
             <select
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
+              disabled={allLocations}
               className="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
             >
               <option value={5000} className="dark:bg-slate-900">5 km</option>
@@ -210,6 +213,22 @@ export const MapView: React.FC = () => {
               <option value={25000} className="dark:bg-slate-900">25 km</option>
             </select>
           </div>
+
+          {location && (
+            <button
+              type="button"
+              onClick={() => setAllLocations((current) => !current)}
+              aria-pressed={allLocations}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition ${
+                allLocations
+                  ? 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-800'
+                  : 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <LocateFixed className="w-3.5 h-3.5" />
+              <span>{allLocations ? 'Near my location' : 'All locations'}</span>
+            </button>
+          )}
 
           {/* Layout Mode Switcher (Split, Map, List) */}
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -338,7 +357,21 @@ export const MapView: React.FC = () => {
               ) : displayedListings.length === 0 ? (
                 <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
                   <p className="font-semibold text-sm">No services found in this search area.</p>
-                  <p className="text-xs text-slate-400">Try expanding the search radius or resetting category filters.</p>
+                  <p className="text-xs text-slate-400">
+                    {allLocations
+                      ? 'Try a different search term or category.'
+                      : 'Try expanding the search radius, or browse services in other locations.'}
+                  </p>
+                  {location && !allLocations && (
+                    <button
+                      type="button"
+                      onClick={() => setAllLocations(true)}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 transition"
+                    >
+                      <LocateFixed className="h-3.5 w-3.5" />
+                      Browse all locations
+                    </button>
+                  )}
                   {searchQuery || selectedCategory || openOnly || radius !== 15000 ? (
                     <button
                       type="button"
@@ -431,7 +464,7 @@ export const MapView: React.FC = () => {
                     className={
                       layoutMode === 'split'
                         ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
-                        : 'h-full min-h-[calc(100vh-9rem)] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
+                        : 'h-[calc(100vh-9rem)] min-h-[30rem] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
                     }
                   >
                     <Map
