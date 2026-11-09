@@ -1,0 +1,150 @@
+.sylva-experience {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 36rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: #080808;
+}
+
+.sylva-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #080808;
+}
+
+.sylva-frame__document {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #080808;
+  opacity: 0;
+  transition: opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.sylva-frame[data-state='ready'] .sylva-frame__document {
+  opacity: 1;
+}
+
+.sylva-frame__loading,
+.sylva-frame__message {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: #4a4d44;
+  color: #f4f1e8;
+  font: 500 0.9rem/1.5 system-ui, sans-serif;
+  text-align: center;
+}
+
+.sylva-frame__loading {
+  transition: opacity 500ms ease;
+}
+
+.sylva-frame[data-state='ready'] .sylva-frame__loading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sylva-frame__message p {
+  margin: 0;
+}
+
+.sylva-frame__message button {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgb(244 241 232 / 0.32);
+  border-radius: 999px;
+  background: rgb(20 24 18 / 0.45);
+  color: inherit;
+  font: inherit;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.sylva-frame__message button:hover {
+  transform: translateY(-2px);
+  background: rgb(20 24 18 / 0.72);
+}
+
+.sylva-experience__back {
+  position: absolute;
+  z-index: 5;
+  top: 1.25rem;
+  left: 1.25rem;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgb(245 244 238 / 0.15);
+  border-radius: 999px;
+  background: rgb(20 24 18 / 0.52);
+  color: #f4f1e8;
+  font: 600 0.75rem/1 system-ui, sans-serif;
+  text-decoration: none;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: transform 220ms ease, background-color 220ms ease, border-color 220ms ease;
+}
+
+.sylva-experience__back svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.sylva-experience__back svg:nth-of-type(2) {
+  color: #c9d0b8;
+}
+
+.sylva-experience__back:hover {
+  transform: translateY(-2px);
+  border-color: rgb(245 244 238 / 0.32);
+  background: rgb(20 24 18 / 0.76);
+}
+
+html.tp-sylva-active,
+body.tp-sylva-active {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body.tp-sylva-active #root,
+body.tp-sylva-active #root > div {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .sylva-experience {
+    min-height: 30rem;
+  }
+
+  .sylva-experience__back {
+    top: 0.8rem;
+    left: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sylva-frame__document,
+  .sylva-frame__loading,
+  .sylva-frame__message button,
+  .sylva-experience__back {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Heart, ShieldCheck, Github, ExternalLink } from 'lucide-react';
+import { MapPin, Heart, ShieldCheck, Github, ExternalLink, Sparkles } from 'lucide-react';
 import { Reveal } from './Reveal';
 
 export const Footer: React.FC = () => {
@@ -68,6 +68,12 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/suggest" className="link-underline inline-block hover:text-orange-600 dark:hover:text-orange-400 transition-colors duration-300">
                   {t('nav.suggest')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/sylva" className="link-underline inline-flex items-center gap-1.5 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-300">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  Sylva motion experience
                 </Link>
               </li>
             </ul>

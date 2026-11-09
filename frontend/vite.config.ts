@@ -46,6 +46,9 @@ export default defineConfig({
         // hash-named assets are precached; navigations go through the
         // NetworkFirst route below.
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        // Sylva is an optional immersive route with a large local WebGL
+        // runtime. Do not download it during the regular app-shell precache.
+        globIgnores: ['landing-pages/**'],
         // Disables Workbox's NavigationRoute. Otherwise the generated worker
         // registers `createHandlerBoundToURL('index.html')` *before* every
         // runtime route, so it answers all navigations from the precache and the
