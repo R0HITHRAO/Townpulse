@@ -54,12 +54,24 @@
   right: -9rem;
   top: -25rem;
   box-shadow: 0 0 0 2.5rem rgb(255 245 224 / 0.025), 0 0 0 5rem rgb(255 245 224 / 0.02);
+  translate: 0 var(--tp-hero-parallax, 0px);
+  animation: tp-hero-ring-drift 16s ease-in-out infinite alternate;
 }
 .tp-home-hero::after {
   width: 25rem;
   height: 25rem;
   right: -2.5rem;
   top: -14rem;
+  translate: 0 var(--tp-hero-parallax, 0px);
+  animation: tp-hero-ring-drift 12s ease-in-out infinite alternate-reverse;
+}
+@keyframes tp-hero-ring-drift {
+  from {
+    transform: rotate(-2deg) scale(0.99);
+  }
+  to {
+    transform: rotate(2deg) scale(1.02);
+  }
 }
 .tp-hero-inner {
   display: grid;
@@ -302,7 +314,7 @@
 }
 
 .tp-flagship-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px) rotate(-0.35deg);
   border-color: rgba(201, 135, 90, 0.7);
   box-shadow: 0 20px 42px rgba(46, 34, 23, 0.1);
 }
@@ -315,6 +327,13 @@
   border-radius: 0.9rem;
   background: linear-gradient(135deg, rgba(154, 52, 18, 0.12), rgba(20, 84, 60, 0.12));
   color: #9a3412;
+  transition:
+    transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background-color 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.tp-flagship-card:hover .tp-flagship-icon {
+  transform: rotate(-7deg) scale(1.1);
 }
 
 .tp-flagship-card h3 {
@@ -364,6 +383,13 @@
   width: 1px;
   background: linear-gradient(to bottom, transparent, rgba(20, 84, 60, 0.24) 12%, rgba(20, 84, 60, 0.24) 88%, transparent);
   content: '';
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.tp-steps-grid.is-visible::before {
+  transform: scaleY(1);
 }
 
 .tp-step-item {
@@ -384,7 +410,7 @@
 }
 
 .tp-step-item:hover {
-  transform: translateX(4px);
+  transform: translateX(5px) scale(1.01);
   border-color: rgba(20, 84, 60, 0.28);
   box-shadow: 0 14px 30px rgba(46, 34, 23, 0.08);
 }
@@ -434,6 +460,23 @@
   gap: 0.8rem;
 }
 
+.tp-flagship-cta.is-visible {
+  animation: tp-cta-arrive 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes tp-cta-arrive {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0% 50%;
+  }
+}
+
+.tp-flagship-cta {
+  background-size: 180% 180%;
+}
+
 @media (max-width: 960px) {
   .tp-flagship-steps {
     grid-template-columns: 1fr;
@@ -452,5 +495,13 @@
   .tp-flagship-cta {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-home-hero::before,
+  .tp-home-hero::after {
+    animation: none;
+    translate: none;
   }
 }

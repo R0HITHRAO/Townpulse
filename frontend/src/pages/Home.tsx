@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { SearchBar } from '../components/SearchBar';
@@ -32,6 +32,7 @@ import {
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
+  const heroRef = useRef<HTMLElement | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,29 @@ export const Home: React.FC = () => {
     path: '/',
     ogKey: 'home',
   });
+
+  // Move the hero's decorative rings at a fraction of the page scroll speed
+  // for a layered, product-story feel without shifting readable content.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let frameId = 0;
+    const updateParallax = () => {
+      frameId = 0;
+      const offset = Math.min(window.scrollY * 0.16, 44);
+      heroRef.current?.style.setProperty('--tp-hero-parallax', `${offset}px`);
+    };
+    const requestUpdate = () => {
+      if (!frameId) frameId = requestAnimationFrame(updateParallax);
+    };
+
+    updateParallax();
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', requestUpdate);
+      if (frameId) cancelAnimationFrame(frameId);
+    };
+  }, []);
 
   // Load categories. Previously `.catch(console.error)`, which left the chip
   // row silently empty with no explanation.
@@ -173,7 +197,7 @@ export const Home: React.FC = () => {
   return (
     <div className="relative flex min-h-screen flex-col bg-[#fbf7f0] transition-colors duration-200 dark:bg-slate-950">
       {/* Hero Section */}
-      <section className="tp-home-hero relative overflow-hidden px-4 pb-24 pt-14 transition-colors duration-200 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8">
+      <section ref={heroRef} className="tp-home-hero relative overflow-hidden px-4 pb-24 pt-14 transition-colors duration-200 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8">
         <div className="tp-hero-inner relative z-10 mx-auto max-w-7xl">
           <div className="tp-hero-copy animate-rise anim-delay-1">
             <div className="relative mb-6 inline-flex">
@@ -319,7 +343,7 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        <Reveal as="section" direction="up" threshold={0.12} className="tp-flagship-band">
+        <Reveal as="section" direction="blur" threshold={0.12} className="tp-flagship-band">
           <div className="tp-flagship-copy">
             <div className="tp-flagship-kicker">Why TownPulse feels different</div>
             <h2>Built to help people act quickly, without friction.</h2>
@@ -333,8 +357,8 @@ export const Home: React.FC = () => {
             {flagshipStats.map((stat, index) => (
               <Reveal
                 key={stat.label}
-                direction="up"
-                delay={index * 90}
+                direction="scale"
+                delay={index * 120}
                 threshold={0.2}
                 className="tp-flagship-stat"
               >
@@ -350,8 +374,8 @@ export const Home: React.FC = () => {
             <Reveal
               key={title}
               as="article"
-              direction="up"
-              delay={index * 110}
+              direction={index === 0 ? 'left' : index === 2 ? 'right' : 'up'}
+              delay={index * 140}
               threshold={0.18}
               className="tp-flagship-card"
             >
@@ -370,13 +394,13 @@ export const Home: React.FC = () => {
             <h2>From a quick search to a confident next step.</h2>
           </Reveal>
 
-          <div className="tp-steps-grid">
+          <Reveal direction="fade" threshold={0.08} className="tp-steps-grid">
             {howItWorks.map((step, index) => (
               <Reveal
                 key={step}
                 as="article"
-                direction="up"
-                delay={index * 120}
+                direction="left"
+                delay={index * 150}
                 threshold={0.2}
                 className="tp-step-item"
               >
@@ -384,7 +408,7 @@ export const Home: React.FC = () => {
                 <p>{step}</p>
               </Reveal>
             ))}
-          </div>
+          </Reveal>
         </section>
 
         <Reveal as="section" direction="scale" threshold={0.2} className="tp-flagship-cta">
