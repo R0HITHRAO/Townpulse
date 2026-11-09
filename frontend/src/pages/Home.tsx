@@ -319,7 +319,7 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        <section className="tp-flagship-band">
+        <Reveal as="section" direction="up" threshold={0.12} className="tp-flagship-band">
           <div className="tp-flagship-copy">
             <div className="tp-flagship-kicker">Why TownPulse feels different</div>
             <h2>Built to help people act quickly, without friction.</h2>
@@ -330,44 +330,64 @@ export const Home: React.FC = () => {
           </div>
 
           <div className="tp-flagship-stats">
-            {flagshipStats.map((stat) => (
-              <div key={stat.label} className="tp-flagship-stat">
+            {flagshipStats.map((stat, index) => (
+              <Reveal
+                key={stat.label}
+                direction="up"
+                delay={index * 90}
+                threshold={0.2}
+                className="tp-flagship-stat"
+              >
                 <span>{stat.value}</span>
                 <small>{stat.label}</small>
-              </div>
+              </Reveal>
             ))}
           </div>
-        </section>
+        </Reveal>
 
         <section className="tp-flagship-grid">
           {valuePillars.map(({ icon: Icon, title, description }, index) => (
-            <div key={title} className="tp-flagship-card" style={{ animationDelay: `${index * 80}ms` }}>
+            <Reveal
+              key={title}
+              as="article"
+              direction="up"
+              delay={index * 110}
+              threshold={0.18}
+              className="tp-flagship-card"
+            >
               <div className="tp-flagship-icon">
                 <Icon className="h-5 w-5" />
               </div>
               <h3>{title}</h3>
               <p>{description}</p>
-            </div>
+            </Reveal>
           ))}
         </section>
 
         <section className="tp-flagship-steps">
-          <div className="tp-flagship-steps-header">
+          <Reveal direction="left" threshold={0.2} className="tp-flagship-steps-header">
             <span className="tp-flagship-kicker">How it works</span>
             <h2>From a quick search to a confident next step.</h2>
-          </div>
+          </Reveal>
 
           <div className="tp-steps-grid">
             {howItWorks.map((step, index) => (
-              <div key={step} className="tp-step-item">
+              <Reveal
+                key={step}
+                as="article"
+                direction="up"
+                delay={index * 120}
+                threshold={0.2}
+                className="tp-step-item"
+              >
                 <div className="tp-step-number">0{index + 1}</div>
                 <p>{step}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
-        <section className="tp-flagship-cta">
+        <Reveal as="section" direction="scale" threshold={0.2} className="tp-flagship-cta">
           <div>
             <div className="tp-flagship-kicker">Ready when your town needs it</div>
             <h2>Turn local discovery into a daily habit, not a chore.</h2>
@@ -381,7 +401,7 @@ export const Home: React.FC = () => {
               Add a service
             </Link>
           </div>
-        </section>
+        </Reveal>
 
         {/* Listings Grid + Preview Map */}
         <div id="directory-results" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24">
