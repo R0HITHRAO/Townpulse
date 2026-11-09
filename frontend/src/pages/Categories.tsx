@@ -9,6 +9,7 @@ import { useSeo } from '../hooks/useSeo';
 import { routes } from '../config/site';
 import { useCurrentLocation } from '../context/LocationContext';
 import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
+import { Reveal } from '../components/Reveal';
 
 /**
  * Every category, each one linking to its own shareable /c/<slug> page.
@@ -76,29 +77,31 @@ export const Categories: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
-        <header className="max-w-2xl space-y-2">
+        <Reveal as="header" direction="blur" className="max-w-2xl space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
             {t('categories.heading')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {t('categories.subheading', { town: place })}
           </p>
-        </header>
+        </Reveal>
 
         {offlineData && <OfflineDataBanner onRetry={() => window.location.reload()} />}
 
         {loading ? (
           <LoadingSpinner message={t('common.loading')} />
         ) : categories.length === 0 ? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">{t('categories.empty')}</p>
+          <Reveal className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 shadow-xs dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-400">
+            {t('categories.empty')}
+          </Reveal>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((cat) => {
+            {categories.map((cat, index) => {
               const nameKey = categoryNameKey(cat.slug);
               const descKey = categoryDescriptionKey(cat.slug);
               const count = cat.slug ? counts[cat.slug] ?? 0 : 0;
               return (
-                <li key={cat.id} className="h-full">
+                <Reveal key={cat.id} as="li" direction="up" delay={Math.min(index, 8) * 55} className="h-full">
                   <Link
                     to={`/c/${cat.slug ?? cat.id}`}
                     className="group flex h-full flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-orange-400 hover:shadow-lg dark:hover:border-orange-600"
@@ -118,7 +121,7 @@ export const Categories: React.FC = () => {
                       {t('categories.listingCount', { count })}
                     </span>
                   </Link>
-                </li>
+                </Reveal>
               );
             })}
           </ul>
@@ -127,3 +130,4 @@ export const Categories: React.FC = () => {
     </div>
   );
 };
+

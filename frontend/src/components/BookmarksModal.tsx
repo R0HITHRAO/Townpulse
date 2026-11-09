@@ -43,7 +43,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
         {/* Bookmarks List */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 space-y-2 pr-1">
           {bookmarks.length === 0 ? (
-            <div className="text-center py-10 space-y-2">
+            <div className="text-center py-10 space-y-2 animate-scale-in">
               <Bookmark className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
               <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 No saved places yet.
@@ -56,7 +56,7 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
             bookmarks.map((listing) => (
               <div
                 key={listing.id}
-                className="py-3 flex items-center justify-between gap-3 group"
+                className="py-3 flex items-center justify-between gap-3 group animate-fade-in-up"
               >
                 <div className="min-w-0 flex-1">
                   <Link
@@ -128,3 +128,4 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
     </div>
   );
 };
+

@@ -189,6 +189,7 @@ export const ListingDetail: React.FC = () => {
             {/* Bookmark Favorite */}
             <button
               onClick={() => toggleBookmark(listing)}
+              aria-pressed={bookmarked}
               className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition shadow-2xs hover:scale-105 active:scale-95 ${
                 bookmarked
                   ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-800'
@@ -246,7 +247,7 @@ export const ListingDetail: React.FC = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-200 animate-fade-in-up anim-delay-2">
+        <Reveal as="article" direction="up" threshold={0.04} className="bg-white dark:bg-slate-900/90 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 overflow-hidden shadow-sm transition-colors duration-200">
           {/* Storefront Image Hero (if available) */}
           {listing.image_url && (
             <div className="relative w-full h-64 sm:h-80 overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -322,7 +323,7 @@ export const ListingDetail: React.FC = () => {
             )}
 
             {/* Contact Action Buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Reveal direction="scale" threshold={0.1} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {listing.phone && (
                 <a
                   href={`tel:${listing.phone}`}
@@ -367,10 +368,10 @@ export const ListingDetail: React.FC = () => {
                 <span className="text-xs font-bold">Get Directions</span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-full">Interactive Route</span>
               </button>
-            </div>
+            </Reveal>
 
             {/* Location & Timings */}
-            <div className="space-y-4 pt-2">
+            <Reveal direction="left" threshold={0.12} className="space-y-4 pt-2">
               <h2 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Location & Timings</h2>
               <div className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
                 <MapPin className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
@@ -396,11 +397,11 @@ export const ListingDetail: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </Reveal>
 
             {/* Mini Map */}
             {listing.lat && listing.lng && (
-              <div className="pt-2">
+              <Reveal direction="blur" threshold={0.12} className="pt-2">
                 <h2 className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">Map Location</h2>
                 <Map
                   listings={[listing]}
@@ -408,7 +409,7 @@ export const ListingDetail: React.FC = () => {
                   zoom={15}
                   className="h-44 shadow-xs rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
                 />
-              </div>
+              </Reveal>
             )}
 
             {/* Report Footer */}
@@ -423,7 +424,7 @@ export const ListingDetail: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Reveal>
 
         {/* Community Reviews & Ratings Section */}
         <Reveal direction="up">
@@ -517,3 +518,4 @@ export const ListingDetail: React.FC = () => {
     </div>
   );
 };
+

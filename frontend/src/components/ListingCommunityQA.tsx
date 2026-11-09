@@ -236,6 +236,7 @@ export const ListingCommunityQA: React.FC<ListingCommunityQAProps> = ({ listing 
                 {/* Upvote Button */}
                 <button
                   onClick={() => handleToggleUpvote(q.id)}
+                  aria-pressed={Boolean(q.hasUpvoted)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition ${
                     q.hasUpvoted
                       ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800'
@@ -244,7 +245,7 @@ export const ListingCommunityQA: React.FC<ListingCommunityQAProps> = ({ listing 
                   title="Mark this question as helpful"
                 >
                   <ThumbsUp className="w-3 h-3" />
-                  <span>{q.upvotes}</span>
+                  <span key={q.upvotes} className="animate-pop-in tabular-nums">{q.upvotes}</span>
                 </button>
               </div>
 
@@ -318,3 +319,4 @@ export const ListingCommunityQA: React.FC<ListingCommunityQAProps> = ({ listing 
     </div>
   );
 };
+

@@ -197,21 +197,21 @@ export const CategoryPage: React.FC = () => {
           </Link>
         </nav>
 
-        <header className="max-w-2xl space-y-2">
+        <Reveal as="header" direction="blur" className="max-w-2xl space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
             {categoryLabel || t('common.loading')}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {categoryDescription || t('categories.subheading', { town: place })}
           </p>
-        </header>
+        </Reveal>
 
         {offlineData && <OfflineDataBanner onRetry={() => setRetryKey((key) => key + 1)} />}
 
         {loading ? (
           <LoadingSpinner message={t('common.loading')} />
         ) : listings.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-2">
+          <Reveal className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 text-center space-y-2">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">
               {t('empty.categoryTitle')}
             </p>
@@ -222,7 +222,7 @@ export const CategoryPage: React.FC = () => {
             >
               {t('empty.suggest')}
             </Link>
-          </div>
+          </Reveal>
         ) : (
           <>
             <p role="status" className="text-sm text-slate-500 dark:text-slate-400">
@@ -247,3 +247,4 @@ export const CategoryPage: React.FC = () => {
     </div>
   );
 };
+

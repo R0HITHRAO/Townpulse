@@ -4,6 +4,7 @@ import { api, ReviewListResponse } from '../services/api';
 import { StarRating } from './StarRating';
 import { MessageSquare, Trash2, Send, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { LoaderOne } from './ui/loader';
 
 interface ReviewSectionProps {
   listingId: string;
@@ -156,7 +157,10 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
       {/* Reviews List */}
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-6 text-xs text-slate-400">Loading reviews...</div>
+          <div className="flex flex-col items-center justify-center gap-2 py-6" aria-busy="true">
+            <LoaderOne />
+            <p className="text-xs text-slate-400" role="status">Loading reviews...</p>
+          </div>
         ) : !data || data.items.length === 0 ? (
           <div className="text-center py-8 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
             No reviews yet. Be the first to share your experience!
@@ -218,3 +222,4 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
     </div>
   );
 };
+

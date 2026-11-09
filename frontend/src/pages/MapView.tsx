@@ -285,7 +285,7 @@ export const MapView: React.FC = () => {
           )}
           {/* Main Listings Grid (Primary Focus of the Page) */}
           {(layoutMode === 'split' || layoutMode === 'list') && (
-            <div className={`flex-1 space-y-4 ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
+            <div key={layoutMode} className={`flex-1 space-y-4 animate-fade-in-up ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
               <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-orange-600" />
@@ -355,7 +355,7 @@ export const MapView: React.FC = () => {
                   </div>
                 </div>
               ) : displayedListings.length === 0 ? (
-                <div className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
+                <Reveal direction="scale" className="p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
                   <p className="font-semibold text-sm">No services found in this search area.</p>
                   <p className="text-xs text-slate-400">
                     {allLocations
@@ -392,7 +392,7 @@ export const MapView: React.FC = () => {
                         : 'No services are listed near this location yet. Try a larger radius or check again later.'}
                     </p>
                   )}
-                </div>
+                </Reveal>
               ) : (
                 <div className={`grid grid-cols-1 ${layoutMode === 'list' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
                   {displayedListings.map((l, index) => (
@@ -432,7 +432,7 @@ export const MapView: React.FC = () => {
                   : 'w-full lg:w-[320px] xl:w-[340px] flex-shrink-0'
               }
             >
-              <div className={`${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
+              <div key={layoutMode} className={`animate-fade-in-up ${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
                 {location && (
                   <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     <span>{layoutMode === 'split' ? 'Quick Map' : 'Map View'}</span>
@@ -601,3 +601,4 @@ export const MapView: React.FC = () => {
     </div>
   );
 };
+

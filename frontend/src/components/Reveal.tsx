@@ -13,7 +13,7 @@ interface RevealProps extends React.HTMLAttributes<HTMLElement> {
   /** Keep the element revealed after the first intersection. */
   once?: boolean;
   /** Element to render as the wrapper. */
-  as?: 'div' | 'section' | 'article' | 'li' | 'span';
+  as?: 'div' | 'section' | 'article' | 'header' | 'li' | 'span';
 }
 
 const DIRECTION_CLASS: Record<RevealDirection, string> = {
@@ -93,3 +93,4 @@ export const Reveal: React.FC<RevealProps> = ({
 };
 
 export default Reveal;
+
