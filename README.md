@@ -41,7 +41,7 @@ is the honest map of what is done and what is not.
 | 7. i18n (registration) | ✅ All languages registered + language switcher plumbing |
 | 6. Performance / SSG | ✅ Build-time static generation for configured routes + a real `<noscript>` fallback |
 | 8. SEO / sharing | ✅ Snapshot-aware `og:image` cards, canonicals, `sitemap.xml`, `robots.txt`, per-listing JSON-LD |
-| 3. Information architecture | ⏳ Partial — `/emergency` and `/c/:slug` are pre-rendered, but not yet React routes |
+| 3. Information architecture | ✅ React routes exist for `/emergency`, `/categories` and `/c/:slug` |
 | 5. Discovery | ⏳ Not started |
 | 7. Accessibility | ⏳ Partial — tokens and focus done, components not yet migrated |
 | 9. Polish | ⏳ Not started |
@@ -50,14 +50,11 @@ is the honest map of what is done and what is not.
 See [`AUDIT.md`](./AUDIT.md) for the full defect list and
 [`DATA_NEEDED.md`](./DATA_NEEDED.md) for the data you must collect.
 
-> **The three most important open items**, in order:
-> 1. `/emergency`, `/categories` and `/c/:slug` exist as static HTML but have
->    **no React route yet**, so navigating to them client-side renders the 404
->    page. The header and footer must link to them.
-> 2. Migrating the remaining components from hardcoded Tailwind blue and
->    hardcoded English onto the new token and catalogue layers.
-> 3. A Kannada (`kn.json`) translation. `kn` is registered but inherits English,
->    so a Kannada speaker gets a mostly-English page.
+> **Current open items:**
+> - Finish moving remaining component styles and copy onto the token and
+>   translation layers.
+> - Add Kannada translations; `kn` is registered but currently inherits English.
+> - Replace the remaining blocking browser alerts with inline feedback.
 
 ---
 
@@ -411,3 +408,4 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 <p align="center">
   <strong>TownPulse maps the heartbeat of your town</strong> — verified listings, owner claims, and admin moderation in a privacy-first, offline-capable app that gives communities control of their local data and workflows.
 </p>
+
