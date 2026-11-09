@@ -2,6 +2,26 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { vi } from 'vitest';
 
+// Node 26 exposes an experimental global `localStorage` getter that returns
+// undefined unless Node is started with `--localstorage-file`. That getter can
+// shadow jsdom's storage in Vitest, so provide an in-memory browser-compatible
+// store for the tests instead of accessing the Node getter.
+const storageValues = new Map<string, string>();
+const localStorageMock: Storage = {
+  get length() {
+    return storageValues.size;
+  },
+  clear: () => storageValues.clear(),
+  getItem: (key) => storageValues.get(String(key)) ?? null,
+  key: (index) => Array.from(storageValues.keys())[index] ?? null,
+  removeItem: (key) => storageValues.delete(String(key)),
+  setItem: (key, value) => storageValues.set(String(key), String(value)),
+};
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: localStorageMock,
+});
+
 // Mock Leaflet as it requires DOM canvas APIs not present in jsdom
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: any) => React.createElement('div', { 'data-testid': 'map-container' }, children),
