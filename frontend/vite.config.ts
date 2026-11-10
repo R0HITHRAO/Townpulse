@@ -13,13 +13,13 @@ export default defineConfig({
       // injected snippet lacks. Leaving injection on registers /sw.js twice
       // (`registerSW.js` in the built HTML *and* main.tsx).
       injectRegister: null,
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'TownPulse — Local Services Finder',
         short_name: 'TownPulse',
         description: 'Discover, claim, and verify local services in small towns',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
+        theme_color: '#9a3412',
+        background_color: '#fbf7f0',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -134,3 +134,4 @@ export default defineConfig({
     setupFiles: ['./src/__tests__/setup.ts'],
   },
 });
+
