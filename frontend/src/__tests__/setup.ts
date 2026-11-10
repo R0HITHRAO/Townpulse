@@ -29,6 +29,7 @@ vi.mock('react-leaflet', () => ({
   Marker: ({ children }: any) => React.createElement('div', { 'data-testid': 'marker' }, children),
   Popup: ({ children }: any) => React.createElement('div', { 'data-testid': 'popup' }, children),
   useMap: () => ({ setView: vi.fn(), fitBounds: vi.fn(), flyTo: vi.fn() }),
+  useMapEvents: () => null,
 }));
 
 // Mock i18next
