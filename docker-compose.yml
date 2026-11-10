@@ -89,15 +89,17 @@ services:
 
   # ─── React Frontend ──────────────────────────────────────────────────────────
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
     container_name: townpulse-frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
       - "3000:80"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
 
 volumes:
   postgres_data:

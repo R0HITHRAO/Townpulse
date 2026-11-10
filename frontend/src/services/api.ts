@@ -361,7 +361,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       throw new ApiError(
         'server',
         `The server returned ${response.status} ${response.statusText || ''}`.trim() +
-          ' but not JSON. Check that the backend is running and that /api is proxied to it.',
+          ' but not JSON. Check the /api rewrite in frontend/vercel.json and the backend /health endpoint.',
         response.status
       );
     }

@@ -106,6 +106,16 @@
   z-index: 500;
 }
 
+.tp-location-pin {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 5px rgb(37 99 235 / 0.28), 0 2px 8px rgb(15 23 42 / 0.35);
+}
+
 .townpulse-pin-badge.selected {
   background-color: var(--tp-map-pin-selected);
   transform: rotate(-45deg) scale(1.2);
@@ -191,4 +201,3 @@
   outline: 3px solid var(--tp-focus-ring);
   outline-offset: -1px;
 }
-

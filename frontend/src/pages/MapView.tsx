@@ -35,10 +35,13 @@ export const MapView: React.FC = () => {
 
   // The place the user is (or chose). Everything - search origin, map centre,
   // radius - is driven by this, never by a hardcoded town.
-  const { location, requestLocation, setLocation, clearLocation, isLocating } =
+  const { location, requestLocation, setLocation, error: locationError, isLocating } =
     useCurrentLocation();
-  const [locationLat, setLocationLat] = useState<string>('');
-  const [locationLng, setLocationLng] = useState<string>('');
+
+  const selectMapLocation = (lat: number, lng: number) => {
+    setLocation({ name: 'Pinned location', region: '', country: '', lat, lng });
+    setAllLocations(false);
+  };
 
   const recordError = (err: unknown, detail?: string) => {
     const suffix = detail ? ` ${detail}` : '';
@@ -150,7 +153,7 @@ export const MapView: React.FC = () => {
     selectedListing?.lat != null && selectedListing.lng != null ? selectedListing : location;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col bg-[var(--tp-bg)] transition-colors duration-200">
       {/* Top Filter & Toolbar */}
       <div className="px-4 py-3 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 flex flex-wrap items-center justify-between gap-3 shadow-xs animate-slide-down">
         {/* Search input */}
@@ -184,6 +187,21 @@ export const MapView: React.FC = () => {
 
         {/* Actions, Filters & View Switcher */}
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={() => {
+              setAllLocations(false);
+              void requestLocation();
+            }}
+            disabled={isLocating}
+            className="px-3 py-1.5 rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 text-xs font-semibold flex items-center gap-1.5 transition hover:bg-orange-100 dark:hover:bg-orange-900/50 disabled:opacity-60"
+            aria-label="Use my current location"
+            title="Find services near my current location"
+          >
+            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+            <span>{isLocating ? 'Locating…' : 'Use my location'}</span>
+          </button>
+
           {/* Open Now Toggle */}
           <button
             onClick={() => setOpenOnly(!openOnly)}
@@ -211,6 +229,8 @@ export const MapView: React.FC = () => {
               <option value={10000} className="dark:bg-slate-900">10 km</option>
               <option value={15000} className="dark:bg-slate-900">15 km</option>
               <option value={25000} className="dark:bg-slate-900">25 km</option>
+              <option value={50000} className="dark:bg-slate-900">50 km</option>
+              <option value={100000} className="dark:bg-slate-900">100 km</option>
             </select>
           </div>
 
@@ -325,8 +345,8 @@ export const MapView: React.FC = () => {
                       : errorKind === 'timeout'
                         ? 'The backend accepted the connection but did not answer. It may be starting up, or the database may be unreachable.'
                         : errorKind === 'not-json'
-                          ? 'The request was answered with a web page instead of data. This usually means the SPA fallback is handling /api, or a proxy is pointing at the wrong place.'
-                          : 'The backend is not answering, so this is not an empty result. Start it with `docker compose up -d`, or `uvicorn app.main:app --reload` in backend/.'}
+                          ? 'The request was answered with a web page instead of data. Check that production routes /api to the backend rather than the website fallback.'
+                          : 'The backend is not answering, so this is not an empty result. In production, check the Render /health endpoint and Vercel /api rewrite. Locally, start the backend with `docker compose up -d`.'}
                   </p>
                   <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 break-words max-w-lg mx-auto">
                     {error}
@@ -389,7 +409,7 @@ export const MapView: React.FC = () => {
                     <p className="text-xs text-slate-400 pt-1">
                       {offlineData
                         ? 'The saved directory has no listings near this location. It may cover a different area; try a larger radius or connect to the live server.'
-                        : 'No services are listed near this location yet. Try a larger radius or check again later.'}
+                        : 'No TownPulse directory entries match this location yet. The map covers the world, but business records must exist in the TownPulse directory to appear here.'}
                     </p>
                   )}
                 </Reveal>
@@ -433,135 +453,62 @@ export const MapView: React.FC = () => {
               }
             >
               <div key={layoutMode} className={`animate-fade-in-up ${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
-                {location && (
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                    <span>{layoutMode === 'split' ? 'Quick Map' : 'Map View'}</span>
-                    <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  <span>{layoutMode === 'split' ? 'Quick Map' : 'Map View'}</span>
+                  <div className="flex items-center gap-3">
+                    {earthTarget && (
                       <a
-                        href={`https://earth.google.com/web/search/${earthTarget.lat},${earthTarget.lng}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${earthTarget.lat},${earthTarget.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Open this location in Google Earth in a new tab"
+                        title="Open this location in Google Maps"
                         className="inline-flex items-center gap-1 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400"
                       >
-                        Google Earth
+                        Google Maps
                         <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                       </a>
-                      {layoutMode === 'split' && (
-                        <button
-                          onClick={() => setLayoutMode('map')}
-                          className="text-orange-600 dark:text-orange-400 hover:underline font-semibold"
-                        >
-                          Expand Map ↗
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {location ? (
-                  <div
-                    className={
-                      layoutMode === 'split'
-                        ? 'h-[240px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
-                        : 'h-[calc(100vh-9rem)] min-h-[30rem] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
-                    }
-                  >
-                    <Map
-                      listings={displayedListings}
-                      center={[location.lat, location.lng]}
-                      zoom={14}
-                      selectedListingId={selectedListing?.id}
-                      onSelectListing={(l) => setSelectedListing(l)}
-                      className="h-full w-full border-none"
-                      autoFitBounds={layoutMode === 'split'}
-                      singleMarkerZoom={15}
-                    />
-                  </div>
-                ) : null}
-
-                {/* No location chosen yet: show the picker instead of a map. */}
-                {!location && (
-                  <div className="h-full min-h-[calc(100vh-9rem)] space-y-4 p-6">
-                    <div className="flex items-center justify-center gap-3">
-                      <LocateFixed className="w-8 h-8 text-orange-500" />
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                        Choose where you are
-                      </h3>
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      The directory works for any place you pick. There is no default
-                      town.
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={requestLocation}
-                      disabled={isLocating}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
-                    >
-                      <LocateFixed className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} />
-                      {isLocating ? 'Locating...' : 'Use my current location'}
-                    </button>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-medium text-slate-400 dark:text-slate-500">
-                          Latitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          value={locationLat}
-                          onChange={(e) => setLocationLat(e.target.value)}
-                          className="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500"
-                          placeholder="e.g. 12.97"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-medium text-slate-400 dark:text-slate-500">
-                          Longitude
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          value={locationLng}
-                          onChange={(e) => setLocationLng(e.target.value)}
-                          className="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500"
-                          placeholder="e.g. 77.59"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap justify-center gap-2">
+                    )}
+                    {layoutMode === 'split' && (
                       <button
-                        type="button"
-                        onClick={() => {
-                          const lat = parseFloat(locationLat);
-                          const lng = parseFloat(locationLng);
-                          if (Number.isFinite(lat) && Number.isFinite(lng)) {
-                            setLocation({
-                              name: 'My chosen place',
-                              region: '',
-                              country: '',
-                              lat,
-                              lng,
-                            });
-                          }
-                        }}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition"
+                        onClick={() => setLayoutMode('map')}
+                        className="text-orange-600 dark:text-orange-400 hover:underline font-semibold"
                       >
-                        Set location
+                        Expand Map ↗
                       </button>
-                      <button
-                        type="button"
-                        onClick={clearLocation}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      >
-                        Clear
-                      </button>
-                    </div>
+                    )}
                   </div>
+                </div>
+
+                <div
+                  className={
+                    layoutMode === 'split'
+                      ? 'h-[260px] rounded-2xl overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800'
+                      : 'h-[calc(100vh-9rem)] min-h-[30rem] rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800'
+                  }
+                >
+                  <Map
+                    listings={displayedListings}
+                    center={location ? [location.lat, location.lng] : [20, 0]}
+                    zoom={location ? 14 : 2}
+                    selectedListingId={selectedListing?.id}
+                    selectedLocation={location ? [location.lat, location.lng] : null}
+                    onSelectListing={(l) => setSelectedListing(l)}
+                    onMapClick={selectMapLocation}
+                    className="h-full w-full border-none"
+                    autoFitBounds={layoutMode === 'split' && Boolean(location)}
+                    singleMarkerZoom={15}
+                  />
+                </div>
+
+                <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                  {location
+                    ? `Search location: ${location.name} · ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}. Click anywhere else on the map to move the pin.`
+                    : 'Click anywhere on the map to set a search location, or choose “Use my location”.'}
+                </p>
+                {locationError && (
+                  <p role="status" className="text-[11px] text-amber-700 dark:text-amber-300">
+                    {locationError} You can still choose a place by clicking the map.
+                  </p>
                 )}
 
                 {layoutMode === 'split' && selectedListing && (
@@ -601,4 +548,3 @@ export const MapView: React.FC = () => {
     </div>
   );
 };
-

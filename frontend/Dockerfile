@@ -12,6 +12,10 @@ RUN npm ci
 
 COPY . .
 
+# Vite reads this at build time; the key is optional and must be referrer-restricted.
+ARG VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+
 # Build Vite PWA production bundle
 RUN npm run build
 

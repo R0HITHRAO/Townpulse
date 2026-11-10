@@ -41,8 +41,11 @@ Verify your backend is live:
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
 5. Under **Environment Variables**, add:
-   - `VITE_API_URL` = `https://townpulse-backend.onrender.com` (your Render backend URL from Step 1)
+   - `VITE_API_URL` = `https://townpulse-backend.onrender.com` (optional; `frontend/vercel.json` proxies `/api` to this backend when it is left empty)
+   - `VITE_GOOGLE_MAPS_API_KEY` = your restricted Maps JavaScript API key (optional; leave empty to use the OpenStreetMap fallback)
 6. Click **Deploy**.
+
+For Google Maps, create a browser key in Google Cloud, enable the Maps JavaScript API, enable billing, and restrict the key to TownPulse's production and preview web domains. Never use an unrestricted key. The map remains usable with OpenStreetMap if this variable is not set or Google Maps cannot load.
 
 Vercel will build and assign you a global URL (e.g. `https://townpulse.vercel.app`).
 

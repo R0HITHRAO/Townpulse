@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Link } from 'react-router-dom';
 import { Listing } from '../services/api';
 import { Phone, CheckCircle2, Star } from 'lucide-react';
 import { OpenStatusBadge } from './OpenStatusBadge';
+import { GoogleMap } from './GoogleMap';
 // Leaflet's stylesheet is bundled from node_modules instead of being fetched
 // from unpkg.com in index.html. A render-blocking third-party request meant a
 // slow or blocked CDN produced a completely unstyled, unusable map.
@@ -65,14 +66,19 @@ interface MapProps {
   autoFitBounds?: boolean;
   /** Zoom used when there is exactly one pin to frame. */
   singleMarkerZoom?: number;
+  /** Optional selected location pin, separate from business listings. */
+  selectedLocation?: [number, number] | null;
+  /** Fired when a visitor clicks a point on the map to choose a search origin. */
+  onMapClick?: (latitude: number, longitude: number) => void;
 }
 
 // Auto Fit Bounds to all markers with comfortable margin
 const AutoFitBounds: React.FC<{
   listings: Listing[];
+  selectedLocation?: [number, number] | null;
   enabled?: boolean;
   singleZoom?: number;
-}> = ({ listings, enabled = true, singleZoom = 15 }) => {
+}> = ({ listings, selectedLocation, enabled = true, singleZoom = 15 }) => {
   const map = useMap();
 
   useEffect(() => {
@@ -81,6 +87,8 @@ const AutoFitBounds: React.FC<{
     const validCoords = listings
       .filter((l) => l.lat != null && l.lng != null)
       .map((l) => [Number(l.lat), Number(l.lng)] as [number, number]);
+
+    if (selectedLocation) validCoords.push(selectedLocation);
 
     if (validCoords.length === 0) return;
 
@@ -92,7 +100,7 @@ const AutoFitBounds: React.FC<{
     }
     // `map` is stable across renders; including it caused the map to re-fit and
     // fight with user panning.
-  }, [listings, enabled, singleZoom]);
+  }, [listings, selectedLocation?.[0], selectedLocation?.[1], enabled, singleZoom]);
 
   return null;
 };
@@ -115,6 +123,37 @@ const FocusSelectedListing: React.FC<{ listings: Listing[]; selectedListingId?: 
   return null;
 };
 
+const SyncMapCenter: React.FC<{ center: [number, number]; zoom: number }> = ({ center, zoom }) => {
+  const map = useMap();
+  const [lat, lng] = center;
+
+  useEffect(() => {
+    map.flyTo([lat, lng], zoom, { duration: 0.7 });
+  }, [lat, lng, map, zoom]);
+
+  return null;
+};
+
+const SelectMapLocation: React.FC<{ onSelect?: (lat: number, lng: number) => void }> = ({ onSelect }) => {
+  useMapEvents({
+    click: (event) => onSelect?.(event.latlng.lat, event.latlng.lng),
+  });
+  return null;
+};
+
+const SelectedLocationPin: React.FC<{ position: [number, number] | null | undefined }> = ({ position }) => {
+  if (!position) return null;
+
+  const icon = L.divIcon({
+    className: 'custom-leaflet-div-icon',
+    html: '<span class="tp-location-pin" aria-label="Selected search location"></span>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+
+  return <Marker position={position} icon={icon} zIndexOffset={1000} />;
+};
+
 export const Map: React.FC<MapProps> = ({
   listings,
   center,
@@ -124,7 +163,10 @@ export const Map: React.FC<MapProps> = ({
   className = 'h-[280px] w-full',
   autoFitBounds = true,
   singleMarkerZoom = 15,
+  selectedLocation,
+  onMapClick,
 }) => {
+  const [googleMapFailed, setGoogleMapFailed] = useState(false);
   // No default town: the map always receives a real `center` from the user's
   // chosen location. The fallback below is only a safe neutral world view for
   // the rare case `center` is omitted — it is deliberately not a real city, so
@@ -135,6 +177,8 @@ export const Map: React.FC<MapProps> = ({
   // 100% Free, Zero-API-Key OpenStreetMap Standard Tile Layer
   const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim();
+  const handleGoogleMapError = () => setGoogleMapFailed(true);
 
   return (
     // `data-lenis-prevent` opts this subtree out of Lenis smooth scrolling:
@@ -144,31 +188,50 @@ export const Map: React.FC<MapProps> = ({
       data-lenis-prevent
       className={`rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm relative z-10 ${className}`}
     >
-      <MapContainer
-        center={mapCenter}
-        zoom={mapZoom}
-        scrollWheelZoom={true}
-        className="w-full h-full"
-      >
-        <TileLayer
-          // No `key` on theme change: dark mode is a CSS filter on the tile
-          // pane (see leaflet.css), so remounting the layer only threw away
-          // every cached tile and re-downloaded the whole viewport. The
-          // attribution is a licence condition of the OSM tile service and must
-          // stay regardless of theme.
-          attribution={attribution}
-          url={tileUrl}
-          maxZoom={19}
-        />
-
-        <AutoFitBounds
+      {googleMapsApiKey && !googleMapFailed ? (
+        <GoogleMap
+          apiKey={googleMapsApiKey}
           listings={listings}
-          enabled={autoFitBounds}
-          singleZoom={singleMarkerZoom}
+          center={mapCenter}
+          zoom={mapZoom}
+          selectedListingId={selectedListingId}
+          selectedLocation={selectedLocation}
+          onSelectListing={onSelectListing}
+          onMapClick={onMapClick}
+          onLoadError={handleGoogleMapError}
         />
-        <FocusSelectedListing listings={listings} selectedListingId={selectedListingId} />
+      ) : (
+        <>
+          {googleMapFailed && (
+            <div className="absolute left-2 top-2 z-[1000] rounded-lg bg-white/95 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 shadow-sm">
+              Google Maps unavailable. Showing OpenStreetMap.
+            </div>
+          )}
+          <MapContainer
+            center={mapCenter}
+            zoom={mapZoom}
+            scrollWheelZoom={true}
+            className="w-full h-full"
+          >
+            <SyncMapCenter center={mapCenter} zoom={mapZoom} />
+            <SelectMapLocation onSelect={onMapClick} />
+            <SelectedLocationPin position={selectedLocation} />
+            <TileLayer
+              // Attribution is a licence condition of the OpenStreetMap tile service.
+              attribution={attribution}
+              url={tileUrl}
+              maxZoom={19}
+            />
 
-        {listings.map((l) => {
+            <AutoFitBounds
+              listings={listings}
+              selectedLocation={selectedLocation}
+              enabled={autoFitBounds}
+              singleZoom={singleMarkerZoom}
+            />
+            <FocusSelectedListing listings={listings} selectedListingId={selectedListingId} />
+
+            {listings.map((l) => {
           if (l.lat === undefined || l.lat === null || l.lng === undefined || l.lng === null) {
             return null;
           }
@@ -262,8 +325,10 @@ export const Map: React.FC<MapProps> = ({
               </Popup>
             </Marker>
           );
-        })}
-      </MapContainer>
+            })}
+          </MapContainer>
+        </>
+      )}
     </div>
   );
 };

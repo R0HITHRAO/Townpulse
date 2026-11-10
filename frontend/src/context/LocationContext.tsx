@@ -3,16 +3,16 @@
  * ================
  * The app no longer ships a hardcoded town: it now works around whatever place
  * the user is (or chooses). The provider resolves the user's current position
- * once on load (geolocation, with a short timeout) and exposes it to the whole
- * tree. When location is not available, denied or blocked, the UI falls back to
- * an explicit "choose your location" form (geolocate button + lat/lng fields).
+ * only on an explicit user request and exposes it to the whole tree. When
+ * location is not available, denied or blocked, the map remains at a neutral
+ * world view so the visitor can click any point to choose a search origin.
  *
  * Nothing in this module assumes a town: there is no Hampi, no Bengaluru, no
  * other default. Every map, search and radius origin is driven by `location`,
  * which starts out `null` until the user says where they are.
  */
 
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, type ReactNode } from 'react';
 
 /** A user-resolved position: name is a friendly label, coords are exact. */
 export interface Location {
@@ -93,23 +93,20 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       const message =
         err instanceof Error ? err.message : 'Could not access your location.';
       setError(message);
-      setLocationState(null);
     } finally {
       setIsLocating(false);
     }
   };
-
-  // Resolve the user's current location as soon as the app mounts.
-  useEffect(() => {
-    void requestLocation();
-  }, []);
 
   const value: LocationContextValue = {
     location,
     isLocating,
     error,
     requestLocation,
-    setLocation: setLocationState,
+    setLocation: (nextLocation) => {
+      setLocationState(nextLocation);
+      setError(null);
+    },
     clearLocation: () => setLocationState(null),
   };
 
