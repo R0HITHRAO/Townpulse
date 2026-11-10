@@ -165,8 +165,14 @@ export const Home: React.FC = () => {
   const selectedCategoryObj = categories.find((c) => c.id === selectedCategory);
 
   const flagshipStats = [
-    { value: categories.length.toLocaleString(), label: 'service categories' },
-    { value: totalCount.toLocaleString(), label: 'services in this search' },
+    {
+      value: fallbackUnavailable && categories.length === 0 ? '—' : categories.length.toLocaleString(),
+      label: fallbackUnavailable && categories.length === 0 ? 'categories load with the directory' : 'service categories',
+    },
+    {
+      value: fallbackUnavailable ? 'Offline' : totalCount.toLocaleString(),
+      label: fallbackUnavailable ? 'live directory status' : 'services in this search',
+    },
     { value: 'Any town', label: 'no location lock-in' },
   ];
 
@@ -367,23 +373,42 @@ export const Home: React.FC = () => {
             {loading ? (
               <LoadingSpinner message="Searching verified local services..." />
             ) : displayedListings.length === 0 ? (
-              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center animate-scale-in">
-                <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
-                  {fallbackUnavailable
-                    ? 'The live directory is unavailable, and no saved location data is configured.'
-                    : offlineData
+              <div className="rounded-[var(--tp-radius-2xl)] border border-[var(--tp-border)] bg-[var(--tp-surface)]/95 p-7 text-center shadow-[var(--tp-shadow-xs)] animate-scale-in sm:p-10">
+                {fallbackUnavailable ? (
+                  <div className="mx-auto max-w-xl">
+                    <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--tp-warn)]/25 bg-[var(--tp-warn-soft)] px-3 py-1.5 text-xs font-bold text-[var(--tp-warn-soft-text)]">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Map selection works worldwide
+                    </div>
+                    <h3 className="mb-2 text-xl font-bold text-[var(--tp-text)]">Your map is ready to explore</h3>
+                    <p className="mb-6 text-sm leading-relaxed text-[var(--tp-text-muted)]">
+                      The live directory is temporarily unavailable and no saved listings are configured yet.
+                      Choose any place on the map now; local services will appear here when directory data is connected.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="mb-4 text-sm text-[var(--tp-text-muted)]">
+                    {offlineData
                       ? 'No saved services match this search. The offline snapshot may cover a different area.'
                       : 'No local services found matching your criteria.'}
-                </p>
+                  </p>
+                )}
                 {fallbackUnavailable ? (
-                  <button
-                    type="button"
-                    onClick={() => setSearchParams((prev) => ({ ...prev }))}
-                    className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:scale-105 active:scale-95"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Try again
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSearchParams((prev) => ({ ...prev }))}
+                      className="tp-btn tp-btn-secondary"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Try again
+                    </button>
+                    <Link to="/map" className="tp-btn tp-btn-primary">
+                      <MapIcon className="h-4 w-4" />
+                      Choose a map location
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
                 ) : (
                   <Link
                     to="/submit"
@@ -541,3 +566,4 @@ export const Home: React.FC = () => {
     </div>
   );
 };
+
