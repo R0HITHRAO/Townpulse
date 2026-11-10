@@ -97,7 +97,8 @@ export const MapView: React.FC = () => {
         setOfflineData(false);
         setSelectedListing(
           (current) => res.items.find((listing) => listing.id === current?.id) ?? res.items[0] ?? null
-        );      })
+        );
+      })
       // A dead backend used to be swallowed into console.error, leaving
       // `listings` empty and rendering "No services found in this search
       // area." — so a broken server was reported to the user as "this town has
@@ -196,7 +197,8 @@ export const MapView: React.FC = () => {
             className="px-3 py-1.5 rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 text-xs font-semibold flex items-center gap-1.5 transition hover:bg-orange-100 dark:hover:bg-orange-900/50 disabled:opacity-60"
             aria-label="Use my current location"
             title="Find services near my current location"
-          >            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+          >
+            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
             <span>{isLocating ? 'Locating…' : 'Use my location'}</span>
           </button>
 
@@ -295,7 +297,8 @@ export const MapView: React.FC = () => {
       {/* Main Content Body - Clean Website-First Proportion */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
         <div className="flex flex-col lg:flex-row gap-6">
-          {offlineData && (            <OfflineDataBanner
+          {offlineData && (
+            <OfflineDataBanner
               onRetry={() => setRetryKey((key) => key + 1)}
               className="lg:col-span-2"
             />
@@ -309,10 +312,15 @@ export const MapView: React.FC = () => {
                   <span>Town Directory Results</span>
                 </span>
                 <span
-                  key={displayedListings.length}
-                  className="bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 px-2.5 py-0.5 rounded-full font-bold animate-pop-in"
+                  key={error ? 'unavailable' : displayedListings.length}
+                  aria-label={error ? 'Directory results unavailable' : `${displayedListings.length} results found`}
+                  className={`px-2.5 py-0.5 rounded-full border font-bold animate-pop-in ${
+                    error
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                      : 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800'
+                  }`}
                 >
-                  {displayedListings.length} Found
+                  {error ? 'Unavailable' : `${displayedListings.length} Found`}
                 </span>
               </div>
 
@@ -336,7 +344,7 @@ export const MapView: React.FC = () => {
                   {/* Name the broken link in the chain instead of one generic
                       sentence, so the user knows whether to check their phone,
                       their connection, or the backend. */}
-                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                  <p className="mx-auto max-w-lg text-sm leading-relaxed text-[var(--tp-text-muted)]">
                     {errorKind === 'offline'
                       ? 'This is not an empty result — your device has no connection. Reconnect and try again.'
                       : errorKind === 'timeout'
@@ -397,7 +405,8 @@ export const MapView: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setSearchQuery('');
-                        setSelectedCategory(null);                        setOpenOnly(false);
+                        setSelectedCategory(null);
+                        setOpenOnly(false);
                         setRadius(15000);
                       }}
                       className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
@@ -496,7 +505,8 @@ export const MapView: React.FC = () => {
                     className="h-full w-full border-none"
                     autoFitBounds={layoutMode === 'split' && Boolean(location)}
                     singleMarkerZoom={15}
-                  />                </div>
+                  />
+                </div>
 
                 <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {location
@@ -546,3 +556,4 @@ export const MapView: React.FC = () => {
     </div>
   );
 };
+
