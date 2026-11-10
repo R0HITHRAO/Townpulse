@@ -68,7 +68,7 @@ export const Header: React.FC = () => {
     <>
       <header
         data-tp-header
-        className="sticky top-0 z-40 border-b border-[#e7ddce]/80 bg-[#fbf7f0]/90 shadow-[0_4px_20px_rgba(43,33,26,0.035)] backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 dark:border-slate-800/80 dark:bg-slate-900/90 motion-reduce:transition-none"
+        className="sticky top-0 z-40 border-b border-[var(--tp-border)] bg-[var(--tp-bg)]/90 shadow-[var(--tp-shadow-xs)] backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">

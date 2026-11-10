@@ -195,7 +195,7 @@ export const Home: React.FC = () => {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-[#fbf7f0] transition-colors duration-200 dark:bg-slate-950">
+    <div className="relative flex min-h-screen flex-col bg-[var(--tp-bg)] transition-colors duration-200">
       {/* Hero Section */}
       <section ref={heroRef} className="tp-home-hero relative overflow-hidden px-4 pb-24 pt-14 transition-colors duration-200 sm:px-6 sm:pb-28 sm:pt-20 lg:px-8">
         <div className="tp-hero-inner relative z-10 mx-auto max-w-7xl">
@@ -242,7 +242,7 @@ export const Home: React.FC = () => {
       {/* Main Content Area */}
       <main className="tp-home-main relative z-10 mx-auto -mt-10 w-full max-w-7xl flex-1 space-y-7 px-4 pb-12 sm:-mt-12 sm:px-6 lg:px-8">
         {/* Refined Filter & Category Bar */}
-        <div className="tp-directory-toolbar space-y-4 rounded-2xl border border-[#e7ddce] bg-white/95 p-4 shadow-[0_12px_40px_rgba(46,34,23,0.08)] backdrop-blur-xl transition-colors duration-200 animate-fade-in-up anim-delay-5 dark:border-slate-800 dark:bg-slate-900/95 sm:rounded-3xl sm:p-5">
+        <div className="tp-directory-toolbar space-y-4 rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)]/95 p-4 shadow-[var(--tp-shadow-lg)] backdrop-blur-xl transition-colors duration-200 animate-fade-in-up anim-delay-5 sm:rounded-3xl sm:p-5">
           {/* Top Row: Full width Category Slider */}
           <div className="w-full">
             <CategoryChips
@@ -343,90 +343,6 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        <Reveal as="section" direction="blur" threshold={0.12} className="tp-flagship-band">
-          <div className="tp-flagship-copy">
-            <div className="tp-flagship-kicker">Why TownPulse feels different</div>
-            <h2>Built to help people act quickly, without friction.</h2>
-            <p>
-              The best local tools feel calm, useful, and reliable — exactly what you need when
-              you are trying to find a service, a clinic, or a trusted place nearby.
-            </p>
-          </div>
-
-          <div className="tp-flagship-stats">
-            {flagshipStats.map((stat, index) => (
-              <Reveal
-                key={stat.label}
-                direction="scale"
-                delay={index * 120}
-                threshold={0.2}
-                className="tp-flagship-stat"
-              >
-                <span>{stat.value}</span>
-                <small>{stat.label}</small>
-              </Reveal>
-            ))}
-          </div>
-        </Reveal>
-
-        <section className="tp-flagship-grid">
-          {valuePillars.map(({ icon: Icon, title, description }, index) => (
-            <Reveal
-              key={title}
-              as="article"
-              direction={index === 0 ? 'left' : index === 2 ? 'right' : 'up'}
-              delay={index * 140}
-              threshold={0.18}
-              className="tp-flagship-card"
-            >
-              <div className="tp-flagship-icon">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </Reveal>
-          ))}
-        </section>
-
-        <section className="tp-flagship-steps">
-          <Reveal direction="left" threshold={0.2} className="tp-flagship-steps-header">
-            <span className="tp-flagship-kicker">How it works</span>
-            <h2>From a quick search to a confident next step.</h2>
-          </Reveal>
-
-          <Reveal direction="fade" threshold={0.08} className="tp-steps-grid">
-            {howItWorks.map((step, index) => (
-              <Reveal
-                key={step}
-                as="article"
-                direction="left"
-                delay={index * 150}
-                threshold={0.2}
-                className="tp-step-item"
-              >
-                <div className="tp-step-number">0{index + 1}</div>
-                <p>{step}</p>
-              </Reveal>
-            ))}
-          </Reveal>
-        </section>
-
-        <Reveal as="section" direction="scale" threshold={0.2} className="tp-flagship-cta">
-          <div>
-            <div className="tp-flagship-kicker">Ready when your town needs it</div>
-            <h2>Turn local discovery into a daily habit, not a chore.</h2>
-          </div>
-          <div className="tp-cta-actions">
-            <Link to="/map" className="tp-btn tp-btn-primary">
-              Explore the map
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link to="/submit" className="tp-btn tp-btn-secondary">
-              Add a service
-            </Link>
-          </div>
-        </Reveal>
-
         {/* Listings Grid + Preview Map */}
         <div id="directory-results" className="grid grid-cols-1 lg:grid-cols-3 gap-8 scroll-mt-24">
           {/* Listings List (2 Cols on desktop) */}
@@ -524,6 +440,94 @@ export const Home: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div className="tp-home-story space-y-7" aria-label="About TownPulse">
+        <Reveal as="section" direction="blur" threshold={0.12} className="tp-flagship-band">
+          <div className="tp-flagship-copy">
+            <div className="tp-flagship-kicker">Why TownPulse feels different</div>
+            <h2>Built to help people act quickly, without friction.</h2>
+            <p>
+              The best local tools feel calm, useful, and reliable — exactly what you need when
+              you are trying to find a service, a clinic, or a trusted place nearby.
+            </p>
+          </div>
+
+          <div className="tp-flagship-stats">
+            {flagshipStats.map((stat, index) => (
+              <Reveal
+                key={stat.label}
+                direction="scale"
+                delay={index * 120}
+                threshold={0.2}
+                className="tp-flagship-stat"
+              >
+                <span>{stat.value}</span>
+                <small>{stat.label}</small>
+              </Reveal>
+            ))}
+          </div>
+        </Reveal>
+
+        <section className="tp-flagship-grid">
+          {valuePillars.map(({ icon: Icon, title, description }, index) => (
+            <Reveal
+              key={title}
+              as="article"
+              direction={index === 0 ? 'left' : index === 2 ? 'right' : 'up'}
+              delay={index * 140}
+              threshold={0.18}
+              className="tp-flagship-card"
+            >
+              <div className="tp-flagship-icon">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </Reveal>
+          ))}
+        </section>
+
+        <section className="tp-flagship-steps">
+          <Reveal direction="left" threshold={0.2} className="tp-flagship-steps-header">
+            <span className="tp-flagship-kicker">How it works</span>
+            <h2>From a quick search to a confident next step.</h2>
+          </Reveal>
+
+          <Reveal direction="fade" threshold={0.08} className="tp-steps-grid">
+            {howItWorks.map((step, index) => (
+              <Reveal
+                key={step}
+                as="article"
+                direction="left"
+                delay={index * 150}
+                threshold={0.2}
+                className="tp-step-item"
+              >
+                <div className="tp-step-number">0{index + 1}</div>
+                <p>{step}</p>
+              </Reveal>
+            ))}
+          </Reveal>
+        </section>
+
+        <Reveal as="section" direction="scale" threshold={0.2} className="tp-flagship-cta">
+          <div>
+            <div className="tp-flagship-kicker">Ready when your town needs it</div>
+            <h2>Turn local discovery into a daily habit, not a chore.</h2>
+          </div>
+          <div className="tp-cta-actions">
+            <Link to="/map" className="tp-btn tp-btn-primary">
+              Explore the map
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link to="/submit" className="tp-btn tp-btn-secondary">
+              Add a service
+            </Link>
+          </div>
+        </Reveal>
+
+        </div>
+
       </main>
 
       {/* Printable Emergency Directory Modal */}

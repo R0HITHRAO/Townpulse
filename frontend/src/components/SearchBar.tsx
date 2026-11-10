@@ -69,7 +69,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto w-full max-w-4xl">
-      <div className="flex flex-col items-center gap-2 rounded-2xl border border-[#e8ddce] bg-[#fffdfa] p-2 shadow-[0_12px_32px_rgba(33,24,17,0.16)] transition-shadow duration-200 focus-within:ring-2 focus-within:ring-orange-400/50 dark:border-slate-700 dark:bg-slate-900 sm:flex-row sm:rounded-[1.15rem]">
+      <div className="flex flex-col items-center gap-2 rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-2 shadow-[var(--tp-shadow-lg)] transition-shadow duration-200 focus-within:ring-2 focus-within:ring-orange-400/50 sm:flex-row sm:rounded-[1.15rem]">
         {/* Search Keyword Input */}
         <div className="group/field flex-1 flex items-center gap-3 px-3 py-2 w-full">
           <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-all duration-300 ease-fluid group-focus-within/field:text-orange-600 dark:group-focus-within/field:text-orange-400 group-focus-within/field:scale-110" />
@@ -136,7 +136,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {/* Search Button */}
           <button
             type="submit"
-            className="group/search inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#9a3412] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow,transform] duration-200 hover:bg-[#7c2a0d] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 sm:w-auto motion-reduce:transition-none"
+            className="group/search inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--tp-primary)] px-5 py-2.5 text-sm font-semibold text-[var(--tp-on-primary)] shadow-sm transition-[background-color,box-shadow,transform] duration-200 hover:bg-[var(--tp-primary-hover)] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--tp-surface)] sm:w-auto motion-reduce:transition-none"
           >
             <Search className="w-4 h-4 transition-transform duration-300 ease-fluid group-hover/search:scale-110 group-hover/search:-rotate-6" />
             <span>Search</span>
