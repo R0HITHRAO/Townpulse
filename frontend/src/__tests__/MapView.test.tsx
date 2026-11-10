@@ -80,7 +80,7 @@ describe('MapView empty offline results', () => {
     vi.restoreAllMocks();
   });
 
-  it('explains that saved listings do not cover the selected location and links to Google Earth', async () => {
+  it('explains that saved listings do not cover the selected location and links to Google Maps', async () => {
     render(<MapView />);
 
     expect(
@@ -92,9 +92,9 @@ describe('MapView empty offline results', () => {
     ).not.toBeInTheDocument();
 
     expect(screen.getByTestId('directory-map')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /google earth/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /google maps/i })).toHaveAttribute(
       'href',
-      'https://earth.google.com/web/search/0.335,0.462'
+      'https://www.google.com/maps/search/?api=1&query=0.335,0.462'
     );
   });
 
@@ -142,3 +142,4 @@ describe('MapView empty offline results', () => {
     expect(lastSearch).not.toHaveProperty('radius');
   });
 });
+
