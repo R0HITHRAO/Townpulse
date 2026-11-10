@@ -191,6 +191,11 @@
   box-shadow: var(--tp-shadow-lg);
   backdrop-filter: blur(18px);
 }
+.tp-home-story {
+  /* Scroll-reveal cards begin slightly outside the viewport. Clip those
+     decorative transforms so they cannot create a horizontal page scrollbar. */
+  overflow-x: clip;
+}
 @media (min-width: 980px) {
   .tp-hero-inner {
     grid-template-columns: minmax(0, 1.05fr) minmax(25rem, 0.95fr);
@@ -506,3 +511,4 @@
     translate: none;
   }
 }
+
