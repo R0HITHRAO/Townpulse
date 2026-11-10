@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Navigation, SlidersHorizontal, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 interface SearchBarProps {
   onSearch: (params: { q: string; radius?: number; lat?: number; lng?: number; openOnly?: boolean }) => void;
@@ -21,13 +22,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [openOnly, setOpenOnly] = useState(initialOpenOnly);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      setLocationError('Your browser does not support location access. Choose a place on the map instead.');
       return;
     }
     setLocating(true);
+    setLocationError('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -38,9 +41,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       (err) => {
         console.warn('Geolocation error:', err);
         setLocating(false);
-        alert('Could not determine your location. Please enter your search term or address.');
+        const message =
+          err.code === err.PERMISSION_DENIED
+            ? 'Location permission is blocked. Allow it in your browser settings or use manual map selection.'
+            : err.code === err.POSITION_UNAVAILABLE
+              ? 'Your device could not determine its location. Use manual map selection.'
+              : 'Finding your location took too long. Try again or use manual map selection.';
+        setLocationError(message);
       },
-      { timeout: 10000 }
+      { timeout: 15000, maximumAge: 60000, enableHighAccuracy: false }
     );
   };
 
@@ -77,6 +86,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setLocationError('')}
             placeholder={t('search_placeholder')}
             className="w-full bg-transparent border-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm sm:text-base focus:outline-none"
             aria-label="Search local services"
@@ -143,6 +153,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </button>
         </div>
       </div>
+      {locationError && (
+        <p
+          role="alert"
+          className="mt-2 flex flex-wrap items-center gap-x-1 text-sm text-amber-800 dark:text-amber-200"
+        >
+          <span>{locationError}</span>
+          <Link to="/map" className="font-semibold underline underline-offset-2 hover:text-orange-700 dark:hover:text-orange-300">
+            Choose a map location
+          </Link>
+        </p>
+      )}
     </form>
   );
 };
+
