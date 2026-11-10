@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 7019)
+Total output lines: 554
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Map } from '../components/Map';
 import { ListingCard } from '../components/ListingCard';
@@ -267,48 +270,7 @@ export const MapView: React.FC = () => {
 
             <button
               onClick={() => setLayoutMode('map')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                layoutMode === 'map'
-                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-              title="Map View"
-            >
-              <MapIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Map</span>
-            </button>
-
-            <button
-              onClick={() => setLayoutMode('list')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
-                layoutMode === 'list'
-                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-              title="Directory List View"
-            >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">List ({displayedListings.length})</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Body - Clean Website-First Proportion */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {offlineData && (
-            <OfflineDataBanner
-              onRetry={() => setRetryKey((key) => key + 1)}
-              className="lg:col-span-2"
-            />
-          )}
-          {/* Main Listings Grid (Primary Focus of the Page) */}
-          {(layoutMode === 'split' || layoutMode === 'list') && (
-            <div key={layoutMode} className={`flex-1 space-y-4 animate-fade-in-up ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${…519 tokens truncated…-600" />
                   <span>Town Directory Results</span>
                 </span>
                 <span
@@ -325,7 +287,7 @@ export const MapView: React.FC = () => {
                 <div
                   role="alert"
                   aria-live="assertive"
-                  className="p-10 sm:p-12 text-center bg-white dark:bg-slate-900/90 rounded-2xl border border-red-200 dark:border-red-900 text-slate-600 dark:text-slate-300 space-y-3 shadow-xs"
+                  className="space-y-4 rounded-[var(--tp-radius-2xl)] border border-[var(--tp-urgent)]/25 bg-[var(--tp-surface)] p-6 text-center text-[var(--tp-text-muted)] shadow-[var(--tp-shadow-xs)] sm:p-9"
                 >
                   <p className="font-semibold text-base text-red-700 dark:text-red-400">
                     {errorKind === 'offline'
@@ -339,23 +301,26 @@ export const MapView: React.FC = () => {
                   {/* Name the broken link in the chain instead of one generic
                       sentence, so the user knows whether to check their phone,
                       their connection, or the backend. */}
-                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                  <p className="mx-auto max-w-lg text-sm leading-relaxed text-[var(--tp-text-muted)]">
                     {errorKind === 'offline'
                       ? 'This is not an empty result — your device has no connection. Reconnect and try again.'
                       : errorKind === 'timeout'
                         ? 'The backend accepted the connection but did not answer. It may be starting up, or the database may be unreachable.'
                         : errorKind === 'not-json'
                           ? 'The request was answered with a web page instead of data. Check that production routes /api to the backend rather than the website fallback.'
-                          : 'The backend is not answering, so this is not an empty result. In production, check the Render /health endpoint and Vercel /api rewrite. Locally, start the backend with `docker compose up -d`.'}
+                          : 'The live directory is temporarily unavailable. You can still choose any place on the map; service listings will return when the directory reconnects.'}
                   </p>
-                  <p className="text-[11px] font-mono text-slate-400 dark:text-slate-500 break-words max-w-lg mx-auto">
-                    {error}
-                  </p>
+                  <details className="mx-auto max-w-lg text-left text-xs text-[var(--tp-text-subtle)]">
+                    <summary className="cursor-pointer text-center font-semibold hover:text-[var(--tp-text)]">
+                      Technical details
+                    </summary>
+                    <p className="mt-2 break-words font-mono">{error}</p>
+                  </details>
                   <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setRetryKey((key) => key + 1)}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-orange-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-orange-700 transition"
+                      className="tp-btn tp-btn-primary"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       Try again
@@ -368,7 +333,7 @@ export const MapView: React.FC = () => {
                         setRadius(15000);
                         setRetryKey((key) => key + 1);
                       }}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                      className="tp-btn tp-btn-secondary"
                     >
                       Reset filters and reload
                     </button>
@@ -448,8 +413,8 @@ export const MapView: React.FC = () => {
                 // below the sticky toolbar instead of being capped at 550px,
                 // which made it look like a broken preview rather than a map.
                 layoutMode === 'map'
-                  ? 'w-full flex-1 min-h-[calc(100vh-9rem)]'
-                  : 'w-full lg:w-[320px] xl:w-[340px] flex-shrink-0'
+                  ? 'order-1 min-h-[calc(100vh-9rem)] w-full flex-1 lg:order-2'
+                  : 'order-1 w-full flex-shrink-0 lg:order-2 lg:w-[320px] xl:w-[340px]'
               }
             >
               <div key={layoutMode} className={`animate-fade-in-up ${layoutMode === 'split' ? 'sticky top-32 space-y-2' : 'h-full'}`}>
@@ -548,3 +513,4 @@ export const MapView: React.FC = () => {
     </div>
   );
 };
+
