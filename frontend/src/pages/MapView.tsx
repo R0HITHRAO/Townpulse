@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 7019)
-Total output lines: 554
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Map } from '../components/Map';
 import { ListingCard } from '../components/ListingCard';
@@ -100,8 +97,7 @@ export const MapView: React.FC = () => {
         setOfflineData(false);
         setSelectedListing(
           (current) => res.items.find((listing) => listing.id === current?.id) ?? res.items[0] ?? null
-        );
-      })
+        );      })
       // A dead backend used to be swallowed into console.error, leaving
       // `listings` empty and rendering "No services found in this search
       // area." — so a broken server was reported to the user as "this town has
@@ -200,8 +196,7 @@ export const MapView: React.FC = () => {
             className="px-3 py-1.5 rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 text-xs font-semibold flex items-center gap-1.5 transition hover:bg-orange-100 dark:hover:bg-orange-900/50 disabled:opacity-60"
             aria-label="Use my current location"
             title="Find services near my current location"
-          >
-            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+          >            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
             <span>{isLocating ? 'Locating…' : 'Use my location'}</span>
           </button>
 
@@ -270,7 +265,47 @@ export const MapView: React.FC = () => {
 
             <button
               onClick={() => setLayoutMode('map')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${…519 tokens truncated…-600" />
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                layoutMode === 'map'
+                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Map View"
+            >
+              <MapIcon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Map</span>
+            </button>
+
+            <button
+              onClick={() => setLayoutMode('list')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                layoutMode === 'list'
+                  ? 'bg-white dark:bg-slate-700 text-orange-600 dark:text-orange-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="Directory List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">List ({displayedListings.length})</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Body - Clean Website-First Proportion */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {offlineData && (            <OfflineDataBanner
+              onRetry={() => setRetryKey((key) => key + 1)}
+              className="lg:col-span-2"
+            />
+          )}
+          {/* Main Listings Grid (Primary Focus of the Page) */}
+          {(layoutMode === 'split' || layoutMode === 'list') && (
+            <div key={layoutMode} className={`order-2 flex-1 space-y-4 animate-fade-in-up lg:order-1 ${layoutMode === 'list' ? 'max-w-5xl mx-auto' : ''}`}>
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-orange-600" />
                   <span>Town Directory Results</span>
                 </span>
                 <span
@@ -301,7 +336,7 @@ export const MapView: React.FC = () => {
                   {/* Name the broken link in the chain instead of one generic
                       sentence, so the user knows whether to check their phone,
                       their connection, or the backend. */}
-                  <p className="mx-auto max-w-lg text-sm leading-relaxed text-[var(--tp-text-muted)]">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
                     {errorKind === 'offline'
                       ? 'This is not an empty result — your device has no connection. Reconnect and try again.'
                       : errorKind === 'timeout'
@@ -362,8 +397,7 @@ export const MapView: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setSearchQuery('');
-                        setSelectedCategory(null);
-                        setOpenOnly(false);
+                        setSelectedCategory(null);                        setOpenOnly(false);
                         setRadius(15000);
                       }}
                       className="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
@@ -462,8 +496,7 @@ export const MapView: React.FC = () => {
                     className="h-full w-full border-none"
                     autoFitBounds={layoutMode === 'split' && Boolean(location)}
                     singleMarkerZoom={15}
-                  />
-                </div>
+                  />                </div>
 
                 <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                   {location
@@ -513,4 +546,3 @@ export const MapView: React.FC = () => {
     </div>
   );
 };
-
