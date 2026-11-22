@@ -16,6 +16,8 @@
  * so that check expects the URL to change and fails if the guard stops
  * protecting a business page; signed in as a business owner the same URL must
  * stay put, so the guard cannot over-block the account the page exists for.
+ * Unknown listing and category URLs must also stay put and render their own
+ * not-found screen, rather than quietly redirecting a mistyped link home.
  *
  * The browser is the locally installed Chrome or Edge — `playwright-core`
  * ships no browser download. Set `SMOKE_BROWSER_CHANNEL=msedge` (or `chrome`) to
@@ -48,6 +50,11 @@ const LISTING_NAME = 'Smoke Test Pharmacy';
 const CATEGORY_SLUG = 'healthcare';
 const CATEGORY_HEADING = 'Health & clinics';
 const LOGIN_HEADING = 'Sign in to TownPulse';
+const NOT_FOUND_HEADING = 'Page not found';
+// The two not-found screens share a heading, so each is also identified by the
+// link only its own page offers.
+const LISTING_NOT_FOUND_LINK = 'Back to home';
+const CATEGORY_NOT_FOUND_LINK = 'Browse categories';
 const SNAPSHOT = {
   generated_from: null,
   attribution: 'smoke test fixture',
@@ -142,6 +149,8 @@ const routes = [
   '/emergency',
   `/listings/${LISTING_ID}`,
   `/c/${CATEGORY_SLUG}`,
+  '/listings/does-not-exist',
+  '/c/not-a-category',
   '/admin',
   '/dashboard',
 ];
@@ -177,7 +186,10 @@ async function launchBrowser() {
  * or renders the wrong page. `expectedPath` defaults to `path`; a route guard
  * test passes the URL the guard should redirect to instead.
  */
-async function checkDeepLink(context, { path, expectedPath = path, heading }) {
+async function checkDeepLink(
+  context,
+  { path, expectedPath = path, heading, headingTag = 'h1', expectedText }
+) {
   const page = await context.newPage();
   try {
     const response = await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
@@ -189,18 +201,20 @@ async function checkDeepLink(context, { path, expectedPath = path, heading }) {
     // Wait for the lazy route to mount and settle on its heading.
     await page
       .waitForFunction(
-        (expected) => {
-          const el = document.querySelector('h1');
+        ([tag, expected]) => {
+          const el = document.querySelector(tag);
           return !!el && el.textContent.trim() === expected;
         },
-        heading,
+        [headingTag, heading],
         { timeout: 10_000 }
       )
       .catch(() => {});
 
     const finalUrl = page.url();
     const finalPath = new URL(finalUrl).pathname;
-    const renderedHeading = (await page.locator('h1').first().textContent().catch(() => null))?.trim();
+    const renderedHeading = (
+      await page.locator(headingTag).first().textContent().catch(() => null)
+    )?.trim();
     // Collapse whitespace: the hero heading is split across inline elements, so
     // `innerText` contains newlines where the source has spaces.
     const body = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
@@ -222,6 +236,13 @@ async function checkDeepLink(context, { path, expectedPath = path, heading }) {
 
     if (renderedHeading === heading) pass(`deep link ${path} rendered "${heading}"`);
     else fail(`deep link ${path}`, `rendered "${renderedHeading ?? 'no heading'}"`);
+
+    // `expectedText` distinguishes screens that share a heading (the two
+    // not-found pages) by a line only the expected one renders.
+    if (expectedText) {
+      if (body.includes(expectedText)) pass(`deep link ${path} showed "${expectedText}"`);
+      else fail(`deep link ${path}`, `missing "${expectedText}"`);
+    }
 
     if (bouncedHome) fail(`deep link ${path}`, 'homepage hero is on screen');
     else pass(`deep link ${path} did not fall back to the homepage`);
@@ -297,6 +318,23 @@ async function checkBrowser() {
         path: '/dashboard',
         expectedPath: '/login',
         heading: LOGIN_HEADING,
+      });
+
+      // Unknown IDs and slugs are the other way a deep link can regress: the
+      // page must admit it has nothing to show, at the URL the visitor used,
+      // instead of redirecting to the homepage.
+      // ListingDetail's empty state is an h2, not an h1, so the level is named
+      // rather than the assertion being loosened to any heading.
+      await checkDeepLink(signedOut, {
+        path: '/listings/does-not-exist',
+        heading: NOT_FOUND_HEADING,
+        headingTag: 'h2',
+        expectedText: LISTING_NOT_FOUND_LINK,
+      });
+      await checkDeepLink(signedOut, {
+        path: '/c/not-a-category',
+        heading: NOT_FOUND_HEADING,
+        expectedText: CATEGORY_NOT_FOUND_LINK,
       });
     } finally {
       await signedOut.close();
