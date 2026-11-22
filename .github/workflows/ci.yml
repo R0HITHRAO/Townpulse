@@ -67,6 +67,11 @@ jobs:
           # formatting; without it the two disagree and one of them always fails.
           isort --check-only --profile black app tests
 
+      - name: Type Check Backend (mypy)
+        run: |
+          cd backend
+          mypy app
+
       - name: Run Backend Pytest Suite
         env:
           DATABASE_URL: postgresql://townpulse:townpulse_dev_password@localhost:5432/townpulse_test
