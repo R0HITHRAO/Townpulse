@@ -61,9 +61,11 @@ jobs:
       - name: Code Quality & Linting (Ruff, Black, isort)
         run: |
           cd backend
-          ruff check app tests || true
-          black --check app tests || true
-          isort --check-only app tests || true
+          ruff check app tests
+          black --check app tests
+          # --profile black keeps isort's ordering compatible with black's
+          # formatting; without it the two disagree and one of them always fails.
+          isort --check-only --profile black app tests
 
       - name: Run Backend Pytest Suite
         env:
@@ -99,7 +101,7 @@ jobs:
       - name: Lint Frontend Code
         run: |
           cd frontend
-          npm run lint || true
+          npm run lint
 
       - name: Validate Design System Contrast (WCAG 2.2 AA)
         run: |
