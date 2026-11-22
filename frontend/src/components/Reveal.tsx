@@ -93,4 +93,3 @@ export const Reveal: React.FC<RevealProps> = ({
 };
 
 export default Reveal;
-

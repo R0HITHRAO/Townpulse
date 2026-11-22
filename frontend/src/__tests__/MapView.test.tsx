@@ -142,4 +142,3 @@ describe('MapView empty offline results', () => {
     expect(lastSearch).not.toHaveProperty('radius');
   });
 });
-

@@ -128,4 +128,3 @@ export const BookmarksModal: React.FC<BookmarksModalProps> = ({ isOpen, onClose 
     </div>
   );
 };
-

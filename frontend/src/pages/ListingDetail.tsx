@@ -518,4 +518,3 @@ export const ListingDetail: React.FC = () => {
     </div>
   );
 };
-

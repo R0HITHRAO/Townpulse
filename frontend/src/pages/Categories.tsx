@@ -130,4 +130,3 @@ export const Categories: React.FC = () => {
     </div>
   );
 };
-

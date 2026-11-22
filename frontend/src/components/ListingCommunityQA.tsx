@@ -319,4 +319,3 @@ export const ListingCommunityQA: React.FC<ListingCommunityQAProps> = ({ listing 
     </div>
   );
 };
-
