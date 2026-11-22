@@ -18,6 +18,9 @@
  * stay put, so the guard cannot over-block the account the page exists for.
  * Unknown listing and category URLs must also stay put and render their own
  * not-found screen, rather than quietly redirecting a mistyped link home.
+ * `/admin` is checked from every side: signed out it must reach `/login`, a
+ * signed-in non-admin must be sent to `/`, and an admin must be allowed in, so
+ * neither under- nor over-blocking passes.
  *
  * The browser is the locally installed Chrome or Edge — `playwright-core`
  * ships no browser download. Set `SMOKE_BROWSER_CHANNEL=msedge` (or `chrome`) to
@@ -86,6 +89,18 @@ const SNAPSHOT = {
 };
 // A business owner, not an admin: the /dashboard guard accepts either, but the
 // page exists for owners, so this is the account it must not over-block.
+// A signed-in account with no moderation rights: the /admin guard must send it
+// away from the console, not merely stop anonymous visitors.
+const REGULAR_USER = {
+  id: 'u-smoke-visitor',
+  name: 'Smoke Visitor',
+  email: 'visitor@townpulse.test',
+  role: 'user',
+  phone_verified: true,
+  email_verified: true,
+  is_active: true,
+  created_at: '2025-01-01T00:00:00Z',
+};
 const BUSINESS_USER = {
   id: 'u-smoke-owner',
   name: 'Smoke Owner',
@@ -244,8 +259,17 @@ async function checkDeepLink(
       else fail(`deep link ${path}`, `missing "${expectedText}"`);
     }
 
-    if (bouncedHome) fail(`deep link ${path}`, 'homepage hero is on screen');
-    else pass(`deep link ${path} did not fall back to the homepage`);
+    // The homepage is the expected destination of one guard check (/admin for a
+    // signed-in non-admin), so its hero is only a failure when it was not asked
+    // for. `expectedPath === '/'` inverts the assertion instead of skipping it.
+    if (expectedPath === '/') {
+      if (bouncedHome) pass(`deep link ${path} landed on the homepage`);
+      else fail(`deep link ${path}`, 'expected the homepage but its hero is missing');
+    } else if (bouncedHome) {
+      fail(`deep link ${path}`, 'homepage hero is on screen');
+    } else {
+      pass(`deep link ${path} did not fall back to the homepage`);
+    }
   } finally {
     await page.close();
   }
@@ -319,6 +343,11 @@ async function checkBrowser() {
         expectedPath: '/login',
         heading: LOGIN_HEADING,
       });
+      await checkDeepLink(signedOut, {
+        path: '/admin',
+        expectedPath: '/login',
+        heading: LOGIN_HEADING,
+      });
 
       // Unknown IDs and slugs are the other way a deep link can regress: the
       // page must admit it has nothing to show, at the URL the visitor used,
@@ -359,6 +388,19 @@ async function checkBrowser() {
       await checkDeepLink(owner, { path: '/dashboard', heading: DASHBOARD_HEADING });
     } finally {
       await owner.close();
+    }
+
+    // And it must not under-block either: a signed-in visitor without the admin
+    // role is sent to the homepage, not shown the moderation console.
+    const visitor = await createContext(browser, { user: REGULAR_USER });
+    try {
+      await checkDeepLink(visitor, {
+        path: '/admin',
+        expectedPath: '/',
+        heading: HOME_HERO,
+      });
+    } finally {
+      await visitor.close();
     }
   } finally {
     await browser.close();
