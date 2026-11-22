@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.104-009688?logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/PostgreSQL-PostGIS-336791?logo=postgresql" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker" />
-  <img src="https://img.shields.io/badge/Tests-26%20Passed-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/Tests-92%20Passed-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
 </p>
 
@@ -45,7 +45,7 @@ is the honest map of what is done and what is not.
 | 5. Discovery | ⏳ Not started |
 | 7. Accessibility | ⏳ Partial — tokens and focus done, components not yet migrated |
 | 9. Polish | ⏳ Not started |
-| 10. Verification | ✅ build, typecheck, contrast and 55 unit tests all green |
+| 10. Verification | ✅ build, typecheck, contrast and 92 unit tests all green |
 
 See [`AUDIT.md`](./AUDIT.md) for the full defect list and
 [`DATA_NEEDED.md`](./DATA_NEEDED.md) for the data you must collect.
@@ -54,7 +54,6 @@ See [`AUDIT.md`](./AUDIT.md) for the full defect list and
 > - Finish moving remaining component styles and copy onto the token and
 >   translation layers.
 > - Add Kannada translations; `kn` is registered but currently inherits English.
-> - Replace the remaining blocking browser alerts with inline feedback.
 
 ---
 
@@ -289,7 +288,7 @@ make seed
 # Backend pytest suite (15 tests)
 docker compose exec backend pytest -v
 
-# Frontend Vitest suite (11 tests)
+# Frontend Vitest suite (92 tests)
 cd frontend && npm test
 ```
 
@@ -408,4 +407,3 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 <p align="center">
   <strong>TownPulse maps the heartbeat of your town</strong> — verified listings, owner claims, and admin moderation in a privacy-first, offline-capable app that gives communities control of their local data and workflows.
 </p>
-
