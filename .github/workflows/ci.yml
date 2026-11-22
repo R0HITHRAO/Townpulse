@@ -218,6 +218,55 @@ jobs:
           npm run build
           if [ $degraded -ne 0 ] || [ $verify -ne 0 ]; then exit 1; fi
 
+  # ─── Frontend Deep-Link Smoke Test ─────────────────────────────────────────
+  # Loads /listings/<id> and /admin as full page loads against the built bundle.
+  # Those two URLs are deep links: a route guard, a stray redirect or a
+  # catch-all route can serve 200, boot the app and land on "/" — a regression
+  # that no fetch-based check and no unit test can see. `smoke:preview` serves
+  # dist/ itself and fails if the URL changes, the expected heading is missing,
+  # or the homepage hero is on screen.
+  #
+  # The browser is the runner's preinstalled Google Chrome, driven by
+  # playwright-core (which downloads no browser of its own). If Chrome ever
+  # disappears from the image, the step fails with an explicit message instead
+  # of silently skipping the deep-link checks.
+  frontend-smoke:
+    name: Frontend Deep-Link Smoke (Node 20)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Node Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      # playwright-core resolves the browser by channel name; make the version
+      # visible so a runner image change is obvious in the log.
+      - name: Confirm the runner's Chrome is available
+        run: google-chrome --version
+
+      - name: Build Frontend Bundle
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Smoke-test deep links against the preview build
+        env:
+          SMOKE_BROWSER_CHANNEL: chrome
+        run: |
+          cd frontend
+          npm run smoke:preview
+
   # ─── Docker Container Build Verification ───────────────────────────────────
   docker-build:
     name: Docker Build Check
