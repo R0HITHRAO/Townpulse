@@ -7,10 +7,14 @@
  * The HTTP checks below catch a missing file or a broken SPA fallback, but every
  * path returns the same 200 `index.html`, so they cannot see a route that loads
  * and *then* navigates somewhere else. A deep link is exactly that failure mode:
- * `/listings/<id>` or `/admin` can serve 200, boot the app, and land on `/`
+ * `/listings/<id>` or `/c/<slug>` can serve 200, boot the app, and land on `/`
  * (a stray redirect, a route guard, or a catch-all route winning) while the
- * response looks perfect. That is why the last two checks load the URL in a real
- * browser and assert both the URL and the heading it renders.
+ * response looks perfect. That is why the deep links are loaded in a real
+ * browser and both the URL and the rendered heading are asserted.
+ *
+ * `/dashboard` is the deliberate inverse: signed out it must land on `/login`,
+ * so that check expects the URL to change and fails if the guard stops
+ * protecting a business page.
  *
  * The browser is the locally installed Chrome or Edge — `playwright-core`
  * ships no browser download. Set `SMOKE_BROWSER_CHANNEL=msedge` (or `chrome`) to
@@ -38,11 +42,24 @@ const BASE = `http://localhost:${PORT}`;
 // is checked against a record supplied at request time instead of on disk.
 const LISTING_ID = 'osm-smoke-1';
 const LISTING_NAME = 'Smoke Test Pharmacy';
+// Slug → category mapping lives in the bundled snapshot, and the heading comes
+// from the catalogue, so /c/healthcare must read "Health & clinics".
+const CATEGORY_SLUG = 'healthcare';
+const CATEGORY_HEADING = 'Health & clinics';
+const LOGIN_HEADING = 'Sign in to TownPulse';
 const SNAPSHOT = {
   generated_from: null,
   attribution: 'smoke test fixture',
   town: null,
-  categories: [],
+  categories: [
+    {
+      id: 2,
+      name: 'Healthcare',
+      slug: 'healthcare',
+      icon: '🏥',
+      description: 'Clinics, pharmacies and doctors.',
+    },
+  ],
   listings: [
     {
       id: LISTING_ID,
@@ -103,7 +120,17 @@ const server = createServer((req, res) => {
 });
 
 /** Deep links must serve the shell too, even though no file exists for them. */
-const routes = ['/', '/about', '/map', '/categories', '/emergency', `/listings/${LISTING_ID}`, '/admin'];
+const routes = [
+  '/',
+  '/about',
+  '/map',
+  '/categories',
+  '/emergency',
+  `/listings/${LISTING_ID}`,
+  `/c/${CATEGORY_SLUG}`,
+  '/admin',
+  '/dashboard',
+];
 
 async function checkHttp(route) {
   const response = await fetch(`${BASE}${route}`);
@@ -132,10 +159,11 @@ async function launchBrowser() {
 
 /**
  * Loads `path` as a fresh document — the deep-link case a crawler or a pasted
- * link produces — and fails if the app ends somewhere else or renders the wrong
- * page.
+ * link produces — and fails if the app ends somewhere other than `expectedPath`
+ * or renders the wrong page. `expectedPath` defaults to `path`; a route guard
+ * test passes the URL the guard should redirect to instead.
  */
-async function checkDeepLink(context, { path, heading }) {
+async function checkDeepLink(context, { path, expectedPath = path, heading }) {
   const page = await context.newPage();
   try {
     const response = await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
@@ -163,9 +191,20 @@ async function checkDeepLink(context, { path, heading }) {
     // `innerText` contains newlines where the source has spaces.
     const body = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
     const bouncedHome = body.includes(HOME_HERO);
+    const isRedirectCheck = expectedPath !== path;
 
-    if (finalPath === path) pass(`deep link ${path} kept its URL`);
-    else fail(`deep link ${path}`, `URL changed to ${finalPath}`);
+    if (finalPath === expectedPath) {
+      pass(
+        isRedirectCheck
+          ? `deep link ${path} redirected to ${expectedPath}`
+          : `deep link ${path} kept its URL`
+      );
+    } else {
+      fail(
+        `deep link ${path}`,
+        `expected ${expectedPath}, URL is ${finalPath}${isRedirectCheck ? ' (guard let it through?)' : ''}`
+      );
+    }
 
     if (renderedHeading === heading) pass(`deep link ${path} rendered "${heading}"`);
     else fail(`deep link ${path}`, `rendered "${renderedHeading ?? 'no heading'}"`);
@@ -175,6 +214,47 @@ async function checkDeepLink(context, { path, heading }) {
   } finally {
     await page.close();
   }
+}
+
+/**
+ * A fresh browser context with the fixtures every check needs. `signedIn` seeds
+ * an administrator session before any app script runs; the signed-out checks
+ * must not, or the /dashboard guard would have nothing to reject.
+ */
+async function createContext(browser, { signedIn }) {
+  const context = await browser.newContext({ serviceWorkers: 'block' });
+
+  if (signedIn) {
+    await context.addInitScript((user) => {
+      try {
+        localStorage.setItem('townpulse_access_token', 'smoke-token');
+        localStorage.setItem('townpulse_user', JSON.stringify(user));
+      } catch {
+        /* storage unavailable — the guard will redirect and the check will say so */
+      }
+    }, ADMIN_USER);
+  }
+
+  // There is no backend behind the static preview: answer API calls explicitly
+  // so the pages take their offline paths instead of parsing the HTML fallback.
+  await context.route('**/api/**', (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ detail: 'smoke test: no backend' }),
+    })
+  );
+  await context.route('**/data/listings.json', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(SNAPSHOT),
+    })
+  );
+  // Keep the run deterministic and offline: no map tiles, fonts or analytics.
+  await context.route('https://**', (route) => route.abort());
+
+  return context;
 }
 
 async function checkBrowser() {
@@ -192,42 +272,32 @@ async function checkBrowser() {
   }
 
   try {
-    const context = await browser.newContext({ serviceWorkers: 'block' });
+    // Signed out: the public deep links, plus the guard that must stop a visitor
+    // reaching a business page.
+    const signedOut = await createContext(browser, { signedIn: false });
+    try {
+      await checkDeepLink(signedOut, { path: `/listings/${LISTING_ID}`, heading: LISTING_NAME });
+      await checkDeepLink(signedOut, { path: `/c/${CATEGORY_SLUG}`, heading: CATEGORY_HEADING });
+      await checkDeepLink(signedOut, {
+        path: '/dashboard',
+        expectedPath: '/login',
+        heading: LOGIN_HEADING,
+      });
+    } finally {
+      await signedOut.close();
+    }
 
-    // Sign in as an administrator before any application script runs, so the
-    // /admin deep link exercises the page itself rather than the login guard.
-    await context.addInitScript((user) => {
-      try {
-        localStorage.setItem('townpulse_access_token', 'smoke-token');
-        localStorage.setItem('townpulse_user', JSON.stringify(user));
-      } catch {
-        /* storage unavailable — the guard will redirect and the check will say so */
-      }
-    }, ADMIN_USER);
-
-    // There is no backend behind the static preview: answer API calls explicitly
-    // so the pages take their offline paths instead of parsing the HTML fallback.
-    await context.route('**/api/**', (route) =>
-      route.fulfill({
-        status: 503,
-        contentType: 'application/json',
-        body: JSON.stringify({ detail: 'smoke test: no backend' }),
-      })
-    );
-    await context.route('**/data/listings.json', (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(SNAPSHOT),
-      })
-    );
-    // Keep the run deterministic and offline: no map tiles, fonts or analytics.
-    await context.route('https://**', (route) => route.abort());
-
-    await checkDeepLink(context, { path: `/listings/${LISTING_ID}`, heading: LISTING_NAME });
-    await checkDeepLink(context, { path: '/admin', heading: 'Town Administrator Console' });
-
-    await context.close();
+    // Signed in as an administrator, so /admin exercises the page itself rather
+    // than being bounced to the login guard.
+    const signedIn = await createContext(browser, { signedIn: true });
+    try {
+      await checkDeepLink(signedIn, {
+        path: '/admin',
+        heading: 'Town Administrator Console',
+      });
+    } finally {
+      await signedIn.close();
+    }
   } finally {
     await browser.close();
   }
