@@ -19,6 +19,12 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
   const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // Separate from the submission error so a failed delete does not look like a
+  // failed post. Inline rather than `alert()` (AUDIT.md 8.3).
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Deleting asks in place on the review row rather than through a blocking
+  // window.confirm().
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchReviews = async () => {
     try {
@@ -55,12 +61,13 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
   };
 
   const handleDelete = async (reviewId: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
+    setDeleteError(null);
     try {
       await api.deleteReview(reviewId);
+      setConfirmDeleteId(null);
       await fetchReviews();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete review.');
+      setDeleteError(err.message || 'Failed to delete review.');
     }
   };
 
@@ -156,6 +163,15 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
 
       {/* Reviews List */}
       <div className="space-y-4">
+        {deleteError && (
+          <p
+            role="alert"
+            className="text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 rounded-xl px-3 py-2"
+          >
+            {deleteError}
+          </p>
+        )}
+
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-2 py-6" aria-busy="true">
             <LoaderOne />
@@ -196,9 +212,33 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
 
                   <div className="flex items-center gap-2">
                     <StarRating rating={review.rating} size="sm" />
-                    {(isAuthor || isAdmin) && (
+                    {(isAuthor || isAdmin) && confirmDeleteId === review.id && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                          Delete?
+                        </span>
+                        <button
+                          onClick={() => handleDelete(review.id)}
+                          aria-label="Confirm delete review"
+                          className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline"
+                        >
+                          Yes
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          aria-label="Keep review"
+                          className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:underline"
+                        >
+                          No
+                        </button>
+                      </div>
+                    )}
+                    {(isAuthor || isAdmin) && confirmDeleteId !== review.id && (
                       <button
-                        onClick={() => handleDelete(review.id)}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setConfirmDeleteId(review.id);
+                        }}
                         className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition p-1"
                         title="Delete review"
                         aria-label="Delete review"
@@ -222,4 +262,3 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({ listingId }) => {
     </div>
   );
 };
-
