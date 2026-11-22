@@ -12,6 +12,7 @@ import {
   Radio,
   Plus,
   Trash2,
+  X,
 } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
@@ -211,25 +212,37 @@ export const AdminDashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Analytics KPIs */}
+        {/* Moderation feedback. Pinned to the viewport, not the page: the
+            queues sit far down the console, so a banner at the top of the
+            document reported a result the moderator could not see. */}
         {feedback && (
-          <div
-            role={feedback.tone === 'error' ? 'alert' : 'status'}
-            className={`flex items-start gap-2 rounded-2xl border px-4 py-3 text-xs font-semibold ${
-              feedback.tone === 'error'
-                ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60'
-                : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/60'
-            }`}
-          >
-            {feedback.tone === 'error' ? (
-              <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            ) : (
-              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            )}
-            <span>{feedback.message}</span>
+          <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4 pointer-events-none">
+            <div
+              role={feedback.tone === 'error' ? 'alert' : 'status'}
+              className={`pointer-events-auto flex w-full max-w-md items-start gap-2 rounded-2xl border px-4 py-3 text-xs font-semibold shadow-lg ${
+                feedback.tone === 'error'
+                  ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60'
+                  : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/60'
+              }`}
+            >
+              {feedback.tone === 'error' ? (
+                <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              )}
+              <span>{feedback.message}</span>
+              <button
+                onClick={() => setFeedback(null)}
+                aria-label="Dismiss notification"
+                className="ml-auto p-0.5 opacity-60 hover:opacity-100 transition"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
 
+        {/* Analytics KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
@@ -535,6 +548,7 @@ export const AdminDashboard: React.FC = () => {
                 </label>
                 <textarea
                   id="reject-claim-reason"
+                  autoFocus
                   rows={3}
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
