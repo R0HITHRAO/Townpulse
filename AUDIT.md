@@ -159,13 +159,15 @@ in the compiled output: `.tp-badge`, `.tp-prose`, `.tp-btn-accent` and
 **Worth a CI check.** Nothing currently parses `base.css` structurally. A cheap
 guard would be a brace-balance or PostCSS parse assertion.
 
-### `/emergency`, `/categories` and `/c/:slug` have no React route
+### `/emergency`, `/categories` and `/c/:slug` had no React route — **fixed**
 
-`prerender.mjs` emits static HTML for these paths, and the sitemap lists them,
-but `App.tsx` has no matching `<Route>`. A visitor who *navigates* client-side
-to `/c/healthcare` therefore sees the 404 page, while a crawler or a cold page
-load sees real content.
+`prerender.mjs` emitted static HTML for these paths, and the sitemap listed
+them, but `App.tsx` had no matching `<Route>`. A visitor who *navigated*
+client-side to `/c/healthcare` therefore saw the 404 page, while a crawler or a
+cold load saw real content.
 
-This is the single highest-value remaining task: it is a small addition to
-`App.tsx` plus header/footer links, and it removes an inconsistency where the
-same URL shows two different pages depending on how it was reached.
+All three routes now exist in `App.tsx`, along with header and footer links, so
+the same URL shows the same page however it is reached. This is no longer a
+manual checklist item: `src/__tests__/routeParity.test.ts` reads `App.tsx` and
+fails if any route in `src/config/site.ts` — or the shareable `/c/:slug`
+category path the sitemap advertises — loses its React counterpart.
