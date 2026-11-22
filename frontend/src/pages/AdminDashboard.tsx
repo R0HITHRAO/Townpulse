@@ -20,6 +20,11 @@ export const AdminDashboard: React.FC = () => {
   const [pendingListings, setPendingListings] = useState<Listing[]>([]);
   const [activeAlerts, setActiveAlerts] = useState<EmergencyAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  // Inline, non-blocking feedback for every moderation action — replaces
+  // `alert()` (AUDIT.md 8.3): alerts are unstyled, untranslatable and modal.
+  const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(
+    null
+  );
 
   // New Alert Form state
   const [alertTitle, setAlertTitle] = useState('');
@@ -27,6 +32,16 @@ export const AdminDashboard: React.FC = () => {
   const [alertSeverity, setAlertSeverity] = useState<'info' | 'warning' | 'critical'>('warning');
   const [alertLink, setAlertLink] = useState('');
   const [creatingAlert, setCreatingAlert] = useState(false);
+  // Rejection needs a reason, so it gets a small dialog instead of
+  // window.prompt(), which cannot be styled, translated or announced.
+  const [rejectingClaimId, setRejectingClaimId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectError, setRejectError] = useState<string | null>(null);
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+  // Deactivation is destructive, so the row asks in place rather than through
+  // a blocking window.confirm().
+  const [confirmDeactivateId, setConfirmDeactivateId] = useState<string | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
 
   const loadData = () => {
     setLoading(true);
@@ -50,39 +65,64 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleApproveClaim = async (claimId: string) => {
+    setFeedback(null);
     try {
       await api.approveClaim(claimId);
-      alert('Claim approved! Ownership has been transferred.');
+      setFeedback({
+        tone: 'success',
+        message: 'Claim approved — ownership has been transferred.',
+      });
       loadData();
     } catch (e: any) {
-      alert(e.message || 'Approval failed');
+      setFeedback({ tone: 'error', message: e.message || 'Approval failed' });
     }
   };
 
-  const handleRejectClaim = async (claimId: string) => {
-    const reason = prompt('Enter reason for rejection (optional):');
+  const openRejectDialog = (claimId: string) => {
+    setRejectingClaimId(claimId);
+    setRejectReason('');
+    setRejectError(null);
+  };
+
+  const closeRejectDialog = () => {
+    setRejectingClaimId(null);
+    setRejectReason('');
+    setRejectError(null);
+  };
+
+  const handleRejectClaim = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectingClaimId) return;
+    setRejectError(null);
+    setRejectSubmitting(true);
     try {
-      await api.rejectClaim(claimId, reason || undefined);
-      alert('Claim rejected.');
+      await api.rejectClaim(rejectingClaimId, rejectReason.trim() || undefined);
+      setFeedback({ tone: 'success', message: 'Claim rejected.' });
+      closeRejectDialog();
       loadData();
-    } catch (e: any) {
-      alert(e.message || 'Rejection failed');
+    } catch (err: any) {
+      // Keep the dialog open so a failed request does not discard the reason.
+      setRejectError(err.message || 'Rejection failed');
+    } finally {
+      setRejectSubmitting(false);
     }
   };
 
   const handleVerifyListing = async (listingId: string) => {
+    setFeedback(null);
     try {
       await api.verifyListing(listingId);
-      alert('Listing verified and marked active!');
+      setFeedback({ tone: 'success', message: 'Listing verified and marked active.' });
       loadData();
     } catch (e: any) {
-      alert(e.message || 'Verification failed');
+      setFeedback({ tone: 'error', message: e.message || 'Verification failed' });
     }
   };
 
   const handleCreateAlert = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!alertTitle.trim() || !alertMessage.trim()) return;
+    setFeedback(null);
     try {
       setCreatingAlert(true);
       await api.createAlert({
@@ -91,25 +131,33 @@ export const AdminDashboard: React.FC = () => {
         severity: alertSeverity,
         link_url: alertLink.trim() || undefined,
       });
-      alert('Emergency Broadcast Announcement broadcasted live!');
+      setFeedback({ tone: 'success', message: 'Emergency broadcast published live.' });
       setAlertTitle('');
       setAlertMessage('');
       setAlertLink('');
       loadData();
     } catch (e: any) {
-      alert(e.message || 'Failed to create emergency alert');
+      setFeedback({
+        tone: 'error',
+        message: e.message || 'Failed to create emergency alert',
+      });
     } finally {
       setCreatingAlert(false);
     }
   };
 
   const handleDeactivateAlert = async (alertId: string) => {
-    if (!confirm('Are you sure you want to deactivate and remove this emergency announcement?')) return;
+    setFeedback(null);
+    setDeactivating(true);
     try {
       await api.deactivateAlert(alertId);
+      setFeedback({ tone: 'success', message: 'Emergency announcement deactivated.' });
+      setConfirmDeactivateId(null);
       loadData();
     } catch (e: any) {
-      alert(e.message || 'Failed to deactivate alert');
+      setFeedback({ tone: 'error', message: e.message || 'Failed to deactivate alert' });
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -164,6 +212,24 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Analytics KPIs */}
+        {feedback && (
+          <div
+            role={feedback.tone === 'error' ? 'alert' : 'status'}
+            className={`flex items-start gap-2 rounded-2xl border px-4 py-3 text-xs font-semibold ${
+              feedback.tone === 'error'
+                ? 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800/60'
+                : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800/60'
+            }`}
+          >
+            {feedback.tone === 'error' ? (
+              <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            )}
+            <span>{feedback.message}</span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
@@ -318,14 +384,36 @@ export const AdminDashboard: React.FC = () => {
                     <p className="text-xs text-slate-600 dark:text-slate-300">{a.message}</p>
                   </div>
 
-                  <button
-                    onClick={() => handleDeactivateAlert(a.id)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
-                    title="Deactivate alert"
-                    aria-label="Deactivate alert"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {confirmDeactivateId === a.id ? (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        Deactivate?
+                      </span>
+                      <button
+                        onClick={() => handleDeactivateAlert(a.id)}
+                        disabled={deactivating}
+                        className="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition disabled:opacity-50"
+                      >
+                        {deactivating ? 'Removing...' : 'Yes'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeactivateId(null)}
+                        disabled={deactivating}
+                        className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeactivateId(a.id)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                      title="Deactivate alert"
+                      aria-label="Deactivate alert"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ))
             )}
@@ -369,7 +457,7 @@ export const AdminDashboard: React.FC = () => {
                       <CheckCircle className="w-3.5 h-3.5" /> Approve
                     </button>
                     <button
-                      onClick={() => handleRejectClaim(c.id)}
+                      onClick={() => openRejectDialog(c.id)}
                       className="bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 hover:scale-105 active:scale-95"
                     >
                       <XCircle className="w-3.5 h-3.5" /> Reject
@@ -413,6 +501,77 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Reject Claim Dialog */}
+        {rejectingClaimId && (
+          <div
+            data-lenis-prevent
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <form
+              onSubmit={handleRejectClaim}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="reject-claim-title"
+              className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 border border-slate-100 dark:border-slate-800 animate-scale-in"
+            >
+              <h3
+                id="reject-claim-title"
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
+                Reject this claim?
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Ownership stays with the current owner. The claimant's account is not
+                affected, and the reason below is optional.
+              </p>
+
+              <div>
+                <label
+                  htmlFor="reject-claim-reason"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Reason for rejection (optional)
+                </label>
+                <textarea
+                  id="reject-claim-reason"
+                  rows={3}
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="e.g. Proof does not match the registered owner"
+                  className="w-full p-3 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-rose-500 outline-none"
+                />
+              </div>
+
+              {rejectError && (
+                <p
+                  role="alert"
+                  className="text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 rounded-xl px-3 py-2"
+                >
+                  {rejectError}
+                </p>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeRejectDialog}
+                  disabled={rejectSubmitting}
+                  className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={rejectSubmitting}
+                  className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl shadow-sm transition"
+                >
+                  {rejectSubmitting ? 'Rejecting...' : 'Reject claim'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
