@@ -245,20 +245,31 @@ export default {
 
       },
 
+      // `backwards`, not `both`: a finished entrance animation must stop
+      // applying its transform/filter. With `both` the final keyframe's
+      // identity `transform` is retained on the element forever, which makes
+      // it a containing block for `position: fixed` descendants — so any modal
+      // (reject-claim dialog, claim modal, report sheet) opened inside an
+      // animated page or card was sized against the whole document and opened
+      // off-screen once the page was scrolled. The last keyframe of every
+      // animation below is the element's natural state, so dropping the fill
+      // forward changes nothing visually.
       animation: {
-        rise: 'tp-rise var(--tp-duration-slow) var(--tp-ease-out) both',
-        fade: 'tp-fade var(--tp-duration-base) var(--tp-ease-out) both',
+        rise: 'tp-rise var(--tp-duration-slow) var(--tp-ease-out) backwards',
+        fade: 'tp-fade var(--tp-duration-base) var(--tp-ease-out) backwards',
 
-        'fade-in': 'tp-fade-in var(--tp-duration-base) var(--tp-ease-out) both',
-        'fade-in-up': 'tp-fade-in-up var(--tp-duration-base) var(--tp-ease-out) both',
+        'fade-in': 'tp-fade-in var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'fade-in-up':
+          'tp-fade-in-up var(--tp-duration-base) var(--tp-ease-out) backwards',
         'fade-in-right':
-          'tp-fade-in-right var(--tp-duration-base) var(--tp-ease-out) both',
-        'pop-in': 'tp-pop-in var(--tp-duration-base) var(--tp-ease-spring) both',
-        'scale-in': 'tp-scale-in var(--tp-duration-base) var(--tp-ease-out) both',
-        'slide-up': 'tp-slide-up var(--tp-duration-base) var(--tp-ease-out) both',
-        'slide-down': 'tp-slide-down var(--tp-duration-base) var(--tp-ease-out) both',
-        'drawer-in': 'tp-drawer-in var(--tp-duration-base) var(--tp-ease-out) both',
-        'page-in': 'tp-page-in var(--tp-duration-slow) var(--tp-ease-out) both',
+          'tp-fade-in-right var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'pop-in': 'tp-pop-in var(--tp-duration-base) var(--tp-ease-spring) backwards',
+        'scale-in': 'tp-scale-in var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'slide-up': 'tp-slide-up var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'slide-down':
+          'tp-slide-down var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'drawer-in': 'tp-drawer-in var(--tp-duration-base) var(--tp-ease-out) backwards',
+        'page-in': 'tp-page-in var(--tp-duration-slow) var(--tp-ease-out) backwards',
       },
 
       // Stagger scale for `.anim-delay-1` … `.anim-delay-6`, emitted by the
