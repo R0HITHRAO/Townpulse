@@ -12,9 +12,10 @@
  * response looks perfect. That is why the deep links are loaded in a real
  * browser and both the URL and the rendered heading are asserted.
  *
- * `/dashboard` is the deliberate inverse: signed out it must land on `/login`,
+ * `/dashboard` is tested from both sides. Signed out it must land on `/login`,
  * so that check expects the URL to change and fails if the guard stops
- * protecting a business page.
+ * protecting a business page; signed in as a business owner the same URL must
+ * stay put, so the guard cannot over-block the account the page exists for.
  *
  * The browser is the locally installed Chrome or Edge — `playwright-core`
  * ships no browser download. Set `SMOKE_BROWSER_CHANNEL=msedge` (or `chrome`) to
@@ -76,6 +77,19 @@ const SNAPSHOT = {
     },
   ],
 };
+// A business owner, not an admin: the /dashboard guard accepts either, but the
+// page exists for owners, so this is the account it must not over-block.
+const BUSINESS_USER = {
+  id: 'u-smoke-owner',
+  name: 'Smoke Owner',
+  email: 'owner@townpulse.test',
+  role: 'business_owner',
+  phone_verified: true,
+  email_verified: true,
+  is_active: true,
+  created_at: '2025-01-01T00:00:00Z',
+};
+const DASHBOARD_HEADING = 'Business Owner Dashboard';
 const ADMIN_USER = {
   id: 'u-smoke-admin',
   name: 'Smoke Admin',
@@ -217,22 +231,23 @@ async function checkDeepLink(context, { path, expectedPath = path, heading }) {
 }
 
 /**
- * A fresh browser context with the fixtures every check needs. `signedIn` seeds
- * an administrator session before any app script runs; the signed-out checks
- * must not, or the /dashboard guard would have nothing to reject.
+ * A fresh browser context with the fixtures every check needs. `user` seeds a
+ * session before any app script runs; omit it for the signed-out checks, which
+ * must start with no session or the /dashboard guard would have nothing to
+ * reject.
  */
-async function createContext(browser, { signedIn }) {
+async function createContext(browser, { user = null } = {}) {
   const context = await browser.newContext({ serviceWorkers: 'block' });
 
-  if (signedIn) {
-    await context.addInitScript((user) => {
+  if (user) {
+    await context.addInitScript((session) => {
       try {
         localStorage.setItem('townpulse_access_token', 'smoke-token');
-        localStorage.setItem('townpulse_user', JSON.stringify(user));
+        localStorage.setItem('townpulse_user', JSON.stringify(session));
       } catch {
         /* storage unavailable — the guard will redirect and the check will say so */
       }
-    }, ADMIN_USER);
+    }, user);
   }
 
   // There is no backend behind the static preview: answer API calls explicitly
@@ -274,7 +289,7 @@ async function checkBrowser() {
   try {
     // Signed out: the public deep links, plus the guard that must stop a visitor
     // reaching a business page.
-    const signedOut = await createContext(browser, { signedIn: false });
+    const signedOut = await createContext(browser);
     try {
       await checkDeepLink(signedOut, { path: `/listings/${LISTING_ID}`, heading: LISTING_NAME });
       await checkDeepLink(signedOut, { path: `/c/${CATEGORY_SLUG}`, heading: CATEGORY_HEADING });
@@ -289,14 +304,23 @@ async function checkBrowser() {
 
     // Signed in as an administrator, so /admin exercises the page itself rather
     // than being bounced to the login guard.
-    const signedIn = await createContext(browser, { signedIn: true });
+    const admin = await createContext(browser, { user: ADMIN_USER });
     try {
-      await checkDeepLink(signedIn, {
+      await checkDeepLink(admin, {
         path: '/admin',
         heading: 'Town Administrator Console',
       });
     } finally {
-      await signedIn.close();
+      await admin.close();
+    }
+
+    // The guard must not over-block: the same URL, now as the owner it exists
+    // for, has to stay put and render the business dashboard.
+    const owner = await createContext(browser, { user: BUSINESS_USER });
+    try {
+      await checkDeepLink(owner, { path: '/dashboard', heading: DASHBOARD_HEADING });
+    } finally {
+      await owner.close();
     }
   } finally {
     await browser.close();
