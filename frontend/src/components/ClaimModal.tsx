@@ -22,8 +22,17 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  // Submitted state stays in the dialog instead of `alert()` (AUDIT.md 8.3):
+  // the confirmation is styled, translatable and announced by assistive tech.
+  const [submitted, setSubmitted] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setSubmitted(false);
+    setError('');
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +46,8 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
 
     try {
       await api.claimListing(listing.id, proofUrl || undefined, message || undefined);
-      alert('Your claim has been submitted! An administrator will review and verify it.');
+      setSubmitted(true);
       onSuccess();
-      onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to submit claim');
     } finally {
@@ -55,7 +63,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-100 dark:border-slate-800 relative animate-scale-in transition-colors duration-200">
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-5 right-5 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition"
         >
           <X className="w-5 h-5" />
@@ -77,12 +85,37 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs rounded-xl flex items-center gap-2 border border-red-100 dark:border-red-800">
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 text-xs rounded-xl flex items-center gap-2 border border-red-100 dark:border-red-800"
+          >
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
+        {submitted ? (
+          <div className="space-y-4">
+            <div
+              role="status"
+              className="flex items-start gap-2 p-3.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs rounded-xl border border-emerald-200 dark:border-emerald-800/60"
+            >
+              <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>
+                Your claim has been submitted! An administrator will review and verify it.
+              </span>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 text-xs font-semibold rounded-xl shadow-md transition hover:scale-105 active:scale-95"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1">
@@ -119,7 +152,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-800">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition"
             >
               Cancel
@@ -134,6 +167,7 @@ export const ClaimModal: React.FC<ClaimModalProps> = ({
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );
