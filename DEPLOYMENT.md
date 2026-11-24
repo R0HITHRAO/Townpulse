@@ -70,16 +70,24 @@ cp .env.example .env
 # 4. Start production stack with Nginx reverse proxy
 docker compose -f infra/docker-compose.prod.yml up -d --build
 
-# 5. Run database migrations & seed initial town listings
+# 5. Run database migrations, then create the admin and owner accounts
 docker compose -f infra/docker-compose.prod.yml exec backend alembic upgrade head
 docker compose -f infra/docker-compose.prod.yml exec backend python scripts/seed.py
 ```
+
+`scripts/seed.py` does not seed any listings on its own. It creates the two demo
+accounts (`admin@townpulse.dev`, `owner@townpulse.dev`) and imports
+`backend/seed/osm_seed.json` only if that file exists — no location data is
+bundled. On a fresh deployment step 5 therefore leaves the directory empty;
+import one area first with `scripts/import_osm.py`, or build
+`seed/osm_seed.json` with `scripts/build_seed_from_osm.py`, then re-run the
+seed command. See [README § Data honesty](./README.md#-data-honesty).
 
 ---
 
 ## 🔑 Default Production Demo Logins
 
-After database seeding:
+After running `scripts/seed.py`:
 - **System Admin:** `admin@townpulse.dev` / `Admin123!`
 - **Business Owner:** `owner@townpulse.dev` / `Owner123!`
 
