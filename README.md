@@ -147,7 +147,6 @@ and the backend `.env`. Full instructions are in
 The previous seed file contained invented clinics, mechanics and diagnostics
 with made-up phone numbers, all marked `verified: true`. Fabricated contact
 details for health services is the most harmful thing this project could ship.
-
 The fabricated records and bundled location extracts have been removed. No
 location is selected by default, and the offline snapshot is empty until an
 operator explicitly configures one. Imported OpenStreetMap records carry:
@@ -233,7 +232,7 @@ In small towns and rural communities, finding reliable local services — clinic
 │  │  PWA         │    │  Pydantic    │    │                    │  │
 │  │              │    │              │    │  Nginx (prod)      │  │
 │  └─────────────┘    └──────────────┘    └────────────────────┘  │
-│         :3000              :8000                                  │
+│         :3000              :8000                                 │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -266,6 +265,7 @@ make dev
 # operator-provided backend/seed/osm_seed.json. No listings are bundled.
 # Linux / macOS:
 make seed
+
 # Windows:
 .\dev.ps1 seed
 
@@ -314,7 +314,7 @@ townpulse/
 │   ├── alembic/          # Database migrations
 │   ├── tests/            # Pytest test suite
 │   ├── scripts/          # Seed, backup scripts
-│   ├── seed/             # Sample data (50 listings)
+│   ├── seed/             # Operator data (osm_seed.json), git-ignored — empty by default
 │   ├── Dockerfile        # Multi-stage production build
 │   └── docker-compose.yml
 ├── frontend/
@@ -392,6 +392,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ### Commit Convention
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` — New feature
 - `fix:` — Bug fix
 - `docs:` — Documentation
