@@ -314,7 +314,7 @@ townpulse/
 │   ├── alembic/          # Database migrations
 │   ├── tests/            # Pytest test suite
 │   ├── scripts/          # Seed, backup scripts
-│   ├── seed/             # Sample data (50 listings)
+│   ├── seed/             # Operator data (osm_seed.json), git-ignored — empty by default
 │   ├── Dockerfile        # Multi-stage production build
 │   └── docker-compose.yml
 ├── frontend/
