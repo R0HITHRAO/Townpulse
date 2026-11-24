@@ -16,13 +16,15 @@ This guide walks you through deploying **TownPulse** so that it is live and glob
 ## ⚡ Step 1: Deploy Backend & Database to Render (5 Minutes)
 
 1. Sign up / Log in to [Render.com](https://render.com).
-2. Click **New +** → **Blueprint**.
+2.
+Click **New +** → **Blueprint**.
 3. Connect your GitHub repository: `https://github.com/R0HITHRAO/Townpulse`.
 4. Render will automatically detect [`render.yaml`](./render.yaml) and provision:
    - `townpulse-postgres` (PostgreSQL 15 database)
    - `townpulse-redis` (Redis 7 instance)
    - `townpulse-backend` (FastAPI Web Service)
-5. Click **Apply**.
+5.
+Click **Apply**.
 6. Once the build completes, copy your live backend URL (e.g. `https://townpulse-backend.onrender.com`).
 
 Verify your backend is live:
@@ -32,7 +34,8 @@ Verify your backend is live:
 
 ## ⚡ Step 2: Deploy Frontend to Vercel (2 Minutes)
 
-1. Sign up / Log in to [Vercel.com](https://vercel.com).
+1. Sign up / Log in to
+[Vercel.com](https://vercel.com).
 2. Click **Add New...** → **Project**.
 3. Import your `Townpulse` GitHub repository.
 4. Configure Project Settings:
@@ -41,13 +44,34 @@ Verify your backend is live:
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
 5. Under **Environment Variables**, add:
-   - `VITE_API_URL` = `https://townpulse-backend.onrender.com` (optional; `frontend/vercel.json` proxies `/api` to this backend when it is left empty)
+- `VITE_API_URL` = `https://townpulse-backend.onrender.com` (optional; `frontend/vercel.json` proxies `/api` to this backend when it is left empty)
    - `VITE_GOOGLE_MAPS_API_KEY` = your restricted Maps JavaScript API key (optional; leave empty to use the OpenStreetMap fallback)
 6. Click **Deploy**.
-
 For Google Maps, create a browser key in Google Cloud, enable the Maps JavaScript API, enable billing, and restrict the key to TownPulse's production and preview web domains. Never use an unrestricted key. The map remains usable with OpenStreetMap if this variable is not set or Google Maps cannot load.
-
 Vercel will build and assign you a global URL (e.g. `https://townpulse.vercel.app`).
+
+---
+
+## ⚠️ One Vercel project only
+
+This repository is connected to **two** Vercel projects. Only one of them is real:
+
+| Project | Root directory | What it is |
+| :--- | :--- | :--- |
+| `townpulse` | `frontend` | **The real frontend deployment.** Step 2 above configures this one. |
+| `townpulse-lr4y` | `backend` | **Stray — delete it.** It tries to build the FastAPI backend on Vercel, which this project does not support. |
+
+The stray project fails on every push with:
+
+```text
+Running "None"
+sh: line 1: None: command not found
+Error: [BUILD_UTILS_SPAWN_127]
+```
+
+Its build command is stored as the literal string `None` in the Vercel project settings — not in any file in this repository, so no code change here can fix it. The backend belongs on Render (Step 1): it needs PostGIS, Redis and long-running requests, and there is no `api/` entrypoint for Vercel's Python runtime.
+
+**To remove it:** Vercel → team `elite-7b73` → project `townpulse-lr4y` → Settings → Delete Project. Until it is deleted, every pull request shows a failing Vercel check even when the site itself deployed successfully.
 
 ---
 
@@ -81,6 +105,7 @@ docker compose -f infra/docker-compose.prod.yml exec backend python scripts/seed
 
 After database seeding:
 - **System Admin:** `admin@townpulse.dev` / `Admin123!`
-- **Business Owner:** `owner@townpulse.dev` / `Owner123!`
+- **Business Owner:** `owner@townpulse.dev` /
+`Owner123!`
 
 *(Make sure to change these passwords after deploying to public production).*
