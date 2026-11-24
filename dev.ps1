@@ -24,7 +24,7 @@ switch ($Action.ToLower()) {
         docker compose -f $ComposeFile up -d --build
     }
     "seed" {
-        Write-Host "🌱 Seeding database with sample town listings..." -ForegroundColor Green
+        Write-Host "🌱 Creating development accounts with scripts/seed.py..." -ForegroundColor Green
         docker compose -f $ComposeFile exec backend python scripts/seed.py
     }
     "test" {
