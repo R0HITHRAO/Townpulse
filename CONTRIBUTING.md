@@ -36,23 +36,23 @@ By participating, you are expected to uphold this code.
    make seed
    ```
 4. Create a feature branch:
-   ```bash
+```bash
    git checkout -b feature/your-feature-name
    ```
 
 ## Development Workflow
 
 1. Pick an issue or create one describing what you want to work on
-2. Create a feature branch from `develop`
+2. Create a feature branch from `main`
 3. Write code with tests
 4. Run linters and tests locally
-5. Push and open a PR against `develop`
+5. Push and open a PR against `main`
 
 ### Running the development environment
 
 ```bash
 make dev          # Start all services (backend, frontend, postgres, redis)
-make seed         # Seed the database with sample data
+make seed         # Create development accounts (imports an operator seed if present)
 make test         # Run all tests
 make lint         # Run all linters
 make format       # Auto-format code
@@ -62,11 +62,13 @@ make format       # Auto-format code
 
 | Branch | Purpose |
 |--------|---------|
-| `main` | Production-ready code. Protected — requires PR review. |
-| `develop` | Integration branch. Features merge here first. |
+| `main` | The only long-lived branch. Changes land here via pull request. |
 | `feature/*` | Feature development branches. |
 | `fix/*` | Bug fix branches. |
 | `docs/*` | Documentation-only changes. |
+
+There is no `develop` branch. `main` is both the integration and the release
+branch, and every push to it runs the full CI pipeline described below.
 
 ## Commit Convention
 
@@ -106,12 +108,18 @@ chore(deps): update FastAPI to 0.104.1
 
 ## Pull Request Process
 
-1. Ensure your branch is up to date with `develop`
+1. Ensure your branch is up to date with `main`
 2. Run all tests and linters: `make test && make lint`
 3. Fill out the PR template completely
 4. Request review from at least one maintainer
 5. Address review feedback
 6. Squash commits if requested
+
+CI must be green before a PR is merged. The pipeline runs backend lint and type
+checks (ruff, black, isort, mypy), pytest, frontend lint and typecheck, Vitest,
+the design-system contrast validator, the stylesheet-structure and i18n key
+coverage checks, a full build with the SEO artefacts verified, the deep-link
+smoke test and both Docker images. See `.github/workflows/ci.yml`.
 
 ### PR Checklist
 
@@ -131,7 +139,6 @@ chore(deps): update FastAPI to 0.104.1
 - **Linter:** Ruff
 - **Type hints:** Required for all function signatures
 - **Docstrings:** Required for public functions and classes
-
 ### Frontend (TypeScript/React)
 
 - **Formatter:** Prettier
@@ -147,7 +154,6 @@ Install pre-commit hooks to auto-format on commit:
 pip install pre-commit
 pre-commit install
 ```
-
 ## Testing
 
 ### Backend
@@ -179,7 +185,6 @@ Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md) and include:
 - Screenshots if applicable
 
 ## Suggesting Features
-
 Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.md) and include:
 
 - Clear description of the feature

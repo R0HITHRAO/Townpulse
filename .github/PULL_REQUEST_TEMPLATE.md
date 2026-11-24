@@ -39,10 +39,10 @@ make lint
 - [ ] No hardcoded secrets or credentials
 - [ ] Database migration included if schema changed
 - [ ] `.env.example` updated if new env vars added
-- [ ] Branch is up to date with `develop`
-- [ ] PR is against `develop` (not `main`)
+- [ ] Branch is up to date with `main`
+- [ ] PR targets `main` (the only long-lived branch; there is no `develop`)
+- [ ] CI is green
 - [ ] Screenshots included for UI changes
-
 ### Related Issues / PRs
 <!-- List related issues or PRs if any -->
 
