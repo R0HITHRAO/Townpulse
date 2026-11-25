@@ -8,7 +8,11 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useSeo } from '../hooks/useSeo';
 import { routes } from '../config/site';
 import { useCurrentLocation } from '../context/LocationContext';
-import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
+import {
+  BUILT_IN_CATEGORIES,
+  categoryDescriptionKey,
+  categoryNameKey,
+} from '../utils/categoryI18n';
 import { Reveal } from '../components/Reveal';
 
 /**
@@ -17,7 +21,18 @@ import { Reveal } from '../components/Reveal';
  * Counts and the offline fallback both come from the bundled snapshot; the
  * API's category payload has no slug column, so its rows are merged with the
  * snapshot's slugs by id (the /c/<slug> links depend on them).
+ *
+ * Both sources can be empty (the snapshot ships `categories: []`), so the list
+ * falls back to the eight built-in categories: their /c/<slug> pages exist
+ * whether or not anything is loaded.
  */
+const builtInCategories = (): Category[] =>
+  BUILT_IN_CATEGORIES.map((category) => ({
+    id: 0,
+    name: category.name,
+    slug: category.slug,
+    icon: category.icon,
+  }));
 export const Categories: React.FC = () => {
   const { t } = useTranslation();
   const { location } = useCurrentLocation();
@@ -60,10 +75,17 @@ export const Categories: React.FC = () => {
         console.error(err);
       }
 
-      if (!cancelled && snapshotCategories.length > 0) {
-        setCategories(snapshotCategories);
+      if (!cancelled) {
         setCounts(counted);
-        setOfflineData(true);
+        if (snapshotCategories.length > 0) {
+          setCategories(snapshotCategories);
+          setOfflineData(true);
+        } else {
+          // No API rows and no snapshot: list the built-in categories, whose
+          // pages still work, instead of an empty directory.
+          setCategories(builtInCategories());
+          setOfflineData(false);
+        }
       }
     })().finally(() => {
       if (!cancelled) setLoading(false);
@@ -101,7 +123,7 @@ export const Categories: React.FC = () => {
               const descKey = categoryDescriptionKey(cat.slug);
               const count = cat.slug ? counts[cat.slug] ?? 0 : 0;
               return (
-                <Reveal key={cat.id} as="li" direction="up" delay={Math.min(index, 8) * 55} className="h-full">
+                <Reveal key={cat.slug ?? cat.id} as="li" direction="up" delay={Math.min(index, 8) * 55} className="h-full">
                   <Link
                     to={`/c/${cat.slug ?? cat.id}`}
                     className="group flex h-full flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-orange-400 hover:shadow-lg dark:hover:border-orange-600"

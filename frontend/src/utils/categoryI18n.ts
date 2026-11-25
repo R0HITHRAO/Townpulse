@@ -39,6 +39,33 @@ export function isKnownCategorySlug(slug?: string | null): boolean {
   return !!slug && Object.prototype.hasOwnProperty.call(SLUG_TO_KEY, slug);
 }
 
+/** A built-in category: enough to render the directory with no data at all. */
+export interface BuiltInCategory {
+  slug: string;
+  name: string;
+  icon: string;
+}
+
+/**
+ * The eight categories the app ships with, in the order the directory shows
+ * them.
+ *
+ * The API's rows come from the database and the bundled snapshot ships
+ * `categories: []`, so both can be empty. The /c/<slug> pages still exist for
+ * these eight, which means /categories must list them rather than showing an
+ * empty directory.
+ */
+export const BUILT_IN_CATEGORIES: readonly BuiltInCategory[] = [
+  { slug: 'healthcare', name: 'Health & clinics', icon: '🏥' },
+  { slug: 'food', name: 'Food & groceries', icon: '🛒' },
+  { slug: 'shelter', name: 'Shelter & emergency', icon: '🚨' },
+  { slug: 'auto', name: 'Mechanics & transport', icon: '🔧' },
+  { slug: 'civic', name: 'Civic & government', icon: '🏛' },
+  { slug: 'community', name: 'Community & volunteers', icon: '🤝' },
+  { slug: 'education', name: 'Education & library', icon: '📚' },
+  { slug: 'home-services', name: 'Home & repair', icon: '🧰' },
+];
+
 /** i18n key for a category description, or null. */
 export function categoryDescriptionKey(slug?: string | null): string | null {
   const nameKey = categoryNameKey(slug);
