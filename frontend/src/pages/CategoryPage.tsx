@@ -11,7 +11,11 @@ import { Pagination } from '../components/Pagination';
 import { Reveal } from '../components/Reveal';
 import { absoluteUrl, useSeo } from '../hooks/useSeo';
 import { useCurrentLocation } from '../context/LocationContext';
-import { categoryDescriptionKey, categoryNameKey } from '../utils/categoryI18n';
+import {
+  categoryDescriptionKey,
+  categoryNameKey,
+  isKnownCategorySlug,
+} from '../utils/categoryI18n';
 
 const PER_PAGE = 12;
 
@@ -100,6 +104,14 @@ export const CategoryPage: React.FC = () => {
         return;
       }
 
+      // Neither the snapshot nor the API carries a slug, and the snapshot is
+      // optional. A canonical slug still names a real category, so fall back to
+      // it (id 0 = no API row to query yet) instead of claiming the page does
+      // not exist.
+      const catalogue: Category | null = isKnownCategorySlug(slug)
+        ? { id: 0, name: '', slug }
+        : null;
+
       try {
         const fromApi = await api.getCategories();
         const match = Number.isFinite(numeric)
@@ -107,10 +119,14 @@ export const CategoryPage: React.FC = () => {
           : undefined;
         if (!cancelled) {
           if (match) setCategory(match);
+          else if (catalogue) setCategory(catalogue);
           else setNotFound(true);
         }
       } catch {
-        if (!cancelled) setNotFound(true);
+        if (!cancelled) {
+          if (catalogue) setCategory(catalogue);
+          else setNotFound(true);
+        }
       }
     })();
 
@@ -124,6 +140,32 @@ export const CategoryPage: React.FC = () => {
     if (!category) return;
     let cancelled = false;
     setLoading(true);
+
+    const readSnapshot = async () => {
+      const snapshot = await searchSnapshot({
+        category_id: category.slug ?? category.id,
+        page,
+        per_page: PER_PAGE,
+        sort_by: 'name',
+      });
+      if (cancelled) return;
+      setListings(snapshot.items);
+      setTotal(snapshot.total);
+      setTotalPages(snapshot.total_pages);
+      setOfflineData(snapshot.available && snapshot.directoryCount > 0);
+    };
+
+    // A catalogue-only category has no API id yet: the snapshot is the only
+    // source it can read, and the empty state is the honest result when that is
+    // empty too.
+    if (category.id <= 0) {
+      void readSnapshot().finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
 
     api
       .searchListings({
@@ -142,17 +184,7 @@ export const CategoryPage: React.FC = () => {
       })
       .catch(async (err: unknown) => {
         console.error(err);
-        const snapshot = await searchSnapshot({
-          category_id: category.slug ?? category.id,
-          page,
-          per_page: PER_PAGE,
-          sort_by: 'name',
-        });
-        if (cancelled) return;
-        setListings(snapshot.items);
-        setTotal(snapshot.total);
-        setTotalPages(snapshot.total_pages);
-        setOfflineData(snapshot.available && snapshot.directoryCount > 0);
+        await readSnapshot();
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -28,6 +28,17 @@ export function categoryNameKey(slug?: string | null): string | null {
   return key ? `categories.${key}` : null;
 }
 
+/**
+ * Whether `slug` is one of the eight categories the app ships with.
+ *
+ * The API's category rows have no slug column and the bundled snapshot is
+ * optional (it is empty by default), so a canonical slug has to resolve even
+ * when neither source can supply the mapping.
+ */
+export function isKnownCategorySlug(slug?: string | null): boolean {
+  return !!slug && Object.prototype.hasOwnProperty.call(SLUG_TO_KEY, slug);
+}
+
 /** i18n key for a category description, or null. */
 export function categoryDescriptionKey(slug?: string | null): string | null {
   const nameKey = categoryNameKey(slug);
